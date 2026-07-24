@@ -1,0 +1,3 @@
+class DeliveryFeature {
+  const DeliveryFeature();
+}

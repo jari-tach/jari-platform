@@ -1,0 +1,137 @@
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/coverage/
+/coverage/lcov.info
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# IDE - Visual Studio Code
+.vscode/
+
+# IDE - IntelliJ / WebStorm
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# IDE - Android Studio
+*.iml
+
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Flutter specific
+*.flutter-plugins
+*.flutter-plugins-dependencies
+
+# Coverage
+coverage/
+lcov.info
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
+
+# Secrets and keys
+**/secrets/
+**/*.key
+**/*.pem
+**/keystore.jks
+**/keystore.properties
+
+# Firebase
+google-services.json
+firebase.json
+GoogleService-Info.plist
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+fastlane/metadata
+
+# Build outputs
+**/build/
+**/output/
+**/dist/
+**/tmp/
+
+# Dependency directories
+node_modules/
+.packages
+
+# Test coverage
+coverage/
+test_coverage/
+
+# Temporary files
+*.tmp
+*.temp
+*~
+
+# Lock files (optional, uncomment if needed)
+# pubspec.lock
+
+# Platform-specific
+**/Pods/
+**/.symlinks/
+**/xcuserdata/
+**/DerivedData/
+**/android/.gradle/
+**/android/captures/
+**/android/local.properties
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/ephemeral/
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/Runner/GeneratedPluginRegistrant.*
+**/ios/Runner/GoogleService-Info.plist
+**/macos/Flutter/ephemeral/
+**/macos/Flutter/flutter_export_environment.sh
+**/macos/Runner/GeneratedPluginRegistrant.*
+**/windows/flutter/generated_plugin_registrant.cc
+**/windows/flutter/generated_plugin_registrant.h
+**/linux/flutter/generated_plugin_registrant.cc
+**/linux/flutter/generated_plugin_registrant.h
+**/web/flutter_bootstrap.js
+**/web/index.html
