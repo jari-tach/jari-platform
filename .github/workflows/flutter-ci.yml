@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [ main, develop ]
 
+# Security: Define minimal required permissions
+permissions:
+  contents: read
+  pull-requests: read
+  actions: read
+
 jobs:
   analyze:
     name: Flutter Analyze
@@ -18,6 +24,17 @@ jobs:
         with:
           flutter-version: '3.24.0'
           channel: 'stable'
+      
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            .dart_tool
+            .packages
+            build
+          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
       
       - name: Install dependencies
         run: flutter pub get
@@ -36,6 +53,17 @@ jobs:
         with:
           flutter-version: '3.24.0'
           channel: 'stable'
+      
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            .dart_tool
+            .packages
+            build
+          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
       
       - name: Install dependencies
         run: flutter pub get
@@ -56,6 +84,17 @@ jobs:
           flutter-version: '3.24.0'
           channel: 'stable'
       
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            .dart_tool
+            .packages
+            build
+          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
+      
       - name: Install dependencies
         run: flutter pub get
       
@@ -74,6 +113,17 @@ jobs:
         with:
           flutter-version: '3.24.0'
           channel: 'stable'
+      
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            .dart_tool
+            .packages
+            build
+          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
       
       - name: Install dependencies
         run: flutter pub get
