@@ -18,13 +18,15 @@ final class AppServiceRegistry {
     if (_instance != null) return _instance!;
 
     final registry = AppServiceRegistry._();
-    registry._logger = const ConsoleLoggerService();
+    registry._logger = ConsoleLoggerService();
     registry._errorHandler = AppErrorHandler(logger: registry._logger);
-    registry._storage = SecureStorageService(logger: registry._logger);
+    registry._storage = SecureStorageServiceImpl(logger: registry._logger);
     await registry._storage.init();
     registry._apiClient = ApiClient(
       logger: registry._logger,
-      tokenProvider: () => registry._storage.getString('access_token'),
+      // Token provider must be synchronous (see AuthInterceptor), while
+      // getAccessToken() is async; no synchronous token cache exists yet.
+      tokenProvider: () => null,
     );
 
     _instance = registry;

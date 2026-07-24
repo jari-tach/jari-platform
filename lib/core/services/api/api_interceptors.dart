@@ -12,8 +12,9 @@ final class LoggingInterceptor extends Interceptor {
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     _logger.debug(
       'HTTP ${options.method} ${options.uri}',
-      tag: 'HTTP',
-      data: {
+      null,
+      null,
+      {
         'headers': options.headers,
         if (options.data != null) 'body': options.data,
       },
@@ -25,8 +26,9 @@ final class LoggingInterceptor extends Interceptor {
   void onResponse(Response response, ResponseInterceptorHandler handler) {
     _logger.debug(
       'HTTP ${response.statusCode} ${response.requestOptions.uri}',
-      tag: 'HTTP',
-      data: {
+      null,
+      null,
+      {
         'statusCode': response.statusCode,
         if (response.data != null) 'body': response.data,
       },
@@ -38,9 +40,9 @@ final class LoggingInterceptor extends Interceptor {
   void onError(DioException err, ErrorInterceptorHandler handler) {
     _logger.error(
       'HTTP ${err.response?.statusCode ?? 'ERROR'} ${err.requestOptions.uri}',
-      tag: 'HTTP',
-      error: err,
-      data: {
+      err,
+      err.stackTrace,
+      {
         'type': err.type.name,
         'statusCode': err.response?.statusCode,
         'response': err.response?.data,

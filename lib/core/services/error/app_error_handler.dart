@@ -1,135 +1,209 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 
+import '../logger/logger_service.dart';
 import 'app_exception.dart';
 import 'app_failure.dart';
-import '../logger/logger_service.dart';
 
-/// Centralized error handler that converts [AppException]s to [AppFailure]s
-/// and handles unexpected errors gracefully.
-final class AppErrorHandler {
-  const AppErrorHandler({required LoggerService logger}) : _logger = logger;
-
+/// Global error handler for the application
+///
+/// Handles:
+/// - Flutter framework errors
+/// - Platform errors
+/// - Uncaught exceptions
+/// - Riverpod errors
+class AppErrorHandler {
   final LoggerService _logger;
 
-  /// Converts an [AppException] to the corresponding [AppFailure].
-  AppFailure mapExceptionToFailure(AppException exception) {
-    return switch (exception) {
-      NetworkException e => NetworkFailure(e.message, code: e.code),
-      ServerException e => ServerFailure(e.message, code: e.code, statusCode: e.statusCode),
-      AuthException e => UnauthenticatedFailure(e.message),
-      ValidationException e => ValidationFailure(e.message, code: e.code, errors: e.errors),
-      CacheException e => CacheFailure(e.message, code: e.code),
-      SerializationException e => UnknownFailure(e.message, code: e.code, originalError: e),
-      UnknownException e => UnknownFailure(e.message, code: e.code, originalError: e.originalError),
+  // Stream controllers for error events
+  final StreamController<AppException> _exceptionController =
+      StreamController<AppException>.broadcast();
+  final StreamController<AppFailure> _failureController =
+      StreamController<AppFailure>.broadcast();
+
+  AppErrorHandler({required LoggerService logger}) : _logger = logger;
+
+  /// Initialize global error handlers
+  void init() {
+    _logger.info('AppErrorHandler: Initializing global error handlers');
+
+    // Handle Flutter framework errors
+    FlutterError.onError = (FlutterErrorDetails details) {
+      _handleFlutterError(details);
     };
+
+    // Handle platform errors
+    PlatformDispatcher.instance.onError = (error, stack) {
+      _handlePlatformError(error, stack);
+      return true;
+    };
+
+    // Handle uncaught async errors
+    runZonedGuarded(
+      () {},
+      (error, stackTrace) {
+        _handleZoneError(error, stackTrace);
+      },
+    );
+
+    _logger.info('AppErrorHandler: Global error handlers initialized');
   }
 
-  /// Converts a generic [Exception] or [Error] to an [AppFailure].
-  /// This is the top-level handler for unexpected errors.
-  AppFailure handleUnexpectedError(Object error, [StackTrace? stackTrace]) {
+  /// Handle Flutter framework errors
+  void _handleFlutterError(FlutterErrorDetails details) {
+    final exception = UnknownException(
+      details.exceptionAsString(),
+      stackTrace: details.stack,
+    );
+
     _logger.error(
-      'Unexpected error occurred',
-      error: error,
+      'AppErrorHandler: Flutter error',
+      details.exception,
+      details.stack,
+      {
+        'library': details.library,
+        'context': details.context?.toString(),
+      },
+    );
+
+    _exceptionController.add(exception);
+  }
+
+  /// Handle platform errors
+  bool _handlePlatformError(Object error, StackTrace stackTrace) {
+    final exception = UnknownException(
+      error.toString(),
       stackTrace: stackTrace,
     );
 
-    if (error is AppException) {
-      return mapExceptionToFailure(error);
-    }
+    _logger.error('AppErrorHandler: Platform error', error, stackTrace);
+    _exceptionController.add(exception);
 
-    if (error is DioException) {
-      return _mapDioExceptionToFailure(error);
-    }
+    return true;
+  }
 
-    if (error is FormatException) {
-      return const UnknownFailure('Invalid data format');
-    }
-
-    return UnknownFailure(
+  /// Handle zone errors
+  void _handleZoneError(Object error, StackTrace stackTrace) {
+    final exception = UnknownException(
       error.toString(),
-      originalError: error,
+      stackTrace: stackTrace,
     );
+
+    _logger.fatal('AppErrorHandler: Zone error', error, stackTrace);
+    _exceptionController.add(exception);
   }
 
-  /// Maps a [DioException] to the appropriate [AppFailure].
-  AppFailure _mapDioExceptionToFailure(DioException error) {
-    _logger.error('DioException occurred', error: error, data: {
-      'type': error.type.name,
-      'statusCode': error.response?.statusCode,
-      'uri': error.requestOptions.uri.toString(),
-    });
+  /// Handle Dio errors
+  void handleDioError(DioException error) {
+    final exception = _mapDioErrorToException(error);
 
-    return switch (error.type) {
-      DioExceptionType.connectionTimeout ||
-      DioExceptionType.sendTimeout ||
-      DioExceptionType.receiveTimeout =>
-        const TimeoutFailure(),
-      DioExceptionType.connectionError =>
-        const NetworkFailure('No internet connection'),
-      DioExceptionType.badResponse =>
-        _mapStatusCodeToFailure(error.response?.statusCode, error),
-      DioExceptionType.cancel =>
-        const NetworkFailure('Request was cancelled'),
-      DioExceptionType.badCertificate =>
-        const NetworkFailure('Invalid SSL certificate'),
-      _ => UnknownFailure(error.message ?? 'Unknown network error'),
-    };
+    _logger.error(
+      'AppErrorHandler: Dio error',
+      error,
+      error.stackTrace,
+      {
+        'statusCode': error.response?.statusCode,
+        'url': error.requestOptions.uri.toString(),
+      },
+    );
+
+    _exceptionController.add(exception);
   }
 
-  /// Maps HTTP status codes to [AppFailure]s.
-  AppFailure _mapStatusCodeToFailure(int? statusCode, DioException error) {
-    if (statusCode == null) {
-      return UnknownFailure(
-        _extractErrorMessage(error) ?? 'No status code',
-        code: 'NO_STATUS_CODE',
-      );
-    }
+  /// Map Dio error to AppException
+  AppException _mapDioErrorToException(DioException error) {
+    switch (error.type) {
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.sendTimeout:
+      case DioExceptionType.receiveTimeout:
+        return NetworkException(
+          'Connection timeout',
+          stackTrace: error.stackTrace,
+        );
 
-    return switch (statusCode) {
-      400 => ValidationFailure(
-          _extractErrorMessage(error) ?? 'Bad request',
-          code: 'BAD_REQUEST',
-        ),
-      401 => const UnauthenticatedFailure(),
-      403 => const UnauthorizedFailure(),
-      404 => NotFoundFailure(
-          _extractErrorMessage(error) ?? 'Resource not found',
-          code: 'NOT_FOUND',
-        ),
-      409 => ValidationFailure(
-          _extractErrorMessage(error) ?? 'Conflict',
-          code: 'CONFLICT',
-        ),
-      422 => ValidationFailure(
-          _extractErrorMessage(error) ?? 'Validation failed',
-          code: 'VALIDATION_ERROR',
-        ),
-      429 => const TimeoutFailure('Too many requests'),
-      >= 500 => ServerFailure(
-          _extractErrorMessage(error) ?? 'Server error',
-          code: 'SERVER_ERROR',
+      case DioExceptionType.badResponse:
+        final statusCode = error.response?.statusCode ?? 0;
+        final message = error.response?.data?['message'] ?? 'Unknown error';
+
+        return ServerException(
+          message,
           statusCode: statusCode,
+          stackTrace: error.stackTrace,
+        );
+
+      case DioExceptionType.cancel:
+        return UnknownException(
+          'Request cancelled',
+          stackTrace: error.stackTrace,
+        );
+
+      case DioExceptionType.connectionError:
+        return NetworkException(
+          'No internet connection',
+          stackTrace: error.stackTrace,
+        );
+
+      case DioExceptionType.badCertificate:
+        return UnknownException(
+          'SSL certificate error',
+          stackTrace: error.stackTrace,
+        );
+
+      case DioExceptionType.unknown:
+      default:
+        return UnknownException(
+          error.message ?? 'Unknown error',
+          stackTrace: error.stackTrace,
+        );
+    }
+  }
+
+  /// Convert exception to failure
+  AppFailure mapExceptionToFailure(AppException exception) {
+    _logger.debug('AppErrorHandler: Mapping exception to failure');
+
+    return switch (exception) {
+      NetworkException() => NetworkFailure(exception.message),
+      ServerException() => ServerFailure(
+          exception.message,
+          statusCode: exception.statusCode,
         ),
-      _ => UnknownFailure(
-          _extractErrorMessage(error) ?? 'Unexpected error',
-          code: 'UNEXPECTED',
-        ),
+      AuthException() => UnauthenticatedFailure(exception.message),
+      ValidationException() => ValidationFailure(exception.message),
+      CacheException() => CacheFailure(exception.message),
+      SerializationException() => UnknownFailure(exception.message),
+      UnknownException() => UnknownFailure(exception.message),
     };
   }
 
-  /// Extracts the error message from a [DioException] response body.
-  String? _extractErrorMessage(DioException error) {
-    try {
-      final data = error.response?.data;
-      if (data is Map) {
-        return data['message'] as String? ??
-            data['error'] as String? ??
-            data['error_description'] as String?;
-      }
-      if (data is String) return data;
-    } catch (_) {
-      // Ignore parsing errors
-    }
-    return null;
+  /// Stream of exceptions
+  Stream<AppException> get exceptionStream => _exceptionController.stream;
+
+  /// Stream of failures
+  Stream<AppFailure> get failureStream => _failureController.stream;
+
+  /// Dispose resources
+  Future<void> dispose() async {
+    await _exceptionController.close();
+    await _failureController.close();
+    _logger.info('AppErrorHandler: Disposed');
   }
 }
+
+/// Error handler provider
+final appErrorHandlerProvider = Provider<AppErrorHandler>((ref) {
+  final logger = ref.watch(loggerServiceProvider);
+  final handler = AppErrorHandler(logger: logger);
+
+  // Initialize on creation
+  handler.init();
+
+  // Dispose when provider is disposed
+  ref.onDispose(() => handler.dispose());
+
+  return handler;
+});

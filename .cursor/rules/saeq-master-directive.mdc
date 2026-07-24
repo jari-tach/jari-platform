@@ -1,0 +1,104 @@
+---
+description: SAEQ Platform Master Development Directive — binding rules for all tasks in this repository
+alwaysApply: true
+---
+
+# SAEQ Platform — Master Development Directive
+
+This repository (`saeq_driver`) is **SAEQ Driver only** — one of four fully
+independent applications in the SAEQ Platform (SAEQ Driver, SAEQ Customer,
+SAEQ Merchant, SAEQ Admin — Web in phase 1). Each app has its own project,
+package name, identity, signing, store listing, and release cycle. Full
+decision record: `docs/adr/ADR_SEPARATE_APPLICATIONS_STRATEGY.md` (ADR-013).
+
+## Absolutely forbidden
+
+- Merging Driver/Customer/Merchant/Admin into one Flutter app.
+- Adding a "select user type" screen or in-app role-switching logic.
+- Adding customer, merchant, or admin screens/features to this repo.
+- Creating a Monorepo or a "God Package".
+- Copying this project to bootstrap another app.
+- Extracting shared packages (`saeq_core`, `saeq_design_system`, `saeq_models`,
+  `saeq_networking`, `saeq_localization`) before ≥2 apps have a real, stable,
+  shared need.
+- Starting any app other than SAEQ Driver without an explicit new decision.
+
+Shared backend only (server-side RBAC, never client-side role logic): API
+Gateway, Auth, Central DB, Notifications, Maps/Tracking, Payments, Audit Logs,
+Monitoring.
+
+## Repository Scope
+
+- Each repository represents exactly one application. This repository is
+  SAEQ Driver only.
+- Never import files directly from another app's repository (Customer,
+  Merchant, Admin, or any future app).
+- The only sanctioned way to share code across apps is through official,
+  already-approved Shared Packages (`saeq_core`, `saeq_design_system`,
+  `saeq_models`, `saeq_networking`, `saeq_localization`) — and only once they
+  exist and are approved per the shared-package rule above.
+- Copying files between app repositories as a substitute for a real shared
+  package is forbidden.
+
+## While in PROJECT STABILIZATION
+
+**Forbidden:** new features, architecture redesign, unjustified dependency
+changes, package name changes, shared-package extraction, large refactors,
+cosmetic-only changes.
+
+**Allowed only:** bug fixes, runtime fixes, build fixes, test fixes, static
+analysis fixes, stability improvements, documentation.
+
+Feature development on SAEQ Driver only resumes after stabilization is
+formally declared complete. No other app starts without a separate explicit
+decision.
+
+## Decision Hierarchy
+
+When instructions conflict, higher wins:
+
+1. ADR (latest accepted architectural decision, `docs/adr/`)
+2. `docs/00_PROJECT_BIBLE.md`
+3. `docs/03_ENTERPRISE_ARCHITECTURE.md`
+4. `docs/02_SYSTEM_ARCHITECTURE.md`
+5. This Master Development Directive
+6. The current task/request
+
+A lower-ranked instruction (including this file, or the current user request)
+can never override a higher-ranked one. Only a new ADR can change what a
+prior ADR or `PROJECT_BIBLE` established.
+
+## Development Workflow
+
+Every development task goes through these steps, in order. Skipping a step
+is only allowed for tasks that are purely documentation (no code touched).
+
+1. **Understand** the request and analyze its impact (Architecture, Security,
+   Performance, Maintainability).
+2. **Check against the Decision Hierarchy.** If the task conflicts with an
+   accepted ADR, `PROJECT_BIBLE`, or `ENTERPRISE_ARCHITECTURE`: **do not
+   implement it directly.** Explain the conflict, propose a compliant
+   alternative, and ask whether a new ADR should be adopted if the change is
+   intentional. Only proceed once that new ADR is written and supersedes the
+   prior decision.
+3. **Define the exact file scope** allowed to change; never edit outside it.
+4. **Implement the minimal change** that achieves the goal — fix the root
+   cause, no workarounds, no hacks, no `TODO` as a substitute for a fix.
+5. **Verify nothing is broken:** `flutter analyze` (no new errors/warnings),
+   `flutter test`, Build, Runtime.
+6. **Update documentation** if the change affects design or architecture. Any
+   architectural decision affecting more than one layer or more than one app
+   must be recorded as an ADR (`docs/adr/`, indexed in
+   `docs/27_ARCHITECTURAL_DECISIONS.md`) before implementation.
+7. **Write the unified Arabic report** (see below).
+
+## Report after every task (in Arabic)
+
+- ما تم تنفيذه
+- الملفات المعدلة
+- سبب التعديل
+- المخاطر إن وجدت
+- هل تم تعديل الكود؟
+- هل تغير السلوك؟
+- أعمال مؤجلة
+- الخطوة التالية المقترحة

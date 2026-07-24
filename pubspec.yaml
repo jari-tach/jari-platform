@@ -44,6 +44,21 @@ dependencies:
   flutter_screenutil: ^5.9.3
   intl: ^0.20.2
 
+  # Phase 1.5: Core Foundation
+  get_it: ^7.6.0
+  flutter_secure_storage: ^9.0.0
+  drift: ^2.14.0
+  sqlite3_flutter_libs: ^0.5.0
+  path_provider: ^2.1.0
+  connectivity_plus: 6.1.5
+  crypto: ^3.0.3
+  path: ^1.8.3
+
+  # Dev dependencies for code generation
+  riverpod_annotation: ^4.0.3
+  build_runner: ^2.4.7
+  drift_dev: ^2.14.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

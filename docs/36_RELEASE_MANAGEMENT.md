@@ -12,6 +12,8 @@
 
 This document defines the release management strategy for the SAEQ platform, including versioning, branching, release cycles, deployment procedures, and rollback plans.
 
+> ⚠️ **Scope note (ADR-013 — Separate Applications Strategy):** The SAEQ platform ships as four independent applications (SAEQ Driver, SAEQ Customer, SAEQ Merchant, SAEQ Admin), each with its own repository, package name, and store listing. The versioning, branching, release-cycle, and rollback rules below apply **independently, per application repository** — version numbers, branches, and release schedules are not synchronized across applications. A hotfix released for one application never requires releasing another. See [ADR_SEPARATE_APPLICATIONS_STRATEGY.md](./adr/ADR_SEPARATE_APPLICATIONS_STRATEGY.md) for the full decision record. During PROJECT STABILIZATION, this document governs the `saeq_driver` (SAEQ Driver) repository only.
+
 ---
 
 ## 2. Versioning Strategy

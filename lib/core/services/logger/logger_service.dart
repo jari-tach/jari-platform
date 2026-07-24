@@ -1,108 +1,207 @@
-/// Log levels for the application.
-enum LogLevel {
-  debug(0),
-  info(1),
-  warning(2),
-  error(3),
-  fatal(4);
+import 'dart:convert';
+import 'dart:io';
 
-  const LogLevel(this.priority);
-  final int priority;
-}
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Structured log entry.
-final class LogEntry {
-  const LogEntry({
-    required this.level,
-    required this.message,
-    this.tag,
-    this.error,
-    this.stackTrace,
-    this.data,
-    required this.timestamp,
-  });
+/// Log level for filtering messages
+enum LogLevel { debug, info, warning, error, fatal }
 
+/// Structured log entry
+class LogEntry {
+  final DateTime timestamp;
   final LogLevel level;
   final String message;
-  final String? tag;
-  final Object? error;
+  final dynamic error;
   final StackTrace? stackTrace;
-  final Map<String, dynamic>? data;
-  final DateTime timestamp;
+  final Map<String, dynamic>? metadata;
+
+  LogEntry({
+    required this.timestamp,
+    required this.level,
+    required this.message,
+    this.error,
+    this.stackTrace,
+    this.metadata,
+  });
 
   Map<String, dynamic> toJson() => {
-    'timestamp': timestamp.toIso8601String(),
-    'level': level.name,
-    'message': message,
-    if (tag != null) 'tag': tag,
-    if (error != null) 'error': error.toString(),
-    if (stackTrace != null) 'stackTrace': stackTrace.toString(),
-    if (data != null) 'data': data,
-  };
+        'timestamp': timestamp.toIso8601String(),
+        'level': level.name,
+        'message': message,
+        'error': error?.toString(),
+        'stackTrace': stackTrace?.toString(),
+        'metadata': metadata,
+      };
+
+  @override
+  String toString() {
+    final buffer = StringBuffer();
+    buffer.write('[${timestamp.toIso8601String()}] ');
+    buffer.write('[${level.name.toUpperCase()}] ');
+    buffer.write(message);
+
+    if (error != null) {
+      buffer.write('\n  Error: $error');
+    }
+
+    if (stackTrace != null) {
+      buffer.write('\n  StackTrace: $stackTrace');
+    }
+
+    if (metadata != null && metadata!.isNotEmpty) {
+      buffer.write('\n  Metadata: ${jsonEncode(metadata)}');
+    }
+
+    return buffer.toString();
+  }
 }
 
-/// Abstract logger service interface.
+/// Logger service interface
+///
+/// Unified contract for all log levels: every method accepts the log
+/// [message] followed by optional positional [error], [stackTrace] and
+/// [metadata] arguments. Positional (not named) parameters are used because
+/// they match the calling convention already used across the codebase.
 abstract class LoggerService {
-  /// Log a debug message (verbose, development only).
-  void debug(String message, {String? tag, Map<String, dynamic>? data});
+  void debug(String message, [dynamic error, StackTrace? stackTrace, Map<String, dynamic>? metadata]);
+  void info(String message, [dynamic error, StackTrace? stackTrace, Map<String, dynamic>? metadata]);
+  void warning(String message, [dynamic error, StackTrace? stackTrace, Map<String, dynamic>? metadata]);
+  void error(String message, [dynamic error, StackTrace? stackTrace, Map<String, dynamic>? metadata]);
+  void fatal(String message, [dynamic error, StackTrace? stackTrace, Map<String, dynamic>? metadata]);
 
-  /// Log an info message (general flow).
-  void info(String message, {String? tag, Map<String, dynamic>? data});
-
-  /// Log a warning message (non-critical issue).
-  void warning(String message, {String? tag, Object? error, Map<String, dynamic>? data});
-
-  /// Log an error message (critical issue, may include exception).
-  void error(String message, {String? tag, Object? error, StackTrace? stackTrace, Map<String, dynamic>? data});
-
-  /// Log a fatal message (app-crashing issue).
-  void fatal(String message, {String? tag, Object? error, StackTrace? stackTrace, Map<String, dynamic>? data});
+  LogLevel get level;
+  set level(LogLevel level);
 }
 
-/// Default implementation of [LoggerService] that writes to the console.
-final class ConsoleLoggerService implements LoggerService {
-  const ConsoleLoggerService({this.minLevel = LogLevel.debug});
+/// Console logger implementation with pretty printing for debug
+class ConsoleLoggerService implements LoggerService {
+  static const _maxMessageLength = 1000;
 
-  final LogLevel minLevel;
+  LogLevel _level = LogLevel.debug;
+  final List<LogEntry> _logs = [];
+  final int _maxLogs = 1000;
 
   @override
-  void debug(String message, {String? tag, Map<String, dynamic>? data}) {
-    _log(LogLevel.debug, message, tag: tag, data: data);
+  LogLevel get level => _level;
+
+  @override
+  set level(LogLevel level) => _level = level;
+
+  @override
+  void debug(String message, [dynamic error, StackTrace? stackTrace, Map<String, dynamic>? metadata]) {
+    if (_shouldLog(LogLevel.debug)) {
+      _log(LogLevel.debug, message, error: error, stackTrace: stackTrace, metadata: metadata);
+    }
   }
 
   @override
-  void info(String message, {String? tag, Map<String, dynamic>? data}) {
-    _log(LogLevel.info, message, tag: tag, data: data);
+  void info(String message, [dynamic error, StackTrace? stackTrace, Map<String, dynamic>? metadata]) {
+    if (_shouldLog(LogLevel.info)) {
+      _log(LogLevel.info, message, error: error, stackTrace: stackTrace, metadata: metadata);
+    }
   }
 
   @override
-  void warning(String message, {String? tag, Object? error, Map<String, dynamic>? data}) {
-    _log(LogLevel.warning, message, tag: tag, error: error, data: data);
+  void warning(String message, [dynamic error, StackTrace? stackTrace, Map<String, dynamic>? metadata]) {
+    if (_shouldLog(LogLevel.warning)) {
+      _log(LogLevel.warning, message, error: error, stackTrace: stackTrace, metadata: metadata);
+    }
   }
 
   @override
-  void error(String message, {String? tag, Object? error, StackTrace? stackTrace, Map<String, dynamic>? data}) {
-    _log(LogLevel.error, message, tag: tag, error: error, stackTrace: stackTrace, data: data);
+  void error(String message, [dynamic error, StackTrace? stackTrace, Map<String, dynamic>? metadata]) {
+    if (_shouldLog(LogLevel.error)) {
+      _log(LogLevel.error, message, error: error, stackTrace: stackTrace, metadata: metadata);
+    }
   }
 
   @override
-  void fatal(String message, {String? tag, Object? error, StackTrace? stackTrace, Map<String, dynamic>? data}) {
-    _log(LogLevel.fatal, message, tag: tag, error: error, stackTrace: stackTrace, data: data);
+  void fatal(String message, [dynamic error, StackTrace? stackTrace, Map<String, dynamic>? metadata]) {
+    if (_shouldLog(LogLevel.fatal)) {
+      _log(LogLevel.fatal, message, error: error, stackTrace: stackTrace, metadata: metadata);
+    }
+  }
+
+  bool _shouldLog(LogLevel level) {
+    return level.index >= _level.index;
   }
 
   void _log(
     LogLevel level,
     String message, {
-    String? tag,
-    Object? error,
+    dynamic error,
     StackTrace? stackTrace,
-    Map<String, dynamic>? data,
+    Map<String, dynamic>? metadata,
   }) {
-    if (level.priority < minLevel.priority) return;
+    final entry = LogEntry(
+      timestamp: DateTime.now(),
+      level: level,
+      message: message.length > _maxMessageLength
+          ? '${message.substring(0, _maxMessageLength)}...'
+          : message,
+      error: error,
+      stackTrace: stackTrace,
+      metadata: metadata,
+    );
 
-    // In production this would send to a remote logging service.
-    // For now, we write to the console with structured formatting.
-    // ignore: avoid_print
-    print('[${DateTime.now().toIso8601String()}] [${level.name.toUpperCase()}]${tag != null ? ' [$tag]' : ''} $message${error != null ? '\n  └─ Error: $error' : ''}${data != null ? '\n  └─ Data: $data' : ''}');
+    _logs.add(entry);
+
+    // Keep only last N logs
+    if (_logs.length > _maxLogs) {
+      _logs.removeRange(0, _logs.length - _maxLogs);
+    }
+
+    // Print to console
+    _printLog(entry);
+  }
+
+  void _printLog(LogEntry entry) {
+    if (Platform.isAndroid || Platform.isIOS) {
+      // Release mode: JSON format
+      print(jsonEncode(entry.toJson()));
+    } else {
+      // Debug mode: Pretty format
+      final color = _getColorForLevel(entry.level);
+      print(color(entry.toString()));
+    }
+  }
+
+  String Function(String) _getColorForLevel(LogLevel level) {
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      // ANSI colors for desktop
+      switch (level) {
+        case LogLevel.debug:
+          return (s) => '\x1B[37m$s\x1B[0m'; // Gray
+        case LogLevel.info:
+          return (s) => '\x1B[36m$s\x1B[0m'; // Cyan
+        case LogLevel.warning:
+          return (s) => '\x1B[33m$s\x1B[0m'; // Yellow
+        case LogLevel.error:
+          return (s) => '\x1B[31m$s\x1B[0m'; // Red
+        case LogLevel.fatal:
+          return (s) => '\x1B[35m$s\x1B[0m'; // Magenta
+      }
+    } else {
+      // No colors for mobile/web
+      return (s) => s;
+    }
+  }
+
+  /// Get all logs
+  List<LogEntry> get logs => List.unmodifiable(_logs);
+
+  /// Clear all logs
+  void clear() {
+    _logs.clear();
+  }
+
+  /// Export logs as JSON
+  String exportLogs() {
+    return jsonEncode(_logs.map((e) => e.toJson()).toList());
   }
 }
+
+/// Logger provider
+final loggerServiceProvider = Provider<LoggerService>((ref) {
+  return ConsoleLoggerService();
+});

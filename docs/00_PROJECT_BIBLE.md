@@ -32,6 +32,8 @@
 | 3 | منفعة | **Manafa Merchant** (Merchant Application) | إدارة القوائم، معالجة الطلبات |
 | 4 | لوحة التحكم | **SAEQ Admin Dashboard** | إدارة النظام بالكامل |
 
+> ⚠️ **قرار معماري ملزم:** كل تطبيق من الأربعة أعلاه هو **تطبيق مستقل بالكامل** (مشروع مستقل، Package Name/Bundle ID مستقل، هوية بصرية مستقلة، دورة Build/Test/Release مستقلة، صفحة متجر مستقلة). **يُمنع** دمج أكثر من دور (سائق/عميل/تاجر/إدارة) داخل تطبيق Flutter واحد يعتمد على اختيار نوع المستخدم بعد تسجيل الدخول. التطبيقات الأربعة تتصل ببنية خلفية مشتركة فقط (Backend، API Gateway، المصادقة، قاعدة البيانات المركزية). راجع القرار الكامل في [ADR-013: Separate Applications Strategy](./adr/ADR_SEPARATE_APPLICATIONS_STRATEGY.md). المشروع الحالي `saeq_driver` يمثل تطبيق **SAEQ Driver (فزعة)** فقط، ولا يحتوي على أي شاشات أو منطق خاص بالأدوار الأخرى.
+
 ### 1.2 مكوّنات المنصة الكاملة
 
 بالإضافة إلى التطبيقات الأربعة، تشمل المنصة:
@@ -290,6 +292,7 @@
 | ARCH-018 | اعتماد فهرس منتجات مركزي كأساس بنية النظام | [10_PRODUCT_CATALOG_ARCHITECTURE.md](./10_PRODUCT_CATALOG_ARCHITECTURE.md) | معتمد |
 | ARCH-019 | اعتماد سوق جملة كجزء أساسي من النظام | [11_WHOLESALE_MARKET_ARCHITECTURE.md](./11_WHOLESALE_MARKET_ARCHITECTURE.md) | معتمد |
 | ARCH-020 | اعتماد محرك توصيل متخصص | [12_DELIVERY_ENGINE.md](./12_DELIVERY_ENGINE.md) | معتمد |
+| ARCH-021 | اعتماد استراتيجية التطبيقات المستقلة (Driver/Customer/Merchant/Admin) بدون دمج الأدوار | [ADR-013](./adr/ADR_SEPARATE_APPLICATIONS_STRATEGY.md) | معتمد |
 
 ---
 

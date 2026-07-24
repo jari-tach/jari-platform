@@ -30,6 +30,7 @@ This document records **every significant architectural decision** made for the 
 | ADR-010 | Service Registry Pattern (not get_it) | ✅ Accepted | 2026-07-10 |
 | ADR-011 | Material 3 Design System | ✅ Accepted | 2026-07-11 |
 | ADR-012 | Arabic-First Localization Strategy | ✅ Accepted | 2026-07-12 |
+| ADR-013 | Separate Applications Strategy (Driver/Customer/Merchant/Admin) | ✅ Accepted | 2026-07-24 |
 
 ---
 
@@ -539,6 +540,49 @@ The target market is Saudi Arabia where Arabic is the primary language. Designin
 - All layouts are designed for RTL first
 - LTR (English) is tested as a secondary layout
 - Localization strings are Arabic-first
+
+---
+
+### ADR-013: Separate Applications Strategy (Driver/Customer/Merchant/Admin)
+
+| Field | Value |
+|-------|-------|
+| **Decision** | The SAEQ platform ships as four independent applications (SAEQ Driver, SAEQ Customer, SAEQ Merchant, SAEQ Admin) — one per role — sharing only backend infrastructure. Merging roles into a single Flutter app with post-login role selection is prohibited. |
+| **Date** | 2026-07-24 |
+| **Status** | ✅ Accepted |
+
+#### Reason
+
+Drivers, customers, merchants, and platform operators have fundamentally different UX, permission, and release-cadence needs. A single merged app with role selection produces a confusing store presence, forces irrelevant OS permissions on every user, couples unrelated release cycles, and weakens role isolation to a UI-only concern. Dedicated applications per role, backed by server-side RBAC, provide genuine defense-in-depth and match the platform's pre-existing documentation (`03_ENTERPRISE_ARCHITECTURE.md`), which already assumed dedicated apps per stakeholder type.
+
+#### Alternatives Considered
+
+| Alternative | Pros | Cons |
+|-------------|------|------|
+| Single Flutter app with post-login role selection | Single codebase, single store listing initially | Confusing store presence; irrelevant permissions per user; coupled release cycles; weak UI-only role isolation; becomes a "god app" |
+| Monorepo with all four app targets from day one | Immediate code sharing | Premature abstraction before a second app exists; large migration cost now; violates the no-shared-package rule during PROJECT STABILIZATION |
+| Fully independent applications, shared backend only (chosen) | Clean per-audience distribution; minimal permissions; independent release cadence; strong server-side RBAC isolation | Some short-term boilerplate duplication; more repositories/pipelines to operate |
+
+#### Pros
+
+- Purpose-built app-store presence per audience (driver, customer, merchant)
+- Minimal, role-appropriate OS permissions per app
+- Independent Build/Test/Release cycle per app — a Driver hotfix never requires releasing Customer/Merchant/Admin
+- Role isolation enforced twice: architecturally (separate binaries) and server-side (RBAC at the API Gateway)
+- Consistent with existing `03_ENTERPRISE_ARCHITECTURE.md` and `01_BUSINESS_VISION.md` app enumeration
+
+#### Cons
+
+- Higher up-front scaffolding cost per new app until shared packages are proven and extracted
+- Requires actively maintaining shared engineering standards across repositories (mitigated by `00_PROJECT_BIBLE.md`, `06_CODING_STANDARDS.md`)
+- Multiple sets of store listings, signing keys, and Firebase projects to manage operationally
+
+#### Impact
+
+- The current repository (`saeq_driver`) remains scoped to the Driver role only; no customer/merchant/admin screens, role selection, or role-switching logic are added.
+- No shared package (`saeq_design_system`, `saeq_core`, `saeq_networking`, `saeq_localization`, `saeq_models`) is extracted during PROJECT STABILIZATION; extraction is deferred until at least two applications have a proven, stabilized shared need.
+- Future applications (SAEQ Customer, SAEQ Merchant, SAEQ Admin) each get their own project, package ID, signing, store listing, and independent versioning per `36_RELEASE_MANAGEMENT.md`.
+- Full decision record: [docs/adr/ADR_SEPARATE_APPLICATIONS_STRATEGY.md](./adr/ADR_SEPARATE_APPLICATIONS_STRATEGY.md)
 
 ---
 

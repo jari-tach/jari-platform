@@ -97,6 +97,28 @@ The Saeq ecosystem is a **multi-vendor delivery platform** serving four stakehol
 - **Security Isolation:** RBAC with vendor-specific permissions
 - **Configuration Isolation:** Environment-specific configs
 
+### 1.5 Application Independence Strategy (ADR-013)
+
+Each of the four applications above is **fully independent** — this is a binding architectural decision, not just a naming convention. See [ADR-013: Separate Applications Strategy](./adr/ADR_SEPARATE_APPLICATIONS_STRATEGY.md) for the complete decision record.
+
+| Aspect | Rule |
+|--------|------|
+| **Codebase** | Separate project/repository per application (no merged codebase) |
+| **Package Name / Bundle ID** | Independent per application |
+| **App Identity** | Independent app name, icon, splash screen per application |
+| **Firebase** | Independent Firebase project/config per application, where needed |
+| **Signing & Versioning** | Independent signing keys and version numbers per application (see §36_RELEASE_MANAGEMENT.md) |
+| **Store Presence** | Independent Google Play / App Store listing per application (Admin: independent web deployment) |
+| **Build/Test/Release** | Independent CI/CD pipeline and release cadence per application |
+| **Permissions** | Each app requests only the OS permissions its own role requires |
+| **Routing/Features/Dependencies** | Each app owns only the routing, features, and dependencies relevant to its role |
+
+**Explicitly prohibited:** merging Driver, Customer, Merchant, and Admin roles into a single Flutter application with post-login role selection or in-app role switching.
+
+**Role isolation is enforced server-side via RBAC** at the API Gateway / Authorization layer (§29 Enterprise Security Standards), not merely by hiding UI elements client-side.
+
+**Reuse strategy:** No shared package is extracted until at least two applications have a proven, stabilized shared need (candidates: `saeq_design_system`, `saeq_core`, `saeq_networking`, `saeq_localization`, `saeq_models`). No "god package" containing all cross-app logic is permitted. During PROJECT STABILIZATION of `saeq_driver`, no shared package extraction occurs.
+
 ---
 
 ## 2. Driver App Architecture

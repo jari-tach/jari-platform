@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/routes/app_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../shared/widgets/saeq_primary_button.dart';
 import '../../../shared/widgets/saeq_section_card.dart';
@@ -75,7 +76,7 @@ class WelcomeScreen extends ConsumerWidget {
               SaeqPrimaryButton(
                 label: localizations.exploreArchitecture,
                 icon: Icons.auto_awesome,
-                onPressed: () => context.go('/coming-soon'),
+                onPressed: () => context.push(AppRoutes.comingSoon),
               ),
               const SizedBox(height: 24),
               SaeqSectionCard(

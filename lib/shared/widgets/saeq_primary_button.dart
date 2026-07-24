@@ -27,7 +27,10 @@ class SaeqPrimaryButton extends StatelessWidget {
       width: double.infinity,
       child: FilledButton(
         onPressed: onPressed,
-        style: AppButtonStyles.primary,
+        style: FilledButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+        ),
         child: child,
       ),
     );
