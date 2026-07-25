@@ -14,7 +14,25 @@
 
 ---
 
-## 2. [phase-2.3-driver-identity-profile] — 2026-07-25
+## 2. [phase-2.4-availability-architecture] — 2026-07-25
+
+### تمت إضافته (وثائق فقط)
+- `PHASE_2_4_DRIVER_AVAILABILITY_ARCHITECTURE.md` — تصميم التوفر التشغيلي.
+- `PHASE_2_4_AVAILABILITY_TEST_PLAN.md` — مصفوفة اختبارات.
+- ADR-015…019 (**Accepted**): آلة الحالة، السلطة، Offline، busy، الاستعادة.
+- قواعد `BR-AVAIL-001…018` في `41_OFFICIAL_BUSINESS_RULES.md` + تتبّع في `31_TRACEABILITY_MATRIX.md`.
+
+### تغيّر
+- مواءمة AC التاريخية لـ 2.4: منع طابور →available أثناء offline (ADR-017).
+- تحديث حالة Stage B = Done؛ PHASE 2.4 Architecture = **Accepted**؛ Implementation = Not Started.
+
+### قيود
+- لا كود `lib/` أو `test/` أو packages أو schema في هذه الخطوة.
+- لا Commit/Push ضمن مهمة التصميم هذه.
+
+---
+
+## 3. [phase-2.3-driver-identity-profile] — 2026-07-25
 
 ### تمت إضافته
 - Domain/Data/Presentation لملف السائق (`DriverProfile`, repositories, controllers, `ProfileScreen`).

@@ -59,6 +59,24 @@ Stage A (docs) · B (PHASE 2.3) · C (Driver MVP) · D (Backend) · E (Merchant)
 | BR-DRIVER-004 | No cross-branch customers/inventory/reports | لا عملاء/مخزون/تقارير فرع آخر | Drivers, Inventory, Reports | — | Deny endpoints | Driver Mobile | AuthZ deny | Negative authz tests | DocumentedOnly | C, D |
 | BR-DRIVER-005 | Server-side enforcement | ليس UI-only | Authorization | — | All driver APIs | Driver Mobile | RBAC + Branch Scope | UI hide ≠ sufficient (API tests) | Partial (client never assigns/trusts tenant scope; API enforcement = Stage D) | B (PHASE 2.3), D, C |
 | BR-DRIVER-006 | Branch reassignment audited | تغيير ارتباط الفرع موثّق | Drivers, Audit | Audit + driver history | Admin/Merchant assign APIs | Merchant, Web Admin | Audit required | Audit fields present | DocumentedOnly | D, E, G |
+| BR-AVAIL-001 | Auth session for ops state | جلسة صالحة قبل حالة تشغيلية | Auth, Availability | — | eligibility | Driver | — | T-DOM-002 | DocumentedOnly (2.4 design) | C (2.4) |
+| BR-AVAIL-002 | Profile required for available | ملف مطلوب لـ available | Profile, Availability | — | eligibility | Driver | — | T-DOM-003 | DocumentedOnly | C (2.4) |
+| BR-AVAIL-003 | Ineligible account blocked | معلّق/غير مؤهل ممنوع | Drivers, Availability | account flags | eligibility | Driver | audit later | T-DOM-004/005 | DocumentedOnly | C, D |
+| BR-AVAIL-004 | No manual busy | منع busy يدوي | Availability | — | transition+UI | Driver | — | T-DOM-006 | DocumentedOnly | C (2.4) |
+| BR-AVAIL-005 | Busy system/server only | busy من نظام/تعيين | Availability, Delivery | — | system events | Driver | assignment audit | T-DOM-007 | DocumentedOnly | C, D |
+| BR-AVAIL-006 | Active assignment conflict | تعارض التعيين النشط | Delivery, Availability | assignment ref | policy | Driver | — | reserved 2.5 | DocumentedOnly | C (2.5+) |
+| BR-AVAIL-007 | Local not final truth | المحلي ليس الحقيقة النهائية | Availability | revision | reconcile | Driver | — | T-REPO-002 | DocumentedOnly | C, D |
+| BR-AVAIL-008 | No auto-publish on restore | لا نشر تلقائي عند الاستعادة | Availability | snapshot | restore | Driver | — | T-REPO-001 | DocumentedOnly | C (2.4) |
+| BR-AVAIL-009 | Uncertain → safe state | الشك → غير متاح/غير متصل | Availability, Network | effective | connectivity | Driver | — | T-CTL-008 | DocumentedOnly | C (2.4) |
+| BR-AVAIL-010 | Idempotent same-state | تكرار نفس الحالة بلا أثر | Availability | — | transition | Driver | — | T-DOM-008 | DocumentedOnly | C, D |
+| BR-AVAIL-011 | Deterministic denial | رفض بفشل مجال محدد | Availability | error codes | failures | Driver | — | denial tests | DocumentedOnly | C (2.4) |
+| BR-AVAIL-012 | No UI bypass | لا تجاوز سياسة من UI | Availability | — | controller→UC | Driver | — | architecture | DocumentedOnly | C (2.4) |
+| BR-AVAIL-013 | Release fake blocked | منع الوهمي في Release | Auth, Availability | — | FakeAuth+eligibility | Driver | — | T-SEC-001 | Partial (2.3) | C |
+| BR-AVAIL-014 | Sovereign time/id fields | وقت/هوية غير قابلة لتعديل المستخدم | Availability | timestamps, driverId | allowlist | Driver | — | T-DOM-013 | DocumentedOnly | C (2.4) |
+| BR-AVAIL-015 | Server busy overrides | busy الخادم يغلب المحلي | Availability | status/revision | reconcile | Driver | — | T-DOM-012 | DocumentedOnly | C, D |
+| BR-AVAIL-016 | Logout clears availability | الخروج يُبطل التوفر | Auth, Availability | snapshot | clearOnLogout | Driver | — | T-REPO-007 | DocumentedOnly | C (2.4) |
+| BR-AVAIL-017 | Suspension forces safe | التعليق يفرض غير متاح | Drivers, Availability | account | force | Driver | audit | T-DOM-004 | DocumentedOnly | C, D |
+| BR-AVAIL-018 | No assignment in PHASE 2.4 | لا تعيين طلبات في 2.4 | Scope | — | phase gate | Driver | — | checklist | DocumentedOnly | C (2.4 design) |
 | BR-ADMIN-001 | Merchant daily ops via Merchant Mobile | التاجر لا يعتمد Web Admin يوميًا | Merchants, Administration | — | Merchant APIs only for ops | Merchant Mobile | No platform admin role for merchants | Channel policy review | DocumentedOnly | E |
 | BR-ADMIN-002 | Platform ops via Web Admin | إدارة المنصة من Web Admin | Administration | Admin tables | Admin APIs | Web Admin | Platform roles only | Admin authz tests | DocumentedOnly | G |
 | BR-ADMIN-003 | Merchant has no platform powers | لا صلاحيات منصة للتاجر | Authorization | Role catalog | Token scopes | Merchant, Web Admin | Deny platform permissions | Privilege escalation tests | DocumentedOnly | D, E, G |
@@ -77,7 +95,7 @@ Stage A (docs) · B (PHASE 2.3) · C (Driver MVP) · D (Backend) · E (Merchant)
 | BR-SEC-002 | Audit sensitive interventions | Audit للعمليات الحساسة | Audit | audit_logs | Admin/finance APIs | Web Admin | Audit + Security logs | Audit required actions list | DocumentedOnly | D, G |
 | BR-SEC-003 | No client-trusted tenant IDs | لا ثقة بـ business_id/branch_id من العميل دون تحقق | Authorization | — | Gateway/API | All apps | Derive scope from token | Forged tenant id rejected | DocumentedOnly | D |
 
-**Count of official Rule IDs in §2:** 40 (ORDER 8 + WHOLESALE 4 + BRANCH 6 + DRIVER 6 + ADMIN 6 + CATALOG 3 + PAY 5 + SEC 3).
+**Count of official Rule IDs in §2:** 58 (ORDER 8 + WHOLESALE 4 + BRANCH 6 + DRIVER 6 + AVAIL 18 + ADMIN 6 + CATALOG 3 + PAY 5 + SEC 3).
 
 ---
 
@@ -106,6 +124,7 @@ Stage A (docs) · B (PHASE 2.3) · C (Driver MVP) · D (Backend) · E (Merchant)
 | Price snapshot | BR-ORDER-008 | RetailOrders, BranchOffers |
 | Single supplier wholesale | BR-WHOLESALE-001, BR-WHOLESALE-002 | Wholesale |
 | Driver–branch binding | BR-DRIVER-001…006 | Drivers, Delivery, Authorization, Audit |
+| Driver availability | BR-AVAIL-001…018 | Availability, Auth, Profile, Network (design) |
 | Independent warehouse/inventory | BR-BRANCH-003, BR-BRANCH-004, BR-WHOLESALE-003 | Branches, Inventory |
 
 ---
@@ -168,7 +187,8 @@ Implementation coverage of official rules in code: **~0% product logic** (docume
 |------|--------|
 | Stage A Documentation Alignment | Done (`e14b322`) |
 | PHASE 2.1 / 2.2 | Done (see phase reports) |
-| PHASE 2.3 | **Validated** (pending commit authorization) — see `PHASE_2_3_DRIVER_IDENTITY_PROFILE_NOTES.md` |
+| PHASE 2.3 | **Done** on `main` (`123fdba` merge) — see `PHASE_2_3_DRIVER_IDENTITY_PROFILE_NOTES.md` |
+| PHASE 2.4 | **Architecture Accepted** / Implementation Not Started — see `PHASE_2_4_DRIVER_AVAILABILITY_ARCHITECTURE.md` |
 
 ---
 

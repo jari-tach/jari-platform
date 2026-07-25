@@ -82,7 +82,7 @@
 |-----|---------|-------|--------|
 | [25](./25_REQUIREMENTS_SPECIFICATION.md) | REQUIREMENTS_SPECIFICATION | متطلبات النظام الوظيفية والتجارية | ✅ (محدّث دفع 2026-07-25) |
 | [26](./26_NON_FUNCTIONAL_REQUIREMENTS.md) | NON_FUNCTIONAL_REQUIREMENTS | متطلبات الجودة (الأداء، الأمان، إلخ) | ✅ مكتمل |
-| [27](./27_ARCHITECTURAL_DECISIONS.md) | ARCHITECTURAL_DECISIONS | سجل القرارات المعمارية (ADR) | ✅ Active (+ ADR-014) |
+| [27](./27_ARCHITECTURAL_DECISIONS.md) | ARCHITECTURAL_DECISIONS | سجل القرارات المعمارية (ADR) | ✅ Active (+ ADR-014…019) |
 | [28](./28_SEQUENCE_DIAGRAMS.md) | SEQUENCE_DIAGRAMS | مخططات تسلسل UML | ✅ مكتمل |
 | [29](./29_DATA_DICTIONARY.md) | DATA_DICTIONARY | قاموس البيانات (+ معرفات Multi-Tenant مستقبلية) | ✅ Draft محدّث |
 
@@ -94,6 +94,13 @@
 | [42_PLATFORM_DOMAIN_ARCHITECTURE.md](./42_PLATFORM_DOMAIN_ARCHITECTURE.md) | Multi-Tenant، Catalog/Offer، Inventory، SM، Backend | ✅ Active |
 | [LEGACY_DI_MIGRATION_PLAN.md](./LEGACY_DI_MIGRATION_PLAN.md) | خطة إزالة get_it / service_locator | ✅ Active (plan) |
 | [ADR-014](./adr/ADR_014_PLATFORM_CHANNEL_AND_DOMAIN_ALIGNMENT.md) | قنوات Merchant Mobile + Web Admin | ✅ Accepted |
+| [ADR-015](./adr/ADR_015_DRIVER_AVAILABILITY_STATE_MACHINE.md) | آلة حالة توفر السائق | ✅ Accepted |
+| [ADR-016](./adr/ADR_016_LOCAL_INTENT_VS_BACKEND_AUTHORITY.md) | نية محلية مقابل سلطة Backend | ✅ Accepted |
+| [ADR-017](./adr/ADR_017_OFFLINE_AVAILABILITY_POLICY.md) | سياسة التوفر دون اتصال | ✅ Accepted |
+| [ADR-018](./adr/ADR_018_BUSY_STATE_OWNERSHIP.md) | ملكية حالة busy | ✅ Accepted |
+| [ADR-019](./adr/ADR_019_AVAILABILITY_PERSISTENCE_RESTORATION.md) | استمرارية واستعادة التوفر | ✅ Accepted |
+| [PHASE_2_4 Architecture](./PHASE_2_4_DRIVER_AVAILABILITY_ARCHITECTURE.md) | تصميم PHASE 2.4 Availability | ✅ Architecture Accepted / Implementation Not Started |
+| [PHASE_2_4 Test Plan](./PHASE_2_4_AVAILABILITY_TEST_PLAN.md) | مصفوفة اختبارات 2.4 | ✅ Spec Accepted / Not Implemented |
 
 ### 2.9 العمارة المتقدمة
 

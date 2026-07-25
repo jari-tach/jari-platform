@@ -36,8 +36,9 @@ Stage H — Platform Expansion
 |-------|---------------------|-------|
 | **A** | **Done** | Docs + ADRs + business rules alignment (`e14b322`) |
 | Pre-B (Stabilization, 2.1, 2.2) | **Done** (with documented conditions) | Do not rewrite as “not started” |
-| **B (PHASE 2.3)** | **Validated** (pending commit authorization) | Branch `feature/phase-2.3-driver-identity-profile` |
-| **C–H** | Not started | Each needs separate approval; may span multiple repos |
+| **B (PHASE 2.3)** | **Done** (merged to `main`) | Merge `123fdba` |
+| **C (starts with PHASE 2.4)** | **Architecture Accepted** / Implementation Not Started | Docs approved; code not authorized yet |
+| **D–H** | Not started | Each needs separate approval; may span multiple repos |
 
 ---
 

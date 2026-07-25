@@ -94,6 +94,32 @@ Backend Platform
 | BR-DRIVER-005 | Server-side enforcement | تُفرض القيود من Backend وليس بإخفاء UI فقط | DocumentedOnly |
 | BR-DRIVER-006 | Branch reassignment audited | أي تغيير في ارتباط السائق بالفرع موثّق وقابل للتدقيق | DocumentedOnly |
 
+### 6.1 Driver availability rules (PHASE 2.4 design)
+
+> Full architecture: [PHASE_2_4_DRIVER_AVAILABILITY_ARCHITECTURE.md](./PHASE_2_4_DRIVER_AVAILABILITY_ARCHITECTURE.md).
+> Code status remains **DocumentedOnly** until implementation authorization.
+
+| Rule ID | Name | Rule | Enforcement | Test implications | Backend implications |
+|---------|------|------|-------------|-------------------|----------------------|
+| BR-AVAIL-001 | Authenticated session required | يجب وجود جلسة مصادقة صالحة قبل أي حالة تشغيلية | Domain eligibility + use case | T-DOM-002 | Session/token validation |
+| BR-AVAIL-002 | Profile required for available | يجب وجود ملف سائق صالح قبل `available` | Eligibility | T-DOM-003 | Profile service |
+| BR-AVAIL-003 | Ineligible account blocked | حساب معلّق/معطّل/غير مؤهل لا يصبح متاحًا | Eligibility | T-DOM-004/005 | Account/employment flags |
+| BR-AVAIL-004 | No manual busy | لا يختار السائق `busy` يدويًا | Transition policy + UI | T-DOM-006, T-WID-008 | N/A client; server assigns busy |
+| BR-AVAIL-005 | Busy from system/assignment | `busy` فقط من حدث نظام/تعيين سلطوي | Transition policy | T-DOM-007 | Assignment engine |
+| BR-AVAIL-006 | Active assignment conflict | مع تعيين نشط لا يصبح متاحًا بحرية إلا وفق دورة التعيين | Policy (future 2.5) | reserved | Assignment SM |
+| BR-AVAIL-007 | Local not final truth | الحالة المحلية ليست مصدر الحقيقة النهائي | Authority ADR-016 | T-DOM-010, T-REPO-002 | Authoritative API |
+| BR-AVAIL-008 | No auto-publish on restore | الاستعادة لا تنشر `available` كمؤكد تلقائيًا | Restore use case | T-REPO-001 | Confirm endpoint |
+| BR-AVAIL-009 | Uncertain → safe state | عند شك الاتصال/الجلسة الحالة الفعلية غير متاحة/غير متصل | Connectivity policy | T-CTL-008 | Heartbeat optional |
+| BR-AVAIL-010 | Idempotent same-state | تكرار نفس الحالة ناجح بلا أثر جانبي | Transition policy | T-DOM-008 | Idempotent POST |
+| BR-AVAIL-011 | Deterministic denial | الرفض يُرجع فشل مجال محدد | Failures | all denial tests | Error codes |
+| BR-AVAIL-012 | No UI bypass | العرض لا يتجاوز سياسة الانتقال | Controller→use case only | architecture review | N/A |
+| BR-AVAIL-013 | Release fake blocked | الهويات/التوفر الوهمي ممنوع في Release | Security + 2.3 guards | T-SEC-001 | Real auth only |
+| BR-AVAIL-014 | Sovereign timestamps/ids | الحقول الزمنية والهوية غير قابلة لتعديل المستخدم | Domain command allowlist | T-DOM-013 | Server clocks |
+| BR-AVAIL-015 | Server busy wins | `busy` من الخادم يغلب `available` المحلي البالي | Reconcile | T-DOM-012 | Push/revision |
+| BR-AVAIL-016 | Logout clears availability | تسجيل الخروج يُبطل التوفر التشغيلي محليًا | clearOnLogout | T-REPO-007 | Best-effort notify |
+| BR-AVAIL-017 | Suspension forces safe state | التعليق أثناء التشغيل يفرض حالة غير متاحة | System force | T-DOM-004 | Account events |
+| BR-AVAIL-018 | No assignment in 2.4 | لا يُنفَّذ منطق تعيين الطلبات في PHASE 2.4 | Scope gate | review checklist | PHASE 2.5+ |
+
 ---
 
 ## 7. Administration & channel rules

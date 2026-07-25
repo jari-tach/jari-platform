@@ -258,20 +258,20 @@ Backend Platform
 | **Stabilization** | إغلاق استقرار Driver | **Closed WITH CONDITIONS** (انظر تقارير STABILIZATION) |
 | **PHASE 2.1** | App Bootstrap Service Activation | **Done** (تقرير PHASE_2_1) |
 | **PHASE 2.2** | Authentication Foundation | **Done** (تقرير PHASE_2_2) |
-| **PHASE 2.3** | Driver Identity and Profile | **Validated** (pending commit authorization) — فرع `feature/phase-2.3-driver-identity-profile` |
+| **PHASE 2.3** | Driver Identity and Profile | **Done** — merged to `main` (`123fdba`) |
+| **PHASE 2.4** | Driver Availability & Operational Status | **Architecture Accepted** — Implementation **Not Started** |
 | **Stages C–H** | Driver MVP → Backend → Merchant → Customer → Web Admin → Expansion | مرجع ترتيب فقط؛ كل مرحلة بموافقة صريحة |
 
 > المرجع التشغيلي التفصيلي لسائق: [PHASE_2_FEATURE_DEVELOPMENT_ROADMAP.md](./PHASE_2_FEATURE_DEVELOPMENT_ROADMAP.md).
 > الترتيب المنصّي المرجعي: [20_DEVELOPMENT_ROADMAP.md](./20_DEVELOPMENT_ROADMAP.md) (مُحدَّث).
 > خارطة «المرحلة 0–5» القديمة في ملفات أخرى: **Historical / Superseded** للحالة الزمنية — لا تستخدمها لتحديد «ما العمل الآن».
 
-### 5.1 مرحلة التنفيذ الحالية (PHASE 2.3)
+### 5.1 مرحلة التنفيذ الحالية (PHASE 2.4)
 
-- ✅ Stage A معتمد على `main`.
-- ✅ PHASE 2.3 منفَّذ ومُراجع أمنيًا (Validated) على فرع مستقل بانتظار تفويض Commit/Push.
-- ❌ لا تُعلَن Done قبل Commit المرحلة.
-- ❌ لا تُنشأ تطبيقات Customer/Merchant/Web Admin داخل هذا المستودع.
-- ❌ لا Monorepo / لا Microservices لمجرّد التوصية.
+- ✅ PHASE 2.3 مدمج في `main`.
+- ✅ تصميم PHASE 2.4 **معتمد** (Architecture Accepted) — التنفيذ لم يبدأ.
+- ❌ لا تنفيذ كود لـ 2.4 دون أمر صريح منفصل.
+- ❌ لا تبدأ PHASE 2.5 دون إغلاق تنفيذ 2.4.
 
 ---
 ## 6. القرارات المعمارية الرسمية
