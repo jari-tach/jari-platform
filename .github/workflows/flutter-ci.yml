@@ -23,8 +23,15 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version-file: .flutter-version
+          flutter-version: '3.44.7'
           cache: true
+
+      - name: Verify Flutter toolchain
+        run: |
+          flutter --version
+          dart --version
+          flutter --version | grep -F "Flutter 3.44.7"
+          dart --version | grep -F "3.12.2"
 
       - name: Install dependencies
         run: flutter pub get
@@ -42,8 +49,15 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version-file: .flutter-version
+          flutter-version: '3.44.7'
           cache: true
+
+      - name: Verify Flutter toolchain
+        run: |
+          flutter --version
+          dart --version
+          flutter --version | grep -F "Flutter 3.44.7"
+          dart --version | grep -F "3.12.2"
 
       - name: Install dependencies
         run: flutter pub get
@@ -62,8 +76,15 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version-file: .flutter-version
+          flutter-version: '3.44.7'
           cache: true
+
+      - name: Verify Flutter toolchain
+        run: |
+          flutter --version
+          dart --version
+          flutter --version | grep -F "Flutter 3.44.7"
+          dart --version | grep -F "3.12.2"
 
       - name: Install dependencies
         run: flutter pub get
@@ -82,8 +103,15 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version-file: .flutter-version
+          flutter-version: '3.44.7'
           cache: true
+
+      - name: Verify Flutter toolchain
+        run: |
+          flutter --version
+          dart --version
+          flutter --version | grep -F "Flutter 3.44.7"
+          dart --version | grep -F "3.12.2"
 
       - name: Install dependencies
         run: flutter pub get

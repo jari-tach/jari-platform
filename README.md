@@ -25,8 +25,8 @@ Authoritative Flutter version is pinned in `.flutter-version`.
 
 | Item | Value |
 |------|--------|
-| Flutter | `3.44.7` (stable) — see `.flutter-version` |
+| Flutter | **exactly** `3.44.7` (stable) — see `.flutter-version` |
 | Bundled Dart | `3.12.2` (satisfies `sdk: ^3.12.2` in `pubspec.yaml`) |
-| CI | `.github/workflows/flutter-ci.yml` reads `.flutter-version` via `flutter-version-file` |
+| CI | `.github/workflows/flutter-ci.yml` installs `flutter-version: '3.44.7'` and verifies both Flutter and Dart versions |
 
 Use the same Flutter version locally and in CI. Do not lower the Dart SDK constraint to accommodate an older Flutter toolchain.
