@@ -79,6 +79,8 @@ class FakeDriverAvailabilityRepository implements DriverAvailabilityRepository {
     if (current == null) {
       return const AvailabilityFailureResult(AvailabilityUnknownFailure());
     }
+    final requestingAvailable =
+        request.requestedStatus == AvailabilityStatus.available;
     final next = DriverAvailability(
       driverId: current.driverId,
       status: request.requestedStatus,
@@ -90,14 +92,12 @@ class FakeDriverAvailabilityRepository implements DriverAvailabilityRepository {
           ? AvailabilitySource.server
           : AvailabilitySource.system,
       lastChangedAt: request.requestedAt,
-      lastConfirmedAt:
-          request.requestedStatus == AvailabilityStatus.available &&
-              request.connectivityOnline
-          ? request.requestedAt
-          : null,
-      pendingSync: request.requestedStatus == AvailabilityStatus.available
-          ? false
-          : current.pendingSync,
+      // Local request never grants confirmed available (ADR-016).
+      lastConfirmedAt: null,
+      pendingSync:
+          requestingAvailable ||
+          (request.requestedStatus == AvailabilityStatus.unavailable &&
+              !request.connectivityOnline),
       revision: current.revision,
       reason: request.reason,
       activeAssignmentId: request.requestedStatus == AvailabilityStatus.busy
@@ -119,22 +119,49 @@ class FakeDriverAvailabilityRepository implements DriverAvailabilityRepository {
     if (current == null) {
       return const AvailabilityFailureResult(AvailabilityUnknownFailure());
     }
-    // Restore never marks available as authoritative confirmation.
-    final restored = DriverAvailability(
-      driverId: current.driverId,
-      status: current.status == AvailabilityStatus.available
-          ? AvailabilityStatus.available
-          : current.status,
-      source: AvailabilitySource.restoredLocalState,
-      lastChangedAt: current.lastChangedAt,
-      lastConfirmedAt: null,
-      pendingSync: current.status == AvailabilityStatus.available,
-      revision: current.revision,
-      reason: current.reason,
-      activeAssignmentId: current.status == AvailabilityStatus.busy
-          ? current.activeAssignmentId
-          : null,
-    );
+
+    late final DriverAvailability restored;
+    switch (current.status) {
+      case AvailabilityStatus.available:
+        restored = DriverAvailability(
+          driverId: current.driverId,
+          status: AvailabilityStatus.available,
+          source: AvailabilitySource.restoredLocalState,
+          lastChangedAt: current.lastChangedAt,
+          lastConfirmedAt: null,
+          pendingSync: true,
+          revision: current.revision,
+          reason: current.reason,
+        );
+      case AvailabilityStatus.busy:
+        restored = DriverAvailability(
+          driverId: current.driverId,
+          status: AvailabilityStatus.busy,
+          source:
+              current.source == AvailabilitySource.server ||
+                  current.source == AvailabilitySource.system
+              ? current.source
+              : AvailabilitySource.system,
+          lastChangedAt: current.lastChangedAt,
+          lastConfirmedAt: null,
+          pendingSync: true,
+          revision: current.revision,
+          reason: current.reason,
+          activeAssignmentId: current.activeAssignmentId,
+        );
+      case AvailabilityStatus.offline:
+      case AvailabilityStatus.unavailable:
+        restored = DriverAvailability(
+          driverId: current.driverId,
+          status: current.status,
+          source: AvailabilitySource.restoredLocalState,
+          lastChangedAt: current.lastChangedAt,
+          lastConfirmedAt: null,
+          pendingSync: current.pendingSync,
+          revision: current.revision,
+          reason: current.reason,
+        );
+    }
     seed(restored);
     return AvailabilitySuccess(restored);
   }
