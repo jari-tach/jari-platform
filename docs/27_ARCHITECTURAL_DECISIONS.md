@@ -32,6 +32,11 @@ This document records **every significant architectural decision** made for the 
 | ADR-012 | Arabic-First Localization Strategy | ✅ Accepted | 2026-07-12 |
 | ADR-013 | Separate Applications Strategy (Driver/Customer/Merchant/Admin) | ✅ Accepted (Merchant channel amended by ADR-014) | 2026-07-24 |
 | ADR-014 | Platform Channel Responsibilities and Domain Alignment | ✅ Accepted | 2026-07-25 |
+| ADR-015 | Driver Availability State Machine | ✅ Accepted | 2026-07-25 |
+| ADR-016 | Local Intent vs Backend Authority (Availability) | ✅ Accepted | 2026-07-25 |
+| ADR-017 | Offline Availability Policy | ✅ Accepted | 2026-07-25 |
+| ADR-018 | Busy State Ownership | ✅ Accepted | 2026-07-25 |
+| ADR-019 | Availability Persistence and Restoration | ✅ Accepted | 2026-07-25 |
 
 ---
 

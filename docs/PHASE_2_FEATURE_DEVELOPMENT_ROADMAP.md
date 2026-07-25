@@ -341,16 +341,16 @@
 9. **اختبارات Widget:** مفتاح Online/Offline في Home.
 10. **اختبارات Integration:** تبديل الحالة أثناء انقطاع محاكى → إعادة الاتصال → مزامنة تلقائية.
 11. **Runtime checks:** لا تكرار Subscriptions لـ `NetworkMonitor` عند إعادة بناء الواجهة.
-12. **Acceptance Criteria:** التبديل يعمل Online، ويُصف في طابور Offline يُزامَن تلقائيًا عند الاتصال.
-13. **Definition of Done:** معايير القبول + Integration Test + 0 Regression.
-14. **المخاطر:** متوسطة — أول استخدام فعلي لـ `OfflineQueue` + `SyncManager` معًا.
-15. **ما يمنع البدء:** عدم إغلاق 2.3.
-16. **ما يمنع الإغلاق:** فقدان تحديث الحالة عند انقطاع الاتصال.
+12. **Acceptance Criteria:** التبديل إلى available يعمل Online مع أهلية؛ انقطاع الاتصال يُسقط التأكيد البصري لـ available؛ unavailable قد يُحفظ كنية محلية؛ **لا** طابور لـ →available أثناء offline (ADR-017).
+13. **Definition of Done:** معايير القبول + اختبارات السياسة/المستودع/الواجهة + 0 Regression + لا تعيين طلبات.
+14. **المخاطر:** متوسطة — offline + أول استخدام محدود لـ offline intents.
+15. **ما يمنع البدء:** عدم إغلاق 2.3؛ عدم اعتماد تصميم 2.4.
+16. **ما يمنع الإغلاق:** فقدان أمان الحالة / available مؤكد زائف بعد الاستعادة.
 17. **تعتمد عليها:** 2.5.
 18. **Mock ممكن؟** ✅ نعم.
-19. **Backend فعلي مطلوب؟** لا لإغلاق المرحلة.
+19. **Backend فعلي مطلوب؟** لا لإغلاق تنفيذ المرحلة (مع stub).
 20. **التقدير:** **M**.
-
+21. **تصميم:** `PHASE_2_4_DRIVER_AVAILABILITY_ARCHITECTURE.md` + ADR-015…019 (**Architecture Accepted** / Implementation Not Started).
 ### PHASE 2.5 — Delivery Request Lifecycle
 1. **الهدف:** استقبال، عرض، قبول أو رفض طلب توصيل واحد نشط.
 2. **النطاق:** `DeliveryOrder` Domain Model + Repository، شاشة عرض الطلب الوارد (Modal/Screen)، منطق Accept/Reject، تحديث `Orders`/`Home` GoRoute.
@@ -886,8 +886,8 @@ Unit Tests، Repository Tests، Service Tests، State Management Tests (Riverpod
 
 ```text
 Stage A — Documentation and Architecture Alignment  ← done
-Stage B — PHASE 2.3 Driver Identity and Profile      ← Validated (pending commit)
-Stage C — Driver Operational MVP
+Stage B — PHASE 2.3 Driver Identity and Profile      ← Done (merged 123fdba)
+Stage C — Driver Operational MVP (starts PHASE 2.4) ← Architecture Accepted / Implementation Not Started
 Stage D — Backend Modular Monolith Foundation
 Stage E — Merchant Mobile MVP
 Stage F — Customer Mobile MVP
@@ -896,5 +896,10 @@ Stage H — Platform Expansion
 ```
 
 **`service_locator.dart` / get_it:** Legacy / Unused / Conflicting with ADR-010 — خطة الإزالة في `docs/LEGACY_DI_MIGRATION_PLAN.md` (لا حذف في Stage A).
+
+**PHASE 2.3:** مدمج في `main`.
+**PHASE 2.4:** وثائق التصميم في `docs/PHASE_2_4_DRIVER_AVAILABILITY_ARCHITECTURE.md` + ADR-015…019 — **Architecture Accepted**؛ **Implementation Not Started**؛ PHASE 2.5 لم يبدأ.
+
+> **ملاحظة مواءمة AC التاريخية لـ 2.4:** معيار «صفّ تبديل التوفر أثناء Offline ثم مزامنة» **مُلغى لاتجاه → available** بموجب ADR-017 (يُسمح بنية unavailable فقط).
 
 **PHASE 2.3:** التنفيذ على فرع `feature/phase-2.3-driver-identity-profile` — Validated؛ بانتظار تفويض Commit/Push/PR.
