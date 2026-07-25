@@ -22,13 +22,10 @@ import '../mappers/driver_profile_local_mapper.dart';
 class FakeDriverProfileRepository implements DriverProfileRepository {
   FakeDriverProfileRepository({
     required AuthenticationRepository authenticationRepository,
-    required LoggerService logger,
-    DriverDatabase? database,
-    bool Function() isProductionEnvironment = _defaultIsProductionEnvironment,
-  }) : _auth = authenticationRepository,
-       _logger = logger,
-       _database = database,
-       _isProductionEnvironment = isProductionEnvironment;
+    required this._logger,
+    this._database,
+    this._isProductionEnvironment = _defaultIsProductionEnvironment,
+  }) : _auth = authenticationRepository;
 
   static bool _defaultIsProductionEnvironment() => AppConfig.isProduction;
 

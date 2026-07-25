@@ -4,21 +4,16 @@ import '../logger/logger_service.dart';
 
 /// Interceptor that logs all HTTP requests and responses.
 final class LoggingInterceptor extends Interceptor {
-  LoggingInterceptor({required LoggerService logger}) : _logger = logger;
+  LoggingInterceptor({required this._logger});
 
   final LoggerService _logger;
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    _logger.debug(
-      'HTTP ${options.method} ${options.uri}',
-      null,
-      null,
-      {
-        'headers': options.headers,
-        if (options.data != null) 'body': options.data,
-      },
-    );
+    _logger.debug('HTTP ${options.method} ${options.uri}', null, null, {
+      'headers': options.headers,
+      if (options.data != null) 'body': options.data,
+    });
     handler.next(options);
   }
 
@@ -108,8 +103,7 @@ final class RetryInterceptor extends Interceptor {
       DioExceptionType.connectionTimeout ||
       DioExceptionType.sendTimeout ||
       DioExceptionType.receiveTimeout ||
-      DioExceptionType.connectionError =>
-        true,
+      DioExceptionType.connectionError => true,
       DioExceptionType.badResponse =>
         err.response?.statusCode != null && err.response!.statusCode! >= 500,
       _ => false,
@@ -124,4 +118,3 @@ final class RetryInterceptor extends Interceptor {
     options.extra['retryCount'] = count;
   }
 }
-

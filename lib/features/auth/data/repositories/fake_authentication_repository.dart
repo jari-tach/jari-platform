@@ -21,13 +21,11 @@ import '../session/auth_session_storage.dart';
 /// - No Dart-define / request / UI bypass for Release.
 class FakeAuthenticationRepository implements AuthenticationRepository {
   FakeAuthenticationRepository({
-    required AuthSessionStorage sessionStorage,
-    required LoggerService logger,
+    required this._sessionStorage,
+    required this._logger,
     bool Function() isProductionEnvironment = _defaultIsProductionEnvironment,
-    Duration signInDelay = const Duration(milliseconds: 300),
-  }) : _sessionStorage = sessionStorage,
-       _logger = logger,
-       _signInDelay = signInDelay {
+    this._signInDelay = const Duration(milliseconds: 300),
+  }) {
     // HARD RELEASE GUARD — not injectable, not overridable.
     if (kReleaseMode) {
       throw StateError(

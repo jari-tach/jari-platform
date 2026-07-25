@@ -3,21 +3,33 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../logger/logger_service.dart';
 
 // Convenience methods for common tokens
-Future<void> saveAccessToken(FlutterSecureStorage storage, String token) => storage.write(key: 'access_token', value: token);
-Future<String?> getAccessToken(FlutterSecureStorage storage) => storage.read(key: 'access_token');
-Future<void> deleteAccessToken(FlutterSecureStorage storage) => storage.delete(key: 'access_token');
+Future<void> saveAccessToken(FlutterSecureStorage storage, String token) =>
+    storage.write(key: 'access_token', value: token);
+Future<String?> getAccessToken(FlutterSecureStorage storage) =>
+    storage.read(key: 'access_token');
+Future<void> deleteAccessToken(FlutterSecureStorage storage) =>
+    storage.delete(key: 'access_token');
 
-Future<void> saveRefreshToken(FlutterSecureStorage storage, String token) => storage.write(key: 'refresh_token', value: token);
-Future<String?> getRefreshToken(FlutterSecureStorage storage) => storage.read(key: 'refresh_token');
-Future<void> deleteRefreshToken(FlutterSecureStorage storage) => storage.delete(key: 'refresh_token');
+Future<void> saveRefreshToken(FlutterSecureStorage storage, String token) =>
+    storage.write(key: 'refresh_token', value: token);
+Future<String?> getRefreshToken(FlutterSecureStorage storage) =>
+    storage.read(key: 'refresh_token');
+Future<void> deleteRefreshToken(FlutterSecureStorage storage) =>
+    storage.delete(key: 'refresh_token');
 
-Future<void> saveUserId(FlutterSecureStorage storage, String userId) => storage.write(key: 'user_id', value: userId);
-Future<String?> getUserId(FlutterSecureStorage storage) => storage.read(key: 'user_id');
-Future<void> deleteUserId(FlutterSecureStorage storage) => storage.delete(key: 'user_id');
+Future<void> saveUserId(FlutterSecureStorage storage, String userId) =>
+    storage.write(key: 'user_id', value: userId);
+Future<String?> getUserId(FlutterSecureStorage storage) =>
+    storage.read(key: 'user_id');
+Future<void> deleteUserId(FlutterSecureStorage storage) =>
+    storage.delete(key: 'user_id');
 
-Future<void> saveAuthSession(FlutterSecureStorage storage, String session) => storage.write(key: 'auth_session', value: session);
-Future<String?> getAuthSession(FlutterSecureStorage storage) => storage.read(key: 'auth_session');
-Future<void> deleteAuthSession(FlutterSecureStorage storage) => storage.delete(key: 'auth_session');
+Future<void> saveAuthSession(FlutterSecureStorage storage, String session) =>
+    storage.write(key: 'auth_session', value: session);
+Future<String?> getAuthSession(FlutterSecureStorage storage) =>
+    storage.read(key: 'auth_session');
+Future<void> deleteAuthSession(FlutterSecureStorage storage) =>
+    storage.delete(key: 'auth_session');
 
 Future<void> clearAllAuthData(FlutterSecureStorage storage) async {
   await deleteAccessToken(storage);
@@ -58,13 +70,10 @@ class SecureStorageServiceImpl implements SecureStorageService {
   final FlutterSecureStorage _storage;
   final LoggerService _logger;
 
-  SecureStorageServiceImpl({required LoggerService logger})
-      : _storage = const FlutterSecureStorage(
-          aOptions: AndroidOptions(
-            encryptedSharedPreferences: true,
-          ),
-        ),
-        _logger = logger;
+  SecureStorageServiceImpl({required this._logger})
+    : _storage = const FlutterSecureStorage(
+        aOptions: AndroidOptions(encryptedSharedPreferences: true),
+      );
 
   @override
   Future<void> init() async {
@@ -77,7 +86,11 @@ class SecureStorageServiceImpl implements SecureStorageService {
       await _storage.write(key: key, value: value);
       _logger.debug('SecureStorageService: Written key=$key');
     } catch (e, stackTrace) {
-      _logger.error('SecureStorageService: Failed to write key=$key', e, stackTrace);
+      _logger.error(
+        'SecureStorageService: Failed to write key=$key',
+        e,
+        stackTrace,
+      );
       rethrow;
     }
   }
@@ -86,10 +99,16 @@ class SecureStorageServiceImpl implements SecureStorageService {
   Future<String?> read(String key) async {
     try {
       final value = await _storage.read(key: key);
-      _logger.debug('SecureStorageService: Read key=$key, exists=${value != null}');
+      _logger.debug(
+        'SecureStorageService: Read key=$key, exists=${value != null}',
+      );
       return value;
     } catch (e, stackTrace) {
-      _logger.error('SecureStorageService: Failed to read key=$key', e, stackTrace);
+      _logger.error(
+        'SecureStorageService: Failed to read key=$key',
+        e,
+        stackTrace,
+      );
       rethrow;
     }
   }
@@ -100,7 +119,11 @@ class SecureStorageServiceImpl implements SecureStorageService {
       await _storage.delete(key: key);
       _logger.debug('SecureStorageService: Deleted key=$key');
     } catch (e, stackTrace) {
-      _logger.error('SecureStorageService: Failed to delete key=$key', e, stackTrace);
+      _logger.error(
+        'SecureStorageService: Failed to delete key=$key',
+        e,
+        stackTrace,
+      );
       rethrow;
     }
   }
@@ -111,7 +134,11 @@ class SecureStorageServiceImpl implements SecureStorageService {
       await _storage.deleteAll();
       _logger.info('SecureStorageService: Deleted all keys');
     } catch (e, stackTrace) {
-      _logger.error('SecureStorageService: Failed to delete all', e, stackTrace);
+      _logger.error(
+        'SecureStorageService: Failed to delete all',
+        e,
+        stackTrace,
+      );
       rethrow;
     }
   }
@@ -142,7 +169,8 @@ class SecureStorageServiceImpl implements SecureStorageService {
   Future<String?> getUserId() => read('user_id');
   Future<void> deleteUserId() => delete('user_id');
 
-  Future<void> saveAuthSession(String session) => write('auth_session', session);
+  Future<void> saveAuthSession(String session) =>
+      write('auth_session', session);
   Future<String?> getAuthSession() => read('auth_session');
   Future<void> deleteAuthSession() => delete('auth_session');
 

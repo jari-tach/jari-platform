@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,7 +24,7 @@ class AppErrorHandler {
   final StreamController<AppFailure> _failureController =
       StreamController<AppFailure>.broadcast();
 
-  AppErrorHandler({required LoggerService logger}) : _logger = logger;
+  AppErrorHandler({required this._logger});
 
   /// Initialize global error handlers
   void init() {
@@ -43,12 +42,9 @@ class AppErrorHandler {
     };
 
     // Handle uncaught async errors
-    runZonedGuarded(
-      () {},
-      (error, stackTrace) {
-        _handleZoneError(error, stackTrace);
-      },
-    );
+    runZonedGuarded(() {}, (error, stackTrace) {
+      _handleZoneError(error, stackTrace);
+    });
 
     _logger.info('AppErrorHandler: Global error handlers initialized');
   }
@@ -64,10 +60,7 @@ class AppErrorHandler {
       'AppErrorHandler: Flutter error',
       details.exception,
       details.stack,
-      {
-        'library': details.library,
-        'context': details.context?.toString(),
-      },
+      {'library': details.library, 'context': details.context?.toString()},
     );
 
     _exceptionController.add(exception);
@@ -101,15 +94,10 @@ class AppErrorHandler {
   void handleDioError(DioException error) {
     final exception = _mapDioErrorToException(error);
 
-    _logger.error(
-      'AppErrorHandler: Dio error',
-      error,
-      error.stackTrace,
-      {
-        'statusCode': error.response?.statusCode,
-        'url': error.requestOptions.uri.toString(),
-      },
-    );
+    _logger.error('AppErrorHandler: Dio error', error, error.stackTrace, {
+      'statusCode': error.response?.statusCode,
+      'url': error.requestOptions.uri.toString(),
+    });
 
     _exceptionController.add(exception);
   }
@@ -169,9 +157,9 @@ class AppErrorHandler {
     return switch (exception) {
       NetworkException() => NetworkFailure(exception.message),
       ServerException() => ServerFailure(
-          exception.message,
-          statusCode: exception.statusCode,
-        ),
+        exception.message,
+        statusCode: exception.statusCode,
+      ),
       AuthException() => UnauthenticatedFailure(exception.message),
       ValidationException() => ValidationFailure(exception.message),
       CacheException() => CacheFailure(exception.message),
