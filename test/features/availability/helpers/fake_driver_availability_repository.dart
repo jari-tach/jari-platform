@@ -27,6 +27,8 @@ class FakeDriverAvailabilityRepository implements DriverAvailabilityRepository {
   AvailabilityFailure? nextReconcileFailure;
   AvailabilityFailure? nextLogoutFailure;
   AvailabilityFailure? nextAuthoritativeFailure;
+  Duration? restoreDelay;
+  Duration? requestDelay;
 
   final List<AvailabilityChangeRequest> changeRequests = [];
   final List<AvailabilityReconciliationRequest> reconcileRequests = [];
@@ -70,6 +72,9 @@ class FakeDriverAvailabilityRepository implements DriverAvailabilityRepository {
   Future<AvailabilityResult<DriverAvailability>> requestAvailabilityChange(
     AvailabilityChangeRequest request,
   ) async {
+    if (requestDelay != null) {
+      await Future<void>.delayed(requestDelay!);
+    }
     requestCallCount++;
     changeRequests.add(request);
     if (nextRequestFailure != null) {
@@ -111,6 +116,9 @@ class FakeDriverAvailabilityRepository implements DriverAvailabilityRepository {
   @override
   Future<AvailabilityResult<DriverAvailability>>
   restoreLocalAvailability() async {
+    if (restoreDelay != null) {
+      await Future<void>.delayed(restoreDelay!);
+    }
     restoreCallCount++;
     if (nextRestoreFailure != null) {
       return AvailabilityFailureResult(nextRestoreFailure!);

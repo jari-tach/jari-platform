@@ -119,6 +119,84 @@ class AppLocalizations {
       'Identity fields cannot be changed from the app.';
   String get profileUnexpectedMessage =>
       'Something went wrong while loading your profile.';
+
+  /// Availability (PHASE 2.4) — English strings match existing AppLocalizations
+  /// convention (Arabic ARB migration remains deferred).
+  String get availabilitySectionTitle => 'Availability';
+  String get availabilityStatusUnavailable => 'Unavailable for new requests';
+  String get availabilityStatusUnavailableDetail =>
+      'You will not receive new delivery requests.';
+  String get availabilityStatusConfirmedAvailable =>
+      'Available for new requests';
+  String get availabilityStatusConfirmedAvailableDetail =>
+      'Confirmed — you can receive delivery requests.';
+  String get availabilityStatusPendingAvailable => 'Confirming availability';
+  String get availabilityStatusPendingAvailableDetail =>
+      'Your available status is pending confirmation.';
+  String get availabilityStatusRestoredAvailable =>
+      'Restored previous status — confirmation needed';
+  String get availabilityStatusRestoredAvailableDetail =>
+      'A previous available status was restored and is not confirmed.';
+  String get availabilityStatusBusy => 'Busy with an active request';
+  String get availabilityStatusBusyDetail =>
+      'Availability cannot be changed while a request is in progress.';
+  String get availabilityStatusRestoredBusy =>
+      'Restored busy status — awaiting verification';
+  String get availabilityStatusRestoredBusyDetail =>
+      'A previous busy status was restored and is not freshly confirmed.';
+  String get availabilityStatusOffline => 'Offline';
+  String get availabilityStatusOfflineDetail =>
+      'Connect to the internet before going available.';
+  String get availabilityStatusLoading => 'Loading availability';
+  String get availabilityStatusLoadingDetail =>
+      'Please wait while availability is restored.';
+  String get availabilityStatusProcessing => 'Updating availability';
+  String get availabilityStatusInitial => 'Availability not ready';
+  String get availabilityStatusInitialDetail =>
+      'Sign in and wait for availability to load before changing status.';
+  String get availabilityChipConfirmed => 'Confirmed';
+  String get availabilityChipPending => 'Pending confirmation';
+  String get availabilityChipRestored => 'Restored — unconfirmed';
+  String get availabilityChipBusy => 'Busy';
+  String get availabilityChipOffline => 'Offline';
+  String get availabilityActionGoAvailable => 'Start receiving requests';
+  String get availabilityActionGoUnavailable => 'Stop receiving requests';
+  String get availabilityActionRetry => 'Retry';
+  String get availabilityActionDismissFailure => 'Dismiss';
+  String get availabilityFailureUnauthenticated =>
+      'Your session has ended. Sign in again.';
+  String get availabilityFailureSecurityDenied =>
+      'This action could not be completed for account security reasons.';
+  String get availabilityFailureProfileMissing =>
+      'Driver account readiness could not be verified yet.';
+  String get availabilityFailureAccountSuspended =>
+      'This account is suspended and cannot go available.';
+  String get availabilityFailureAccountInactive =>
+      'This account is inactive and cannot go available.';
+  String get availabilityFailureEmploymentIneligible =>
+      'Employment status does not allow going available.';
+  String get availabilityFailureAssignmentConflict =>
+      'Availability cannot change while a request is in progress.';
+  String get availabilityFailureManualBusyDenied =>
+      'Busy status cannot be selected manually.';
+  String get availabilityFailureOffline =>
+      'Connect to the internet before going available.';
+  String get availabilityFailurePersistence =>
+      'Could not save availability on this device.';
+  String get availabilityFailureStale =>
+      'Availability changed elsewhere. Refresh and try again.';
+  String get availabilityFailureSyncConflict =>
+      'Could not reconcile the current availability status.';
+  String get availabilityFailureInvalidTransition =>
+      'That availability change is not allowed.';
+  String get availabilityFailureConfirmationRequired =>
+      'Server confirmation is still required.';
+  String get availabilityFailureUnknown =>
+      'Something went wrong while updating availability.';
+  String get availabilitySemanticsStatus => 'Driver availability status';
+  String get availabilitySemanticsAction => 'Availability primary action';
+  String get availabilitySemanticsFailure => 'Availability message';
+  String get availabilitySemanticsProgress => 'Availability update in progress';
 }
 
 /// Localizations delegate

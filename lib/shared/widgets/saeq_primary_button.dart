@@ -17,10 +17,14 @@ class SaeqPrimaryButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final child = icon == null
-        ? Text(label)
+        ? Text(label, textAlign: TextAlign.center)
         : Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [Icon(icon), const SizedBox(width: 8), Text(label)],
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon),
+              const SizedBox(width: 8),
+              Flexible(child: Text(label, textAlign: TextAlign.center)),
+            ],
           );
 
     return SizedBox(
