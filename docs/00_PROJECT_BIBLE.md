@@ -254,26 +254,24 @@ Backend Platform
 
 | المرحلة / Stage | الاسم | ملاحظة الحالة (2026-07-25) |
 |-----------------|------|------------------------------|
-| **Stage A** | Documentation and Architecture Alignment | **Active (this phase)** |
+| **Stage A** | Documentation and Architecture Alignment | **Done** (`e14b322`) |
 | **Stabilization** | إغلاق استقرار Driver | **Closed WITH CONDITIONS** (انظر تقارير STABILIZATION) |
 | **PHASE 2.1** | App Bootstrap Service Activation | **Done** (تقرير PHASE_2_1) |
 | **PHASE 2.2** | Authentication Foundation | **Done** (تقرير PHASE_2_2) |
-| **PHASE 2.3** | Driver Identity and Profile | **Not started** — يتطلب أمر تنفيذ صريح |
+| **PHASE 2.3** | Driver Identity and Profile | **Validated** (pending commit authorization) — فرع `feature/phase-2.3-driver-identity-profile` |
 | **Stages C–H** | Driver MVP → Backend → Merchant → Customer → Web Admin → Expansion | مرجع ترتيب فقط؛ كل مرحلة بموافقة صريحة |
 
 > المرجع التشغيلي التفصيلي لسائق: [PHASE_2_FEATURE_DEVELOPMENT_ROADMAP.md](./PHASE_2_FEATURE_DEVELOPMENT_ROADMAP.md).
 > الترتيب المنصّي المرجعي: [20_DEVELOPMENT_ROADMAP.md](./20_DEVELOPMENT_ROADMAP.md) (مُحدَّث).
 > خارطة «المرحلة 0–5» القديمة في ملفات أخرى: **Historical / Superseded** للحالة الزمنية — لا تستخدمها لتحديد «ما العمل الآن».
 
-### 5.1 مرحلة التنفيذ الحالية (Stage A + ما بعد 2.2)
+### 5.1 مرحلة التنفيذ الحالية (PHASE 2.3)
 
-في مرحلة مواءمة الوثائق (Stage A):
-- ✅ تحديث الوثائق وADRs وقواعد الأعمال.
-- ❌ لا تبدأ PHASE 2.3 دون أمر صريح.
+- ✅ Stage A معتمد على `main`.
+- ✅ PHASE 2.3 منفَّذ ومُراجع أمنيًا (Validated) على فرع مستقل بانتظار تفويض Commit/Push.
+- ❌ لا تُعلَن Done قبل Commit المرحلة.
 - ❌ لا تُنشأ تطبيقات Customer/Merchant/Web Admin داخل هذا المستودع.
 - ❌ لا Monorepo / لا Microservices لمجرّد التوصية.
-
-بعد اعتماد Stage A، الخطوة التالية المرشحة (بموافقة منفصلة): **PHASE 2.3 Driver Identity and Profile**.
 
 ---
 ## 6. القرارات المعمارية الرسمية

@@ -885,8 +885,8 @@ Unit Tests، Repository Tests، Service Tests، State Management Tests (Riverpod
 **ترتيب المنصة المرجعي (لا يبدأ تلقائيًا):**
 
 ```text
-Stage A — Documentation and Architecture Alignment  ← docs alignment
-Stage B — PHASE 2.3 Driver Identity and Profile      ← Not started
+Stage A — Documentation and Architecture Alignment  ← done
+Stage B — PHASE 2.3 Driver Identity and Profile      ← Validated (pending commit)
 Stage C — Driver Operational MVP
 Stage D — Backend Modular Monolith Foundation
 Stage E — Merchant Mobile MVP
@@ -897,4 +897,4 @@ Stage H — Platform Expansion
 
 **`service_locator.dart` / get_it:** Legacy / Unused / Conflicting with ADR-010 — خطة الإزالة في `docs/LEGACY_DI_MIGRATION_PLAN.md` (لا حذف في Stage A).
 
-**PHASE 2.3 تبقى غير مبدوءة** حتى أمر تنفيذ صريح من مالك المشروع.
+**PHASE 2.3:** التنفيذ على فرع `feature/phase-2.3-driver-identity-profile` — Validated؛ بانتظار تفويض Commit/Push/PR.

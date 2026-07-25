@@ -19,11 +19,7 @@ class SecurityInterceptor extends Interceptor {
   final LoggerService _logger;
   final SecureStorageService _secureStorage;
 
-  SecurityInterceptor({
-    required LoggerService logger,
-    required SecureStorageService secureStorage,
-  }) : _logger = logger,
-       _secureStorage = secureStorage;
+  SecurityInterceptor({required this._logger, required this._secureStorage});
 
   @override
   void onRequest(
@@ -38,7 +34,10 @@ class SecurityInterceptor extends Interceptor {
       }
 
       // Add timestamp for request signing
-      final timestamp = DateTime.now().toUtc().millisecondsSinceEpoch.toString();
+      final timestamp = DateTime.now()
+          .toUtc()
+          .millisecondsSinceEpoch
+          .toString();
       options.headers['X-Timestamp'] = timestamp;
 
       // Sign request if needed
@@ -48,7 +47,11 @@ class SecurityInterceptor extends Interceptor {
       _logger.debug('SecurityInterceptor: Request to ${options.uri}');
       handler.next(options);
     } catch (e, stackTrace) {
-      _logger.error('SecurityInterceptor: Failed to process request', e, stackTrace);
+      _logger.error(
+        'SecurityInterceptor: Failed to process request',
+        e,
+        stackTrace,
+      );
       handler.reject(
         DioException(
           requestOptions: options,
@@ -60,13 +63,12 @@ class SecurityInterceptor extends Interceptor {
   }
 
   @override
-  void onError(
-    DioException err,
-    ErrorInterceptorHandler handler,
-  ) async {
+  void onError(DioException err, ErrorInterceptorHandler handler) async {
     // Handle 401 Unauthorized - try to refresh token
     if (err.response?.statusCode == 401) {
-      _logger.warning('SecurityInterceptor: 401 Unauthorized - attempting token refresh');
+      _logger.warning(
+        'SecurityInterceptor: 401 Unauthorized - attempting token refresh',
+      );
 
       try {
         // TODO: Implement token refresh logic
@@ -81,23 +83,17 @@ class SecurityInterceptor extends Interceptor {
         //   return;
         // }
       } catch (e, stackTrace) {
-        _logger.error('SecurityInterceptor: Token refresh failed', e, stackTrace);
+        _logger.error(
+          'SecurityInterceptor: Token refresh failed',
+          e,
+          stackTrace,
+        );
         // Clear auth data and redirect to login
         await _secureStorage.clearAllAuthData();
       }
     }
 
     handler.next(err);
-  }
-
-  /// Sign request with HMAC-SHA256
-  String _signRequest(RequestOptions options, String timestamp) {
-    final data = '${options.method}:${options.uri}:$timestamp';
-    final key = utf8.encode('your-secret-key'); // TODO: Get from secure config
-    final bytes = utf8.encode(data);
-    final hmac = Hmac(sha256, key);
-    final digest = hmac.convert(bytes);
-    return digest.toString();
   }
 }
 
@@ -112,7 +108,7 @@ class CertificatePinning {
     // 'sha256/BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB=',
   ];
 
-  CertificatePinning({required LoggerService logger}) : _logger = logger;
+  CertificatePinning({required this._logger});
 
   /// Validate certificate against pinned certificates
   bool validateCertificate(X509Certificate certificate) {
@@ -144,11 +140,11 @@ class JwtManager {
   final LoggerService _logger;
   final SecureStorageService _secureStorage;
 
-  JwtManager({
-    required LoggerService logger,
-    required SecureStorageService secureStorage,
-  }) : _logger = logger,
-       _secureStorage = secureStorage;
+  JwtManager({required this._logger, required this._secureStorage});
+
+  /// Whether a stored access token currently exists.
+  Future<bool> hasStoredAccessToken() async =>
+      (await _secureStorage.getAccessToken()) != null;
 
   /// Decode JWT token without verification
   Map<String, dynamic>? decodeToken(String token) {
@@ -208,12 +204,10 @@ class TokenRefreshManager {
   final ApiClient _apiClient;
 
   TokenRefreshManager({
-    required LoggerService logger,
-    required SecureStorageService secureStorage,
-    required ApiClient apiClient,
-  }) : _logger = logger,
-       _secureStorage = secureStorage,
-       _apiClient = apiClient;
+    required this._logger,
+    required this._secureStorage,
+    required this._apiClient,
+  });
 
   /// Refresh access token using refresh token
   Future<String?> refreshAccessToken() async {
@@ -234,10 +228,15 @@ class TokenRefreshManager {
       // await _secureStorage.saveAccessToken(newToken);
       // return newToken;
 
+      _logger.debug('TokenRefreshManager: ApiClient=${_apiClient.runtimeType}');
       _logger.warning('TokenRefreshManager: Not implemented yet');
       return null;
     } catch (e, stackTrace) {
-      _logger.error('TokenRefreshManager: Failed to refresh token', e, stackTrace);
+      _logger.error(
+        'TokenRefreshManager: Failed to refresh token',
+        e,
+        stackTrace,
+      );
       return null;
     }
   }

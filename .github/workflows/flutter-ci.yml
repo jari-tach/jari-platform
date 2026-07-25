@@ -16,58 +16,52 @@ jobs:
   analyze:
     name: Flutter Analyze
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
-          channel: 'stable'
-      
-      - name: Cache Flutter dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            .dart_tool
-            .packages
-            build
-          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-flutter-
-      
+          channel: stable
+          flutter-version: '3.44.7'
+          cache: true
+
+      - name: Verify Flutter toolchain
+        run: |
+          flutter --version
+          dart --version
+          flutter --version | grep -F "Flutter 3.44.7"
+          dart --version | grep -F "3.12.2"
+
       - name: Install dependencies
         run: flutter pub get
-      
+
       - name: Analyze code
         run: flutter analyze
 
   test:
     name: Flutter Test
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
-          channel: 'stable'
-      
-      - name: Cache Flutter dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            .dart_tool
-            .packages
-            build
-          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-flutter-
-      
+          channel: stable
+          flutter-version: '3.44.7'
+          cache: true
+
+      - name: Verify Flutter toolchain
+        run: |
+          flutter --version
+          dart --version
+          flutter --version | grep -F "Flutter 3.44.7"
+          dart --version | grep -F "3.12.2"
+
       - name: Install dependencies
         run: flutter pub get
-      
+
       - name: Run tests
         run: flutter test
 
@@ -75,29 +69,26 @@ jobs:
     name: Build Android
     runs-on: ubuntu-latest
     needs: [analyze, test]
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
-          channel: 'stable'
-      
-      - name: Cache Flutter dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            .dart_tool
-            .packages
-            build
-          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-flutter-
-      
+          channel: stable
+          flutter-version: '3.44.7'
+          cache: true
+
+      - name: Verify Flutter toolchain
+        run: |
+          flutter --version
+          dart --version
+          flutter --version | grep -F "Flutter 3.44.7"
+          dart --version | grep -F "3.12.2"
+
       - name: Install dependencies
         run: flutter pub get
-      
+
       - name: Build APK
         run: flutter build apk --debug
 
@@ -105,28 +96,25 @@ jobs:
     name: Build iOS
     runs-on: macos-latest
     needs: [analyze, test]
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
-          channel: 'stable'
-      
-      - name: Cache Flutter dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            .dart_tool
-            .packages
-            build
-          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-flutter-
-      
+          channel: stable
+          flutter-version: '3.44.7'
+          cache: true
+
+      - name: Verify Flutter toolchain
+        run: |
+          flutter --version
+          dart --version
+          flutter --version | grep -F "Flutter 3.44.7"
+          dart --version | grep -F "3.12.2"
+
       - name: Install dependencies
         run: flutter pub get
-      
+
       - name: Build iOS
         run: flutter build ios --debug --no-codesign

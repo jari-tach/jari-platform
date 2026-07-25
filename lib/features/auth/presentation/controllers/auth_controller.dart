@@ -77,7 +77,11 @@ class AuthController extends Notifier<AuthControllerState> {
       final session = await repository.signIn(phoneNumber);
       state = AuthControllerState.authenticated(session);
     } on AuthError catch (error) {
-      state = AuthControllerState.failure(error);
+      if (error is SessionExpiredError) {
+        state = AuthControllerState.expired(error);
+      } else {
+        state = AuthControllerState.failure(error);
+      }
     } catch (_) {
       state = const AuthControllerState.failure(UnexpectedAuthError());
     } finally {

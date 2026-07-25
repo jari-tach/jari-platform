@@ -34,9 +34,9 @@ Stage H — Platform Expansion
 
 | Stage | Status (2026-07-25) | Notes |
 |-------|---------------------|-------|
-| **A** | **In progress / completing** | Docs + ADRs + business rules alignment |
+| **A** | **Done** | Docs + ADRs + business rules alignment (`e14b322`) |
 | Pre-B (Stabilization, 2.1, 2.2) | **Done** (with documented conditions) | Do not rewrite as “not started” |
-| **B (PHASE 2.3)** | **Not started** | Explicit start command required |
+| **B (PHASE 2.3)** | **Validated** (pending commit authorization) | Branch `feature/phase-2.3-driver-identity-profile` |
 | **C–H** | Not started | Each needs separate approval; may span multiple repos |
 
 ---

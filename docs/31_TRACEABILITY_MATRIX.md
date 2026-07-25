@@ -53,11 +53,11 @@ Stage A (docs) · B (PHASE 2.3) · C (Driver MVP) · D (Backend) · E (Merchant)
 | BR-BRANCH-004 | Independent inventory | مخزون غير مشترك تلقائيًا | Inventory | Balances per warehouse/branch | Stock APIs | Merchant | Tenant + branch isolation | Stock leak tests | DocumentedOnly | D, E |
 | BR-BRANCH-005 | Independent users & permissions | مستخدمون/صلاحيات ضمن نطاق الفرع | IdentityAndAccess, Branches | Role grants + scopes | AuthZ APIs | Merchant Mobile | Business + Branch Scope | Cross-branch staff deny | DocumentedOnly | D, E |
 | BR-BRANCH-006 | Independent orders/drivers/reports | طلبات/سائقون/تقارير معزولة | RetailOrders, Drivers, Reports | Scoped queries | List/report APIs | Merchant, Driver | Enforce scopes on every list | Report/order leak tests | DocumentedOnly | D, E, C |
-| BR-DRIVER-001 | Driver bound to business + branch | سائق ↔ business + branch | Drivers | `drivers.business_id`, `branch_id` | Driver profile/assign | Driver, Merchant | Reassignment audited | Driver scope on tokens | DocumentedOnly | B (model readiness), C, D |
+| BR-DRIVER-001 | Driver bound to business + branch | سائق ↔ business + branch | Drivers | `drivers.business_id`, `branch_id` | Driver profile/assign | Driver, Merchant | Reassignment audited | Driver scope on tokens | Partial (model nullable; Backend truth later) | B (PHASE 2.3), C, D |
 | BR-DRIVER-002 | Branch-scoped operations | عمليات ضمن الفرع المصرح | Drivers, Delivery | — | Driver delivery APIs | Driver Mobile | Server-side branch filter | Cannot fetch other branch jobs | DocumentedOnly | C, D |
 | BR-DRIVER-003 | No cross-branch orders | لا طلبات فرع آخر | Delivery, RetailOrders | — | Offers/orders APIs | Driver Mobile | AuthZ deny | Isolation suite | DocumentedOnly | C, D |
 | BR-DRIVER-004 | No cross-branch customers/inventory/reports | لا عملاء/مخزون/تقارير فرع آخر | Drivers, Inventory, Reports | — | Deny endpoints | Driver Mobile | AuthZ deny | Negative authz tests | DocumentedOnly | C, D |
-| BR-DRIVER-005 | Server-side enforcement | ليس UI-only | Authorization | — | All driver APIs | Driver Mobile | RBAC + Branch Scope | UI hide ≠ sufficient (API tests) | DocumentedOnly | D, C |
+| BR-DRIVER-005 | Server-side enforcement | ليس UI-only | Authorization | — | All driver APIs | Driver Mobile | RBAC + Branch Scope | UI hide ≠ sufficient (API tests) | Partial (client never assigns/trusts tenant scope; API enforcement = Stage D) | B (PHASE 2.3), D, C |
 | BR-DRIVER-006 | Branch reassignment audited | تغيير ارتباط الفرع موثّق | Drivers, Audit | Audit + driver history | Admin/Merchant assign APIs | Merchant, Web Admin | Audit required | Audit fields present | DocumentedOnly | D, E, G |
 | BR-ADMIN-001 | Merchant daily ops via Merchant Mobile | التاجر لا يعتمد Web Admin يوميًا | Merchants, Administration | — | Merchant APIs only for ops | Merchant Mobile | No platform admin role for merchants | Channel policy review | DocumentedOnly | E |
 | BR-ADMIN-002 | Platform ops via Web Admin | إدارة المنصة من Web Admin | Administration | Admin tables | Admin APIs | Web Admin | Platform roles only | Admin authz tests | DocumentedOnly | G |
@@ -73,7 +73,7 @@ Stage A (docs) · B (PHASE 2.3) · C (Driver MVP) · D (Backend) · E (Merchant)
 | BR-PAY-003 | Merchant cash toggle | تفعيل/تعطيل نقدي للتاجر | Payments, Merchants | business/branch payment settings | Merchant settings API | Merchant Mobile | Business/Branch Scope | Toggle audited | DocumentedOnly | D, E |
 | BR-PAY-004 | Cash scoping | تقييد نقدي بنشاط/فرع/مدينة/نوع طلب | Payments | policy tables | Checkout validation | Customer, Merchant | Server policy engine | Matrix of scope rules | DocumentedOnly | D, H |
 | BR-PAY-005 | Docs not cashless-only | توحيد الوثائق: إلكتروني + نقدي اختياري | Payments (policy) | — | — | Docs / all apps | — | Doc consistency review | PartiallyImplemented (docs aligned Stage A) | A (done), keep |
-| BR-SEC-001 | Server-side authorization | RBAC + scopes على الخادم | Authorization | grants/policies | All sensitive APIs | All apps | Core AuthZ | Authz suite | DocumentedOnly | D |
+| BR-SEC-001 | Server-side authorization | RBAC + scopes على الخادم | Authorization | grants/policies | All sensitive APIs | All apps | Core AuthZ | Authz suite | Partial (Fake Auth prod/release guard on client; full AuthZ = Stage D) | B (PHASE 2.3 guard), D |
 | BR-SEC-002 | Audit sensitive interventions | Audit للعمليات الحساسة | Audit | audit_logs | Admin/finance APIs | Web Admin | Audit + Security logs | Audit required actions list | DocumentedOnly | D, G |
 | BR-SEC-003 | No client-trusted tenant IDs | لا ثقة بـ business_id/branch_id من العميل دون تحقق | Authorization | — | Gateway/API | All apps | Derive scope from token | Forged tenant id rejected | DocumentedOnly | D |
 
@@ -166,9 +166,9 @@ Implementation coverage of official rules in code: **~0% product logic** (docume
 
 | Item | Status |
 |------|--------|
-| Stage A Documentation Alignment | Finalization in progress → pending owner approval |
+| Stage A Documentation Alignment | Done (`e14b322`) |
 | PHASE 2.1 / 2.2 | Done (see phase reports) |
-| PHASE 2.3 | **NotStarted** — requires explicit start command |
+| PHASE 2.3 | **Validated** (pending commit authorization) — see `PHASE_2_3_DRIVER_IDENTITY_PROFILE_NOTES.md` |
 
 ---
 

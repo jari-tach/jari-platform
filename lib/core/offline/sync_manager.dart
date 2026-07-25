@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:drift/drift.dart';
 
@@ -33,20 +32,17 @@ class SyncManager {
       StreamController<SyncStatus>.broadcast();
 
   SyncManager({
-    required LoggerService logger,
-    required DriverDatabase database,
-    required ApiClient apiClient,
-    required SecureStorageService secureStorage,
-    required OfflineQueue offlineQueue,
-  }) : _logger = logger,
-       _database = database,
-       _apiClient = apiClient,
-       _secureStorage = secureStorage,
-       _offlineQueue = offlineQueue;
+    required this._logger,
+    required this._database,
+    required this._apiClient,
+    required this._secureStorage,
+    required this._offlineQueue,
+  });
 
   /// Initialize sync manager
   Future<void> init() async {
     _logger.info('SyncManager: Initializing');
+    _logger.debug('SyncManager: SecureStorage=${_secureStorage.runtimeType}');
 
     // Listen to network status changes
     // TODO: Listen to network monitor provider
@@ -80,7 +76,9 @@ class SyncManager {
         return SyncResult.nothingToSync();
       }
 
-      _logger.info('SyncManager: Processing ${pendingOperations.length} operations');
+      _logger.info(
+        'SyncManager: Processing ${pendingOperations.length} operations',
+      );
 
       int successCount = 0;
       int failureCount = 0;
@@ -90,7 +88,9 @@ class SyncManager {
           await _processOperation(operation);
           await _offlineQueue.markAsCompleted(operation.id!);
           successCount++;
-          _logger.debug('SyncManager: Successfully synced operation ${operation.id}');
+          _logger.debug(
+            'SyncManager: Successfully synced operation ${operation.id}',
+          );
         } catch (e, stackTrace) {
           _logger.error(
             'SyncManager: Failed to sync operation ${operation.id}',
@@ -165,7 +165,11 @@ class SyncManager {
       );
       _logger.debug('SyncManager: Updated sync metadata for $entityType');
     } catch (e, stackTrace) {
-      _logger.error('SyncManager: Failed to update sync metadata', e, stackTrace);
+      _logger.error(
+        'SyncManager: Failed to update sync metadata',
+        e,
+        stackTrace,
+      );
     }
   }
 
@@ -213,11 +217,7 @@ class SyncResult {
   final int failed;
   final int total;
 
-  const SyncResult({
-    this.success = 0,
-    this.failed = 0,
-    this.total = 0,
-  });
+  const SyncResult({this.success = 0, this.failed = 0, this.total = 0});
 
   bool get hasFailures => failed > 0;
   bool get isComplete => success + failed == total;

@@ -25,11 +25,7 @@ class NetworkMonitor {
 
   StreamSubscription<List<ConnectivityResult>>? _subscription;
 
-  NetworkMonitor({
-    required LoggerService logger,
-    required Connectivity connectivity,
-  }) : _logger = logger,
-       _connectivity = connectivity;
+  NetworkMonitor({required this._logger, required this._connectivity});
 
   /// Initialize network monitoring
   Future<void> init() async {
@@ -41,7 +37,11 @@ class NetworkMonitor {
     // Listen for connectivity changes
     _subscription = _connectivity.onConnectivityChanged.listen(
       (result) => _handleConnectivityChange(result),
-      onError: (error) => _logger.error('NetworkMonitor: Stream error', error, StackTrace.current),
+      onError: (error) => _logger.error(
+        'NetworkMonitor: Stream error',
+        error,
+        StackTrace.current,
+      ),
     );
 
     _logger.info('NetworkMonitor: Initialized');
@@ -58,7 +58,11 @@ class NetworkMonitor {
       _logger.debug('NetworkMonitor: Status=$_status, Type=$_connectionType');
       return _status;
     } catch (e, stackTrace) {
-      _logger.error('NetworkMonitor: Failed to check connectivity', e, stackTrace);
+      _logger.error(
+        'NetworkMonitor: Failed to check connectivity',
+        e,
+        stackTrace,
+      );
       _status = ConnectivityStatus.unknown;
       return _status;
     }
@@ -72,7 +76,9 @@ class NetworkMonitor {
         ? ConnectivityStatus.online
         : ConnectivityStatus.offline;
 
-    _logger.info('NetworkMonitor: Connectivity changed: $previousStatus -> $_status');
+    _logger.info(
+      'NetworkMonitor: Connectivity changed: $previousStatus -> $_status',
+    );
     _statusController.add(_status);
   }
 

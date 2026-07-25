@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,13 +26,13 @@ class LogEntry {
   });
 
   Map<String, dynamic> toJson() => {
-        'timestamp': timestamp.toIso8601String(),
-        'level': level.name,
-        'message': message,
-        'error': error?.toString(),
-        'stackTrace': stackTrace?.toString(),
-        'metadata': metadata,
-      };
+    'timestamp': timestamp.toIso8601String(),
+    'level': level.name,
+    'message': message,
+    'error': error?.toString(),
+    'stackTrace': stackTrace?.toString(),
+    'metadata': metadata,
+  };
 
   @override
   String toString() {
@@ -63,11 +64,36 @@ class LogEntry {
 /// [metadata] arguments. Positional (not named) parameters are used because
 /// they match the calling convention already used across the codebase.
 abstract class LoggerService {
-  void debug(String message, [dynamic error, StackTrace? stackTrace, Map<String, dynamic>? metadata]);
-  void info(String message, [dynamic error, StackTrace? stackTrace, Map<String, dynamic>? metadata]);
-  void warning(String message, [dynamic error, StackTrace? stackTrace, Map<String, dynamic>? metadata]);
-  void error(String message, [dynamic error, StackTrace? stackTrace, Map<String, dynamic>? metadata]);
-  void fatal(String message, [dynamic error, StackTrace? stackTrace, Map<String, dynamic>? metadata]);
+  void debug(
+    String message, [
+    dynamic error,
+    StackTrace? stackTrace,
+    Map<String, dynamic>? metadata,
+  ]);
+  void info(
+    String message, [
+    dynamic error,
+    StackTrace? stackTrace,
+    Map<String, dynamic>? metadata,
+  ]);
+  void warning(
+    String message, [
+    dynamic error,
+    StackTrace? stackTrace,
+    Map<String, dynamic>? metadata,
+  ]);
+  void error(
+    String message, [
+    dynamic error,
+    StackTrace? stackTrace,
+    Map<String, dynamic>? metadata,
+  ]);
+  void fatal(
+    String message, [
+    dynamic error,
+    StackTrace? stackTrace,
+    Map<String, dynamic>? metadata,
+  ]);
 
   LogLevel get level;
   set level(LogLevel level);
@@ -88,37 +114,92 @@ class ConsoleLoggerService implements LoggerService {
   set level(LogLevel level) => _level = level;
 
   @override
-  void debug(String message, [dynamic error, StackTrace? stackTrace, Map<String, dynamic>? metadata]) {
+  void debug(
+    String message, [
+    dynamic error,
+    StackTrace? stackTrace,
+    Map<String, dynamic>? metadata,
+  ]) {
     if (_shouldLog(LogLevel.debug)) {
-      _log(LogLevel.debug, message, error: error, stackTrace: stackTrace, metadata: metadata);
+      _log(
+        LogLevel.debug,
+        message,
+        error: error,
+        stackTrace: stackTrace,
+        metadata: metadata,
+      );
     }
   }
 
   @override
-  void info(String message, [dynamic error, StackTrace? stackTrace, Map<String, dynamic>? metadata]) {
+  void info(
+    String message, [
+    dynamic error,
+    StackTrace? stackTrace,
+    Map<String, dynamic>? metadata,
+  ]) {
     if (_shouldLog(LogLevel.info)) {
-      _log(LogLevel.info, message, error: error, stackTrace: stackTrace, metadata: metadata);
+      _log(
+        LogLevel.info,
+        message,
+        error: error,
+        stackTrace: stackTrace,
+        metadata: metadata,
+      );
     }
   }
 
   @override
-  void warning(String message, [dynamic error, StackTrace? stackTrace, Map<String, dynamic>? metadata]) {
+  void warning(
+    String message, [
+    dynamic error,
+    StackTrace? stackTrace,
+    Map<String, dynamic>? metadata,
+  ]) {
     if (_shouldLog(LogLevel.warning)) {
-      _log(LogLevel.warning, message, error: error, stackTrace: stackTrace, metadata: metadata);
+      _log(
+        LogLevel.warning,
+        message,
+        error: error,
+        stackTrace: stackTrace,
+        metadata: metadata,
+      );
     }
   }
 
   @override
-  void error(String message, [dynamic error, StackTrace? stackTrace, Map<String, dynamic>? metadata]) {
+  void error(
+    String message, [
+    dynamic error,
+    StackTrace? stackTrace,
+    Map<String, dynamic>? metadata,
+  ]) {
     if (_shouldLog(LogLevel.error)) {
-      _log(LogLevel.error, message, error: error, stackTrace: stackTrace, metadata: metadata);
+      _log(
+        LogLevel.error,
+        message,
+        error: error,
+        stackTrace: stackTrace,
+        metadata: metadata,
+      );
     }
   }
 
   @override
-  void fatal(String message, [dynamic error, StackTrace? stackTrace, Map<String, dynamic>? metadata]) {
+  void fatal(
+    String message, [
+    dynamic error,
+    StackTrace? stackTrace,
+    Map<String, dynamic>? metadata,
+  ]) {
     if (_shouldLog(LogLevel.fatal)) {
-      _log(LogLevel.fatal, message, error: error, stackTrace: stackTrace, metadata: metadata);
+      _log(
+        LogLevel.fatal,
+        message,
+        error: error,
+        stackTrace: stackTrace,
+        metadata: metadata,
+      );
     }
   }
 
@@ -158,11 +239,11 @@ class ConsoleLoggerService implements LoggerService {
   void _printLog(LogEntry entry) {
     if (Platform.isAndroid || Platform.isIOS) {
       // Release mode: JSON format
-      print(jsonEncode(entry.toJson()));
+      developer.log(jsonEncode(entry.toJson()));
     } else {
       // Debug mode: Pretty format
       final color = _getColorForLevel(entry.level);
-      print(color(entry.toString()));
+      developer.log(color(entry.toString()));
     }
   }
 

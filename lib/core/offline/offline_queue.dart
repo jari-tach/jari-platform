@@ -39,19 +39,20 @@ class OfflineQueueItem {
   });
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'operationType': operationType.name,
-        'entityType': entityType,
-        'entityId': entityId,
-        'payload': payload,
-        'status': status.name,
-        'retryCount': retryCount,
-        'errorMessage': errorMessage,
-        'createdAt': createdAt.toIso8601String(),
-        'processedAt': processedAt?.toIso8601String(),
-      };
+    'id': id,
+    'operationType': operationType.name,
+    'entityType': entityType,
+    'entityId': entityId,
+    'payload': payload,
+    'status': status.name,
+    'retryCount': retryCount,
+    'errorMessage': errorMessage,
+    'createdAt': createdAt.toIso8601String(),
+    'processedAt': processedAt?.toIso8601String(),
+  };
 
-  factory OfflineQueueItem.fromJson(Map<String, dynamic> json) => OfflineQueueItem(
+  factory OfflineQueueItem.fromJson(Map<String, dynamic> json) =>
+      OfflineQueueItem(
         id: json['id'] as int?,
         operationType: OperationType.values.firstWhere(
           (e) => e.name == json['operationType'],
@@ -87,14 +88,11 @@ class OfflineQueue {
   final Duration _baseRetryDelay;
 
   OfflineQueue({
-    required LoggerService logger,
-    required DriverDatabase database,
-    int maxRetries = 3,
-    Duration baseRetryDelay = const Duration(seconds: 1),
-  }) : _logger = logger,
-       _database = database,
-       _maxRetries = maxRetries,
-       _baseRetryDelay = baseRetryDelay;
+    required this._logger,
+    required this._database,
+    this._maxRetries = 3,
+    this._baseRetryDelay = const Duration(seconds: 1),
+  });
 
   /// Enqueue an operation for later processing
   Future<int> enqueue({
@@ -104,14 +102,6 @@ class OfflineQueue {
     required Map<String, dynamic> payload,
   }) async {
     try {
-      final item = OfflineQueueItem(
-        operationType: operationType,
-        entityType: entityType,
-        entityId: entityId,
-        payload: payload,
-        createdAt: DateTime.now(),
-      );
-
       final id = await _database.enqueueOperation(
         OfflineQueueCompanion.insert(
           operationType: operationType.name,
@@ -140,27 +130,33 @@ class OfflineQueue {
     try {
       final items = await _database.getPendingOperations();
       return items
-          .map((item) => OfflineQueueItem(
-                id: item.id,
-                operationType: OperationType.values.firstWhere(
-                  (e) => e.name == item.operationType,
-                  orElse: () => OperationType.create,
-                ),
-                entityType: item.entityType,
-                entityId: item.entityId,
-                payload: jsonDecode(item.payload) as Map<String, dynamic>,
-                status: QueueItemStatus.values.firstWhere(
-                  (e) => e.name == item.status,
-                  orElse: () => QueueItemStatus.pending,
-                ),
-                retryCount: item.retryCount,
-                errorMessage: item.errorMessage,
-                createdAt: item.createdAt,
-                processedAt: item.processedAt,
-              ))
+          .map(
+            (item) => OfflineQueueItem(
+              id: item.id,
+              operationType: OperationType.values.firstWhere(
+                (e) => e.name == item.operationType,
+                orElse: () => OperationType.create,
+              ),
+              entityType: item.entityType,
+              entityId: item.entityId,
+              payload: jsonDecode(item.payload) as Map<String, dynamic>,
+              status: QueueItemStatus.values.firstWhere(
+                (e) => e.name == item.status,
+                orElse: () => QueueItemStatus.pending,
+              ),
+              retryCount: item.retryCount,
+              errorMessage: item.errorMessage,
+              createdAt: item.createdAt,
+              processedAt: item.processedAt,
+            ),
+          )
           .toList();
     } catch (e, stackTrace) {
-      _logger.error('OfflineQueue: Failed to get pending operations', e, stackTrace);
+      _logger.error(
+        'OfflineQueue: Failed to get pending operations',
+        e,
+        stackTrace,
+      );
       return [];
     }
   }
@@ -171,16 +167,20 @@ class OfflineQueue {
       await _database.deleteOfflineOperation(id);
       _logger.debug('OfflineQueue: Marked operation $id as completed');
     } catch (e, stackTrace) {
-      _logger.error('OfflineQueue: Failed to mark operation $id as completed', e, stackTrace);
+      _logger.error(
+        'OfflineQueue: Failed to mark operation $id as completed',
+        e,
+        stackTrace,
+      );
     }
   }
 
   /// Mark operation as failed
   Future<void> markAsFailed(int id, String errorMessage) async {
     try {
-      final item = await (_database.select(_database.offlineQueue)
-            ..where((t) => t.id.equals(id)))
-          .getSingle();
+      final item = await (_database.select(
+        _database.offlineQueue,
+      )..where((t) => t.id.equals(id))).getSingle();
       final newRetryCount = item.retryCount + 1;
 
       if (newRetryCount >= _maxRetries) {
@@ -191,19 +191,25 @@ class OfflineQueue {
         );
       } else {
         // Update retry count and error message
-        await _database.update(_database.offlineQueue).replace(
-          OfflineQueueCompanion(
-            id: Value(id),
-            retryCount: Value(newRetryCount),
-            errorMessage: Value(errorMessage),
-          ),
-        );
+        await _database
+            .update(_database.offlineQueue)
+            .replace(
+              OfflineQueueCompanion(
+                id: Value(id),
+                retryCount: Value(newRetryCount),
+                errorMessage: Value(errorMessage),
+              ),
+            );
         _logger.warning(
           'OfflineQueue: Operation $id failed (retry $newRetryCount/$_maxRetries): $errorMessage',
         );
       }
     } catch (e, stackTrace) {
-      _logger.error('OfflineQueue: Failed to mark operation $id as failed', e, stackTrace);
+      _logger.error(
+        'OfflineQueue: Failed to mark operation $id as failed',
+        e,
+        stackTrace,
+      );
     }
   }
 

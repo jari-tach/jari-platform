@@ -7,7 +7,8 @@ sealed class AppFailure {
   final String? code;
 
   @override
-  String toString() => '[$runtimeType] $message${code != null ? ' (code: $code)' : ''}';
+  String toString() =>
+      '[$runtimeType] $message${code != null ? ' (code: $code)' : ''}';
 
   @override
   bool operator ==(Object other) =>
@@ -35,14 +36,12 @@ final class ServerFailure extends AppFailure {
 
 /// Authentication failure (401 Unauthorized)
 final class UnauthenticatedFailure extends AppFailure {
-  const UnauthenticatedFailure([String message = 'Unauthenticated'])
-      : super(message);
+  const UnauthenticatedFailure([super.message = 'Unauthenticated']);
 }
 
 /// Authorization failure (403 Forbidden)
 final class UnauthorizedFailure extends AppFailure {
-  const UnauthorizedFailure([String message = 'Forbidden'])
-      : super(message);
+  const UnauthorizedFailure([super.message = 'Forbidden']);
 }
 
 /// Input/business validation failure
@@ -64,8 +63,7 @@ final class CacheFailure extends AppFailure {
 
 /// Timeout failure
 final class TimeoutFailure extends AppFailure {
-  const TimeoutFailure([String message = 'Request timed out'])
-      : super(message);
+  const TimeoutFailure([super.message = 'Request timed out']);
 }
 
 /// Unknown/unexpected failure

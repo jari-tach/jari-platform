@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 
 /// Application environment
 enum Environment { dev, staging, production }
@@ -56,13 +55,15 @@ class AppConfig {
   static bool get isAndroid => Platform.isAndroid;
   static bool get isIOS => Platform.isIOS;
   static bool get isWeb => kIsWeb;
-  static bool get isDesktop => Platform.isWindows || Platform.isMacOS || Platform.isLinux;
+  static bool get isDesktop =>
+      Platform.isWindows || Platform.isMacOS || Platform.isLinux;
 
   // Feature Flags
   static const bool enableLogging = true;
   static const bool enableAnalytics = false; // TODO: Enable in production
   static const bool enableCrashReporting = false; // TODO: Enable in production
-  static const bool enablePerformanceMonitoring = false; // TODO: Enable in production
+  static const bool enablePerformanceMonitoring =
+      false; // TODO: Enable in production
 
   // API Configuration
   static const int connectTimeout = 15; // seconds
@@ -78,7 +79,8 @@ class AppConfig {
   static const int maxCacheSize = 100; // MB
 
   // Security Configuration
-  static const bool enableCertificatePinning = false; // TODO: Enable in production
+  static const bool enableCertificatePinning =
+      false; // TODO: Enable in production
   static const bool enableRequestSigning = false; // TODO: Enable in production
 
   // Initialize configuration

@@ -18,3 +18,15 @@ This phase establishes a scalable and modular app structure with:
 - `lib/core/` for shared app foundation and infrastructure
 - `lib/features/` for feature-specific modules
 - `lib/shared/` for reusable widgets and services
+
+## Toolchain
+
+Authoritative Flutter version is pinned in `.flutter-version`.
+
+| Item | Value |
+|------|--------|
+| Flutter | **exactly** `3.44.7` (stable) — see `.flutter-version` |
+| Bundled Dart | `3.12.2` (satisfies `sdk: ^3.12.2` in `pubspec.yaml`) |
+| CI | `.github/workflows/flutter-ci.yml` installs `flutter-version: '3.44.7'` and verifies both Flutter and Dart versions |
+
+Use the same Flutter version locally and in CI. Do not lower the Dart SDK constraint to accommodate an older Flutter toolchain.

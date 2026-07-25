@@ -1,13 +1,9 @@
 import '../../domain/entities/auth_error.dart';
 import '../../domain/entities/authentication_status.dart';
 import '../../domain/entities/driver_session.dart';
+import '../../domain/entities/session_lifecycle.dart';
 
-/// Presentation-layer authentication lifecycle (PHASE 2.2, Phase 6 spec).
-///
-/// Richer than [AuthenticationStatus] on purpose: routing only needs
-/// unknown/authenticated/unauthenticated, but the Login screen also needs
-/// to distinguish "restoring", "authenticating" and "signingOut" to drive
-/// loading indicators and to prevent duplicate submissions.
+/// Presentation-layer authentication lifecycle (PHASE 2.2 + 2.3).
 enum AuthControllerStatus {
   /// Controller created, restoration not started yet.
   initial,
@@ -26,6 +22,9 @@ enum AuthControllerStatus {
 
   /// A sign-out is in flight.
   signingOut,
+
+  /// A previously valid session expired.
+  expired,
 
   /// The last operation (restore or sign-in) failed with [error].
   failure,
@@ -53,6 +52,12 @@ class AuthControllerState {
   const AuthControllerState.signingOut()
     : this._(status: AuthControllerStatus.signingOut);
 
+  const AuthControllerState.expired([AuthError? error])
+    : this._(
+        status: AuthControllerStatus.expired,
+        error: error ?? const SessionExpiredError(),
+      );
+
   const AuthControllerState.failure(AuthError error)
     : this._(status: AuthControllerStatus.failure, error: error);
 
@@ -61,7 +66,7 @@ class AuthControllerState {
   /// Non-null only when [status] is [AuthControllerStatus.authenticated].
   final DriverSession? session;
 
-  /// Non-null only when [status] is [AuthControllerStatus.failure].
+  /// Non-null when [status] is [AuthControllerStatus.failure] or [expired].
   final AuthError? error;
 
   bool get isAuthenticated => status == AuthControllerStatus.authenticated;
@@ -82,12 +87,33 @@ class AuthControllerState {
         return AuthenticationStatus.authenticated;
       case AuthControllerStatus.unauthenticated:
       case AuthControllerStatus.failure:
+      case AuthControllerStatus.expired:
         return AuthenticationStatus.unauthenticated;
       case AuthControllerStatus.initial:
       case AuthControllerStatus.restoring:
       case AuthControllerStatus.authenticating:
       case AuthControllerStatus.signingOut:
         return AuthenticationStatus.unknown;
+    }
+  }
+
+  /// Explicit lifecycle view required by PHASE 2.3 (does not expose Fake Auth).
+  SessionLifecycle get sessionLifecycle {
+    switch (status) {
+      case AuthControllerStatus.initial:
+      case AuthControllerStatus.restoring:
+      case AuthControllerStatus.signingOut:
+        return SessionLifecycle.unknown;
+      case AuthControllerStatus.unauthenticated:
+        return SessionLifecycle.unauthenticated;
+      case AuthControllerStatus.authenticating:
+        return SessionLifecycle.authenticating;
+      case AuthControllerStatus.authenticated:
+        return SessionLifecycle.authenticated;
+      case AuthControllerStatus.expired:
+        return SessionLifecycle.expired;
+      case AuthControllerStatus.failure:
+        return SessionLifecycle.failed;
     }
   }
 

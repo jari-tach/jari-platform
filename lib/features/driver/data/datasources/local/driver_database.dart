@@ -14,7 +14,9 @@ part 'driver_database.g.dart';
 /// - Delivery orders (cached)
 /// - Offline queue
 /// - Sync metadata
-@DriftDatabase(tables: [DriverProfiles, DeliveryOrders, OfflineQueue, SyncMetadata])
+@DriftDatabase(
+  tables: [DriverProfiles, DeliveryOrders, OfflineQueue, SyncMetadata],
+)
 class DriverDatabase extends _$DriverDatabase {
   static final DriverDatabase _instance = DriverDatabase._internal();
 
@@ -39,11 +41,14 @@ class DriverDatabase extends _$DriverDatabase {
   // Tables
   Future<List<DriverProfile>> get driverProfile => select(driverProfiles).get();
 
-  Future<List<DeliveryOrder>> get allDeliveryOrders => select(deliveryOrders).get();
+  Future<List<DeliveryOrder>> get allDeliveryOrders =>
+      select(deliveryOrders).get();
 
-  Future<List<OfflineQueueData>> get allOfflineQueueItems => select(offlineQueue).get();
+  Future<List<OfflineQueueData>> get allOfflineQueueItems =>
+      select(offlineQueue).get();
 
-  Future<List<SyncMetadataData>> get allSyncMetadata => select(syncMetadata).get();
+  Future<List<SyncMetadataData>> get allSyncMetadata =>
+      select(syncMetadata).get();
 
   // Driver Profile operations
   Future<DriverProfile?> getActiveDriver() async {
@@ -51,8 +56,19 @@ class DriverDatabase extends _$DriverDatabase {
     return await query.getSingleOrNull();
   }
 
+  Future<DriverProfile?> getDriverByDriverId(String driverId) async {
+    final query = select(driverProfiles)
+      ..where((t) => t.driverId.equals(driverId));
+    return await query.getSingleOrNull();
+  }
+
   Future<int> insertDriverProfile(DriverProfilesCompanion insert) {
     return into(driverProfiles).insert(insert);
+  }
+
+  /// Insert or replace by unique [DriverProfiles.driverId].
+  Future<void> upsertDriverProfile(DriverProfilesCompanion insert) async {
+    await into(driverProfiles).insertOnConflictUpdate(insert);
   }
 
   Future<bool> updateDriverProfile(DriverProfilesCompanion insert) async {
@@ -103,7 +119,8 @@ class DriverDatabase extends _$DriverDatabase {
 
   // Sync Metadata operations
   Future<SyncMetadataData?> getLastSync(String entityType) async {
-    final query = select(syncMetadata)..where((t) => t.entityType.equals(entityType));
+    final query = select(syncMetadata)
+      ..where((t) => t.entityType.equals(entityType));
     return await query.getSingleOrNull();
   }
 
@@ -152,7 +169,9 @@ class OfflineQueue extends Table {
   TextColumn get entityType => text()(); // delivery_order, driver_profile, etc.
   TextColumn get entityId => text()();
   TextColumn get payload => text()(); // JSON payload
-  TextColumn get status => text().withDefault(const Constant('pending'))(); // pending, syncing, completed, failed
+  TextColumn get status => text().withDefault(
+    const Constant('pending'),
+  )(); // pending, syncing, completed, failed
   IntColumn get retryCount => integer().withDefault(const Constant(0))();
   TextColumn get errorMessage => text().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
