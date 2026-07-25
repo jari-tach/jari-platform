@@ -1,0 +1,226 @@
+---
+description: SAEQ Driver Development Governance Policy v1.1 — lifecycle, Decision Hierarchy, AI recommendations
+alwaysApply: true
+---
+
+# SAEQ DRIVER — Development Governance Policy
+## Permanent Engineering Directive · Version 1.1
+
+These rules are **binding** for all current and future SAEQ Driver development
+work. They may be overridden only by an explicit accepted ADR (`docs/adr/`)
+or an explicit decision from the project owner.
+
+Canonical document: `docs/DEVELOPMENT_GOVERNANCE_POLICY.md`.
+
+---
+
+## 1. Development philosophy
+
+Development must be: Incremental, Small scope, Testable, Reviewable,
+Reversible, Documented. Large, unreviewable changes are forbidden.
+
+---
+
+## 2. Feature lifecycle (mandatory order)
+
+1. Review the Roadmap.
+2. Review the Decision Hierarchy (§14).
+3. Create an independent Feature Branch.
+4. Implement **one** feature only.
+5. Run the phase tests.
+6. Runtime Validation if operational behavior changed.
+7. Quality Gate.
+8. Exactly **one** Commit.
+9. Review and approval.
+10. Only then move to the next phase.
+
+Skipping a step is forbidden.
+
+---
+
+## 3. Git policy
+
+- Start from the last **approved** commit.
+- Independent branch per Feature or Phase.
+- No direct work on the main/default branch.
+- No merging multiple primary features into one commit.
+- No `git push` before phase approval.
+- No starting the next phase before the current one is closed.
+- Conventional Commits only.
+
+---
+
+## 4. Scope control
+
+Forbidden: out-of-scope features, unrelated opportunistic fixes, large
+refactors, architecture changes without ADR, new dependencies without
+approval, any Customer/Merchant/Admin work in this Driver repo.
+
+If out-of-scope work appears: **stop and report**.
+
+---
+
+## 5. Testing policy
+
+Add or update appropriate Unit / Widget / Integration / Runtime tests.
+Do not reduce test count or remove tests without a documented reason.
+
+---
+
+## 6. Quality Gate (before every commit)
+
+`dart format` (modified files) · `git diff --check` · `flutter analyze` ·
+`flutter test` · `flutter build` · Runtime Validation when behavior changed.
+A successful build alone is **not** enough.
+
+---
+
+## 7. Runtime Validation
+
+Phases affecting Navigation, Authentication, Startup, Lifecycle, State
+Restoration, Services, Routing, or Persistence **must** be validated on a
+real Android device. Emulator is not a substitute without a documented reason.
+
+---
+
+## 8. Technical debt (see also §17)
+
+Out-of-scope issues: do not auto-fix, do not ignore, document as debt,
+propose when to address. Fix in-phase only if blocking / security / data-loss
+/ Quality Gate failure (§17).
+
+---
+
+## 9. Documentation
+
+Every phase needs an official report: goal, scope, files, tests, runtime,
+risks, debt, Commit Hash, decision, next-phase recommendation (§19).
+Update the Roadmap when the overall plan changes.
+
+---
+
+## 10. Security
+
+No real keys/tokens/secrets/hardcoded passwords. No temporary security
+bypasses. No Fake implementations runnable in Production without a Guard.
+
+---
+
+## 11. Definition of Done
+
+Goal met · required tests passed · Runtime done when needed · no regression ·
+docs updated · exactly one Commit · no `git push` · phase reviewed/approved.
+
+---
+
+## 12. Mandatory stop rule
+
+Stop and request review before: architecture change, new dependency, router
+rewrite, state-management redesign, radical DB change, security-contract
+change, production backend integration, deleting core files, changing an ADR,
+or anything outside scope.
+
+---
+
+## 13. Golden principle
+
+**Quality over speed.** Close a phase only when it is stable, testable,
+documented, maintainable, and extensible.
+
+---
+
+# Appendix A — Decision Hierarchy and AI Recommendation Policy
+
+## 14. Decision Hierarchy
+
+When instructions, documents, or recommendations conflict, higher wins:
+
+1. Architectural Decision Records (ADR)
+2. PROJECT_BIBLE
+3. ENTERPRISE_ARCHITECTURE
+4. SYSTEM_ARCHITECTURE
+5. DEVELOPMENT_GOVERNANCE_POLICY
+6. PHASE ROADMAP
+7. Current Phase Instructions
+8. Current Task Instructions
+9. AI recommendations
+
+Do not skip this order. On conflict: adopt the higher source; document why a
+lower source was set aside if it affects execution; do not invent a new
+architectural decision during implementation without an ADR or explicit
+approval.
+
+Platform constraints in the Master Development Directive (Driver-only app,
+no role merging, etc.) remain binding because they rest on ADR-013 and
+PROJECT_BIBLE — i.e. ranks above this policy.
+
+---
+
+## 15. AI Recommendation Policy
+
+Any recommendation from Cursor, ChatGPT, or another assistant is an
+**engineering suggestion**, not a binding decision.
+
+Before acting, verify alignment with: Decision Hierarchy, current
+Architecture, ADR, Roadmap, current phase scope, quality and security.
+
+If it conflicts with any higher-ranked source: reject, defer, or escalate to
+a new ADR. **Do not implement it directly.**
+
+---
+
+## 16. Architectural Change Policy
+
+Treat as architectural (stop, assess, ADR if needed, wait for approval):
+
+- Layering changes
+- State Management changes
+- Dependency Injection changes
+- Routing strategy changes
+- Database changes
+- Security model changes
+- Authentication flow changes
+- Shared services that affect all features
+
+---
+
+## 17. Technical Debt Policy
+
+Document · classify severity · link to the right future phase · do not fix
+out-of-scope debt unless it blocks the phase, is a security defect, risks
+data loss, or blocks the Quality Gate.
+
+---
+
+## 18. Quality Regression Policy
+
+Do not accept a phase that regresses quality: undocumented drop in test
+count, new analyze errors, build/runtime failure, weaker security, clear
+performance drop, or breakage of a previously stable feature.
+
+Fix before close, or document and get an explicit exception.
+
+---
+
+## 19. Documentation Policy
+
+No phase is closed without its official report (goal, scope, files, tests,
+runtime, risks, debt, Commit Hash, decision, next-phase recommendation).
+
+---
+
+## 20. Long-Term Maintainability Principle
+
+Balance maintainability, scalability, testability, code clarity, and
+long-term stability. Do not sacrifice these for temporary speed.
+
+---
+
+## 21. Golden Rule
+
+- Speed vs quality → **quality wins**.
+- Easy implementation vs correct architecture → **keep the architecture**.
+- AI suggestion vs official docs → **official docs win**.
+
+The goal is not finishing the most phases — it is building a stable, secure,
+scalable, maintainable platform for years.

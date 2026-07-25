@@ -55,18 +55,28 @@ decision.
 
 ## Decision Hierarchy
 
-When instructions conflict, higher wins:
+When instructions, documents, or recommendations conflict, higher wins
+(source of truth: `docs/DEVELOPMENT_GOVERNANCE_POLICY.md` §14, Version 1.1):
 
 1. ADR (latest accepted architectural decision, `docs/adr/`)
 2. `docs/00_PROJECT_BIBLE.md`
 3. `docs/03_ENTERPRISE_ARCHITECTURE.md`
 4. `docs/02_SYSTEM_ARCHITECTURE.md`
-5. This Master Development Directive
-6. The current task/request
+5. `docs/DEVELOPMENT_GOVERNANCE_POLICY.md`
+6. Phase Roadmap (e.g. `docs/PHASE_2_FEATURE_DEVELOPMENT_ROADMAP.md`)
+7. Current Phase Instructions
+8. Current Task Instructions
+9. AI recommendations (never binding — see Governance Policy §15)
 
-A lower-ranked instruction (including this file, or the current user request)
-can never override a higher-ranked one. Only a new ADR can change what a
-prior ADR or `PROJECT_BIBLE` established.
+A lower-ranked instruction (including this file's workflow notes, or the
+current user request, or an AI suggestion) can never override a
+higher-ranked one. Only a new ADR can change what a prior ADR or
+`PROJECT_BIBLE` established.
+
+Platform identity and repository-scope rules in **this Master Development
+Directive** remain binding because they implement ADR-013 and
+`PROJECT_BIBLE` (ranks 1–2), not because this file outranks the Governance
+Policy.
 
 ## Development Workflow
 
