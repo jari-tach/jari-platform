@@ -6,13 +6,12 @@ import '../../../core/localization/app_localizations.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../shared/widgets/saeq_primary_button.dart';
 import '../../auth/presentation/providers/auth_providers.dart';
+import '../../availability/presentation/widgets/driver_availability_card.dart';
 
-/// Minimal authenticated landing screen (PHASE 2.2).
+/// Authenticated landing screen with availability control (PHASE 2.4).
 ///
-/// Only enough to prove the protected route + sign-out flow work end to
-/// end: a greeting derived from the current session and a Sign Out
-/// button. No dashboard, no Driver Profile, no availability toggle — all
-/// explicitly out of scope for this phase.
+/// Keeps the existing greeting and sign-out flow; availability is inserted
+/// as a high-visibility card without redesigning navigation or shell layout.
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -31,11 +30,27 @@ class HomeScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(l10n.homeWelcomeTitle, style: AppTextStyles.headlineLarge),
-              const SizedBox(height: 10),
-              if (session != null)
-                Text(session.maskedPhoneNumber, style: AppTextStyles.bodyLarge),
-              const Spacer(),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.homeWelcomeTitle,
+                        style: AppTextStyles.headlineLarge,
+                      ),
+                      const SizedBox(height: 10),
+                      if (session != null)
+                        Text(
+                          session.maskedPhoneNumber,
+                          style: AppTextStyles.bodyLarge,
+                        ),
+                      const SizedBox(height: AppTheme.spacingLG),
+                      const DriverAvailabilityCard(),
+                    ],
+                  ),
+                ),
+              ),
               SaeqPrimaryButton(
                 label: l10n.signOut,
                 icon: Icons.logout,

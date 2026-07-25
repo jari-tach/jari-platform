@@ -8,6 +8,9 @@ import '../../core/services/storage/secure_storage_service.dart';
 import '../../features/auth/data/repositories/fake_authentication_repository.dart';
 import '../../features/auth/data/session/auth_session_storage.dart';
 import '../../features/auth/domain/repositories/authentication_repository.dart';
+import '../../features/availability/data/datasources/shared_preferences_driver_availability_local_data_source.dart';
+import '../../features/availability/data/repositories/local_driver_availability_repository.dart';
+import '../../features/availability/domain/repositories/driver_availability_repository.dart';
 import '../../features/driver/data/datasources/local/driver_database.dart';
 import '../../features/profile/data/repositories/fake_driver_profile_repository.dart';
 import '../../features/profile/domain/repositories/driver_profile_repository.dart';
@@ -115,6 +118,24 @@ final class AppServiceRegistry {
             ),
           );
 
+    // PHASE 2.4 — Driver Availability (local persistence).
+    registry._driverAvailabilityRepository = authenticationRepository == null
+        ? null
+        : await _safeInit<DriverAvailabilityRepository>(
+            'DriverAvailabilityRepository',
+            registry._logger,
+            () async => LocalDriverAvailabilityRepository(
+              localDataSource:
+                  SharedPreferencesDriverAvailabilityLocalDataSource(),
+              currentDriverIdReader: () =>
+                  registry
+                      ._authenticationRepository
+                      ?.currentSession
+                      ?.driverId ??
+                  '',
+            ),
+          );
+
     _instance = registry;
     registry._logger.info('AppServiceRegistry initialized');
     return registry;
@@ -135,6 +156,10 @@ final class AppServiceRegistry {
     await registry._networkMonitor?.dispose();
     await registry._database?.close();
     await registry._authenticationRepository?.dispose();
+    final availability = registry._driverAvailabilityRepository;
+    if (availability is LocalDriverAvailabilityRepository) {
+      availability.dispose();
+    }
 
     _instance = null;
   }
@@ -170,6 +195,7 @@ final class AppServiceRegistry {
   AuthSessionStorage? _authSessionStorage;
   AuthenticationRepository? _authenticationRepository;
   DriverProfileRepository? _driverProfileRepository;
+  DriverAvailabilityRepository? _driverAvailabilityRepository;
 
   /// The application's logger service.
   static LoggerService get logger => _instance!._logger;
@@ -209,6 +235,11 @@ final class AppServiceRegistry {
   /// failed to initialize. Depends on [authenticationRepository].
   static DriverProfileRepository? get driverProfileRepository =>
       _instance!._driverProfileRepository;
+
+  /// PHASE 2.4 local availability repository, or `null` if it failed to
+  /// initialize. Depends on [authenticationRepository] for session identity.
+  static DriverAvailabilityRepository? get driverAvailabilityRepository =>
+      _instance!._driverAvailabilityRepository;
 
   /// True once [init] has completed, regardless of whether every
   /// non-critical service succeeded.
