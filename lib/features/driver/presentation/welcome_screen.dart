@@ -78,6 +78,15 @@ class WelcomeScreen extends ConsumerWidget {
                 icon: Icons.auto_awesome,
                 onPressed: () => context.push(AppRoutes.comingSoon),
               ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                // `go` (not `push`): login is an entry point, not a
+                // sub-screen of Welcome. Keeps the back stack clean after
+                // a successful sign-in redirects to /home.
+                onPressed: () => context.go(AppRoutes.login),
+                icon: const Icon(Icons.login),
+                label: Text(localizations.signIn),
+              ),
               const SizedBox(height: 24),
               SaeqSectionCard(
                 title: localizations.architectureTitle,

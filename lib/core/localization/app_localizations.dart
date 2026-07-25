@@ -64,6 +64,28 @@ class AppLocalizations {
   /// Next steps
   String get nextStepsTitle => 'Next Steps';
   String get nextStepsSubtitle => 'Connect API and start delivering';
+
+  /// Authentication (PHASE 2.2 — trial/mock sign-in, no production backend)
+  String get signIn => 'Sign In';
+  String get signOut => 'Sign Out';
+  String get loginTitle => 'Driver Sign In';
+  String get loginSubtitle =>
+      'Enter your phone number to continue (trial mode)';
+  String get phoneNumberLabel => 'Phone number';
+  String get phoneNumberHint => '05XXXXXXXX';
+  String get homeWelcomeTitle => 'Signed in successfully';
+  String get invalidPhoneNumberMessage =>
+      'Please enter a valid phone number (05XXXXXXXX).';
+  String get authenticationRejectedMessage =>
+      'Sign-in was rejected. Please try again.';
+  String get sessionExpiredMessage =>
+      'Your session has expired. Please sign in again.';
+  String get corruptedSessionMessage =>
+      'Your saved session could not be read. Please sign in again.';
+  String get secureStorageFailureMessage =>
+      'Could not access secure storage. Please try again.';
+  String get unexpectedAuthErrorMessage =>
+      'Something went wrong. Please try again.';
 }
 
 /// Localizations delegate

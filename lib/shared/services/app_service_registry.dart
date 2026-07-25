@@ -5,6 +5,9 @@ import '../../core/services/api/api_client.dart';
 import '../../core/services/error/app_error_handler.dart';
 import '../../core/services/logger/logger_service.dart';
 import '../../core/services/storage/secure_storage_service.dart';
+import '../../features/auth/data/repositories/fake_authentication_repository.dart';
+import '../../features/auth/data/session/auth_session_storage.dart';
+import '../../features/auth/domain/repositories/authentication_repository.dart';
 import '../../features/driver/data/datasources/local/driver_database.dart';
 
 /// Central service registry for the application.
@@ -66,6 +69,36 @@ final class AppServiceRegistry {
       },
     );
 
+    // PHASE 2.2 — Authentication Foundation.
+    // AuthSessionStorage is a thin, synchronous wrapper around the
+    // already-initialized SecureStorageService (no extra I/O at
+    // construction), but is still routed through _safeInit for
+    // consistency and defense-in-depth.
+    registry._authSessionStorage = await _safeInit<AuthSessionStorage>(
+      'AuthSessionStorage',
+      registry._logger,
+      () async => AuthSessionStorage(
+        storage: registry._storage,
+        logger: registry._logger,
+      ),
+    );
+
+    // FakeAuthenticationRepository's constructor enforces the
+    // production guard (throws if AppConfig.isProduction is true). That
+    // failure — like any other non-critical bootstrap failure — is
+    // logged loudly here and degrades to `null`, never silently.
+    final authSessionStorage = registry._authSessionStorage;
+    registry._authenticationRepository = authSessionStorage == null
+        ? null
+        : await _safeInit<AuthenticationRepository>(
+            'AuthenticationRepository',
+            registry._logger,
+            () async => FakeAuthenticationRepository(
+              sessionStorage: authSessionStorage,
+              logger: registry._logger,
+            ),
+          );
+
     _instance = registry;
     registry._logger.info('AppServiceRegistry initialized');
     return registry;
@@ -85,6 +118,7 @@ final class AppServiceRegistry {
 
     await registry._networkMonitor?.dispose();
     await registry._database?.close();
+    await registry._authenticationRepository?.dispose();
 
     _instance = null;
   }
@@ -117,6 +151,8 @@ final class AppServiceRegistry {
   late final ApiClient _apiClient;
   DriverDatabase? _database;
   NetworkMonitor? _networkMonitor;
+  AuthSessionStorage? _authSessionStorage;
+  AuthenticationRepository? _authenticationRepository;
 
   /// The application's logger service.
   static LoggerService get logger => _instance!._logger;
@@ -137,6 +173,20 @@ final class AppServiceRegistry {
   /// The application's network connectivity monitor, or `null` if it
   /// failed to initialize. See [init] for the non-critical failure policy.
   static NetworkMonitor? get networkMonitor => _instance!._networkMonitor;
+
+  /// Session persistence for [authenticationRepository], or `null` if it
+  /// failed to initialize. See [init] for the non-critical failure policy.
+  static AuthSessionStorage? get authSessionStorage =>
+      _instance!._authSessionStorage;
+
+  /// PHASE 2.2 mock authentication repository, or `null` if it failed to
+  /// initialize (including the production guard rejecting it — see
+  /// [FakeAuthenticationRepository]). See [init] for the non-critical
+  /// failure policy. [AuthController] treats `null` as "no repository
+  /// available" and degrades to the unauthenticated state instead of
+  /// crashing.
+  static AuthenticationRepository? get authenticationRepository =>
+      _instance!._authenticationRepository;
 
   /// True once [init] has completed, regardless of whether every
   /// non-critical service succeeded.
