@@ -14,7 +14,33 @@
 
 ---
 
-## 2. [docs-alignment-1.0] — 2026-07-25
+## 2. [phase-2.3-driver-identity-profile] — 2026-07-25
+
+### تمت إضافته
+- Domain/Data/Presentation لملف السائق (`DriverProfile`, repositories, controllers, `ProfileScreen`).
+- `SessionLifecycle` وحالة `expired` على جلسة المصادقة.
+- سياسات أمنية قابلة للاختبار مع `SecurityPolicyDecision` وreason codes وإصدارات سياسة.
+- حارس Fake Auth: ممنوع دائمًا في `kReleaseMode`، وممنوع في بيئة Production؛ دون أي Dart-define للتجاوز.
+- منع تصنيع ملف تجريبي في Production/Release → `ProfileNotFoundError`.
+- علامة provenance خفيفة `trialSynthetic` (مجال فقط، بلا Migration).
+- ملاحظات التنفيذ: `PHASE_2_3_DRIVER_IDENTITY_PROFILE_NOTES.md`.
+- اختبارات Domain/Data/Presentation + سياسات الأمان.
+
+### تغيّر
+- تسجيل `DriverProfileRepository` عبر `AppServiceRegistry` (ADR-010).
+- مسار `/profile` يعرض الملف الحقيقي بدل Placeholder.
+- توثيق حالة Stage B / PHASE 2.3 = Validated (pending commit).
+
+### قيود معروفة
+- لا Backend حقيقي؛ الملف التجريبي يُنشأ محليًا في Development/Test فقط.
+- Production/Release: غياب الملف → `ProfileNotFound` دون هوية مصطنعة.
+- لا Migration لـ Drift لتخزين نطاق المستأجر أو provenance.
+- حراسة العميل دفاع متعمق فقط؛ الإنفاذ السلطوي Backend (Stage D).
+- الحالة ليست `Done` قبل Commit المرحلة.
+
+---
+
+## 3. [docs-alignment-1.0] — 2026-07-25
 
 ### تمت إضافته (وثائق فقط)
 - `41_OFFICIAL_BUSINESS_RULES.md` — قواعد الأعمال برموز ثابتة.
@@ -31,7 +57,7 @@
 
 ---
 
-## 3. [1.0.0] — 2026-07-23
+## 4. [1.0.0] — 2026-07-23
 
 ### تمت إضافته
 - **00_PROJECT_BIBLE.md:** المرجع الرسمي الوحيد للمشروع.

@@ -9,6 +9,8 @@ import '../../features/auth/data/repositories/fake_authentication_repository.dar
 import '../../features/auth/data/session/auth_session_storage.dart';
 import '../../features/auth/domain/repositories/authentication_repository.dart';
 import '../../features/driver/data/datasources/local/driver_database.dart';
+import '../../features/profile/data/repositories/fake_driver_profile_repository.dart';
+import '../../features/profile/domain/repositories/driver_profile_repository.dart';
 
 /// Central service registry for the application.
 ///
@@ -99,6 +101,20 @@ final class AppServiceRegistry {
             ),
           );
 
+    // PHASE 2.3 — Driver Identity and Profile.
+    final authenticationRepository = registry._authenticationRepository;
+    registry._driverProfileRepository = authenticationRepository == null
+        ? null
+        : await _safeInit<DriverProfileRepository>(
+            'DriverProfileRepository',
+            registry._logger,
+            () async => FakeDriverProfileRepository(
+              authenticationRepository: authenticationRepository,
+              logger: registry._logger,
+              database: registry._database,
+            ),
+          );
+
     _instance = registry;
     registry._logger.info('AppServiceRegistry initialized');
     return registry;
@@ -153,6 +169,7 @@ final class AppServiceRegistry {
   NetworkMonitor? _networkMonitor;
   AuthSessionStorage? _authSessionStorage;
   AuthenticationRepository? _authenticationRepository;
+  DriverProfileRepository? _driverProfileRepository;
 
   /// The application's logger service.
   static LoggerService get logger => _instance!._logger;
@@ -187,6 +204,11 @@ final class AppServiceRegistry {
   /// crashing.
   static AuthenticationRepository? get authenticationRepository =>
       _instance!._authenticationRepository;
+
+  /// PHASE 2.3 driver profile repository (Fake/local), or `null` if it
+  /// failed to initialize. Depends on [authenticationRepository].
+  static DriverProfileRepository? get driverProfileRepository =>
+      _instance!._driverProfileRepository;
 
   /// True once [init] has completed, regardless of whether every
   /// non-critical service succeeded.

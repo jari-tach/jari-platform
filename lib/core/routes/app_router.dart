@@ -5,6 +5,7 @@ import '../../features/auth/domain/entities/authentication_status.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/driver/presentation/home_screen.dart';
 import '../../features/driver/presentation/welcome_screen.dart';
+import '../../features/profile/presentation/screens/profile_screen.dart';
 
 /// App routes
 class AppRoutes {
@@ -138,11 +139,10 @@ class AppRouter {
               builder: (context, state) => _buildPlaceholder(context, 'Orders'),
             ),
 
-            // Profile
+            // Profile (PHASE 2.3)
             GoRoute(
               path: AppRoutes.profile,
-              builder: (context, state) =>
-                  _buildPlaceholder(context, 'Profile'),
+              builder: (context, state) => const ProfileScreen(),
             ),
 
             // Settings

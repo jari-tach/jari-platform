@@ -1,8 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:saeq_driver/features/auth/data/repositories/fake_authentication_repository.dart';
 import 'package:saeq_driver/features/auth/data/session/auth_session_storage.dart';
 import 'package:saeq_driver/features/auth/domain/entities/auth_error.dart';
-import 'package:saeq_driver/features/auth/domain/entities/driver_session.dart';
+import 'package:saeq_driver/features/auth/domain/policies/fake_auth_policy.dart';
 
 import '../test_doubles.dart';
 
@@ -127,8 +129,48 @@ void main() {
           logger: logger,
           isProductionEnvironment: () => true,
         ),
+        throwsA(
+          isA<StateError>().having(
+            (e) => e.message,
+            'message',
+            allOf(
+              contains('productionEnvironmentDenied'),
+              contains(FakeAuthPolicy.policyVersion),
+            ),
+          ),
+        ),
+      );
+    });
+
+    test('caller data cannot enable Fake Auth when production is reported', () {
+      // Injected session/logger/phone are irrelevant — construction still fails.
+      expect(
+        () => FakeAuthenticationRepository(
+          sessionStorage: sessionStorage,
+          logger: logger,
+          isProductionEnvironment: () => true,
+          signInDelay: Duration.zero,
+        ),
         throwsA(isA<StateError>()),
       );
     });
+
+    test('works in allowed development/test configuration', () async {
+      expect(repository.currentSession, isNull);
+      final session = await repository.signIn('0501234567');
+      expect(session.phoneNumber, '0501234567');
+    });
+
+    test(
+      'supplemental: no bool.fromEnvironment release bypass in source',
+      () async {
+        final source = await File(
+          'lib/features/auth/data/repositories/'
+          'fake_authentication_repository.dart',
+        ).readAsString();
+        expect(source.contains('bool.fromEnvironment'), isFalse);
+        expect(source.contains('kReleaseMode'), isTrue);
+      },
+    );
   });
 }

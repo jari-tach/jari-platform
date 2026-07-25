@@ -86,6 +86,39 @@ class AppLocalizations {
       'Could not access secure storage. Please try again.';
   String get unexpectedAuthErrorMessage =>
       'Something went wrong. Please try again.';
+
+  /// Profile (PHASE 2.3)
+  String get profileTitle => 'Profile';
+  String get profileRetry => 'Retry';
+  String get profileEmptyTitle => 'No profile yet';
+  String get profileEmptyMessage =>
+      'Your driver profile could not be found. Please try again.';
+  String get profileErrorTitle => 'Could not load profile';
+  String get profileSessionExpiredTitle => 'Session expired';
+  String get profileAccountStatus => 'Account status';
+  String get profileEmploymentStatus => 'Employment status';
+  String get profileBusinessId => 'Business';
+  String get profileBranchId => 'Branch';
+  String get profileVehicleType => 'Vehicle';
+  String get profileScopeUnassigned => 'Not assigned yet';
+  String get profileStatusPending => 'Pending verification';
+  String get profileStatusVerified => 'Verified';
+  String get profileStatusRejected => 'Rejected';
+  String get profileStatusSuspended => 'Suspended';
+  String get profileEmploymentActive => 'Active';
+  String get profileEmploymentInactive => 'Inactive';
+  String get profileEmploymentOnLeave => 'On leave';
+  String get profileEmploymentTerminated => 'Terminated';
+  String get profileUnauthenticatedMessage =>
+      'Please sign in to view your profile.';
+  String get profileForbiddenMessage =>
+      'You do not have access to this profile.';
+  String get profileInvalidDataMessage =>
+      'Profile data is incomplete. Please try again.';
+  String get profileSovereignMutationMessage =>
+      'Identity fields cannot be changed from the app.';
+  String get profileUnexpectedMessage =>
+      'Something went wrong while loading your profile.';
 }
 
 /// Localizations delegate
