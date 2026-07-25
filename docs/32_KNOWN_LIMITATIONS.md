@@ -1,18 +1,27 @@
 # SAEQ — Known Limitations
 
-> **Version:** 1.0.0  
-> **Status:** Approved  
-> **Last Updated:** 2026-07-23  
-> **Author:** Senior Flutter Software Engineer  
-> **Review Date:** 2026-07-23  
-> **Next Review:** 2027-01-23  
-> **Related:** [00_PROJECT_BIBLE.md](./00_PROJECT_BIBLE.md)  
+> **Version:** 1.1.0
+> **Status:** Approved
+> **Last Updated:** 2026-07-25
+> **Author:** Senior Flutter Software Engineer
+> **Review Date:** 2026-07-25
+> **Next Review:** 2027-01-23
+> **Related:** [00_PROJECT_BIBLE.md](./00_PROJECT_BIBLE.md), [LEGACY_DI_MIGRATION_PLAN.md](./LEGACY_DI_MIGRATION_PLAN.md)
 
 ---
 
 ## القيود المعروفة
 
 توثق هذه الصفحة جميع القيود الحالية في مشروع SAEQ. يتم مراجعة هذه القائمة كل 6 أشهر أو عند أي تغيير معماري كبير.
+
+### 0. DI Legacy (Driver)
+
+| القيد | الوصف | الحالة | الوثيقة المرجعية |
+|-------|-------|--------|-------------------|
+| **`service_locator.dart` / get_it** | مسار DI موازٍ غير مستخدم؛ يتعارض مع ADR-010 (`AppServiceRegistry`) | Legacy / Candidate for later removal — **لا حذف في Stage A** | [LEGACY_DI_MIGRATION_PLAN.md](./LEGACY_DI_MIGRATION_PLAN.md) |
+| **OfflineQueue / SyncManager** | موجودان وغير موصولين بدورة التوصيل بعد | Limitation / deferred wiring | [15_OFFLINE_GUIDE.md](./15_OFFLINE_GUIDE.md) |
+
+> **Web Admin** للمنصة يبقى Web (ليس قيدًا يحتاج Windows Desktop). قيد «لا Desktop» أدناه يخص عميل Driver الحالي، لا يلغي Web Admin.
 
 ---
 

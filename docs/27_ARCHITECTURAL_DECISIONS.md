@@ -1,10 +1,10 @@
 # SAEQ — Architectural Decision Records (ADR)
 
-> **Version:** 1.0.0  
-> **Status:** Draft  
-> **Last Updated:** 2026-07-24  
-> **Author:** Senior Flutter Software Engineer  
-> **Related:** [02_SYSTEM_ARCHITECTURE.md](./02_SYSTEM_ARCHITECTURE.md), [04_CLEAN_ARCHITECTURE.md](./04_CLEAN_ARCHITECTURE.md)
+> **Version:** 1.1.0
+> **Status:** Active
+> **Last Updated:** 2026-07-25
+> **Author:** Senior Flutter Software Engineer
+> **Related:** [02_SYSTEM_ARCHITECTURE.md](./02_SYSTEM_ARCHITECTURE.md), [04_CLEAN_ARCHITECTURE.md](./04_CLEAN_ARCHITECTURE.md), [ADR-014](./adr/ADR_014_PLATFORM_CHANNEL_AND_DOMAIN_ALIGNMENT.md)
 
 ---
 
@@ -30,7 +30,8 @@ This document records **every significant architectural decision** made for the 
 | ADR-010 | Service Registry Pattern (not get_it) | ✅ Accepted | 2026-07-10 |
 | ADR-011 | Material 3 Design System | ✅ Accepted | 2026-07-11 |
 | ADR-012 | Arabic-First Localization Strategy | ✅ Accepted | 2026-07-12 |
-| ADR-013 | Separate Applications Strategy (Driver/Customer/Merchant/Admin) | ✅ Accepted | 2026-07-24 |
+| ADR-013 | Separate Applications Strategy (Driver/Customer/Merchant/Admin) | ✅ Accepted (Merchant channel amended by ADR-014) | 2026-07-24 |
+| ADR-014 | Platform Channel Responsibilities and Domain Alignment | ✅ Accepted | 2026-07-25 |
 
 ---
 
@@ -434,7 +435,7 @@ A custom service registry provides explicit dependency management without the ov
 
 | Alternative | Pros | Cons |
 |-------------|------|------|
-| get_it + injectable | Industry standard, code generation | Build_runner dependency, complex setup |
+| get_it + injectable (Rejected — superseded by AppServiceRegistry; see LEGACY_DI_MIGRATION_PLAN.md) | Industry standard, code generation *(not selected)* | Build_runner dependency, complex setup; rejected in favor of AppServiceRegistry |
 | Provider/Riverpod | Already in use for state | Not designed for service location |
 | Manual constructor injection | Pure, testable | Verbose, requires boilerplate |
 
@@ -583,6 +584,18 @@ Drivers, customers, merchants, and platform operators have fundamentally differe
 - No shared package (`saeq_design_system`, `saeq_core`, `saeq_networking`, `saeq_localization`, `saeq_models`) is extracted during PROJECT STABILIZATION; extraction is deferred until at least two applications have a proven, stabilized shared need.
 - Future applications (SAEQ Customer, SAEQ Merchant, SAEQ Admin) each get their own project, package ID, signing, store listing, and independent versioning per `36_RELEASE_MANAGEMENT.md`.
 - Full decision record: [docs/adr/ADR_SEPARATE_APPLICATIONS_STRATEGY.md](./adr/ADR_SEPARATE_APPLICATIONS_STRATEGY.md)
+- Amendment (2026-07-25): Merchant Mobile daily ops + domain alignment — [ADR-014](./adr/ADR_014_PLATFORM_CHANNEL_AND_DOMAIN_ALIGNMENT.md). Web Admin stays platform-owner Web console.
+
+### ADR-014: Platform Channel Responsibilities and Domain Alignment
+
+| Field | Value |
+|-------|-------|
+| **Decision** | Merchant Mobile for daily ops; Web Admin for platform owners only; multi-tenant + catalog/offer + inventory movements + order SMs + Modular Monolith documented as binding design |
+| **Date** | 2026-07-25 |
+| **Status** | Accepted |
+| **Full record** | [adr/ADR_014_PLATFORM_CHANNEL_AND_DOMAIN_ALIGNMENT.md](./adr/ADR_014_PLATFORM_CHANNEL_AND_DOMAIN_ALIGNMENT.md) |
+
+Amends ADR-013 Merchant distribution wording only. Does not authorize Windows Admin. See `41_OFFICIAL_BUSINESS_RULES.md` and `42_PLATFORM_DOMAIN_ARCHITECTURE.md`.
 
 ---
 

@@ -1,10 +1,10 @@
 # SAEQ — System Architecture
 
-> **Version:** 1.0.0  
-> **Status:** Approved  
-> **Last Updated:** 2026-07-23  
-> **Author:** Senior Flutter Software Engineer  
-> **Related:** [00_PROJECT_BIBLE.md](./00_PROJECT_BIBLE.md)، [01_BUSINESS_VISION.md](./01_BUSINESS_VISION.md)، [04_CLEAN_ARCHITECTURE.md](./04_CLEAN_ARCHITECTURE.md)  
+> **Version:** 1.0.0
+> **Status:** Approved
+> **Last Updated:** 2026-07-23
+> **Author:** Senior Flutter Software Engineer
+> **Related:** [00_PROJECT_BIBLE.md](./00_PROJECT_BIBLE.md)، [01_BUSINESS_VISION.md](./01_BUSINESS_VISION.md)، [04_CLEAN_ARCHITECTURE.md](./04_CLEAN_ARCHITECTURE.md)
 
 ---
 
@@ -128,7 +128,7 @@ lib/
 ├── core/                              # البنية المشتركة والأساسيات
 │   ├── config/                        # إعدادات البيئة
 │   ├── constants/                     # ثوابت التطبيق
-│   ├── di/                            # حقن الاعتماديات (get_it)
+│   ├── di/                            # حقن الاعتماديات (**AppServiceRegistry** — ADR-010; `service_locator.dart`/get_it = Legacy)
 │   ├── error/                         # أخطاء وإدارة الأخطاء
 │   ├── localization/                  # التدوين اللغوي
 │   ├── logging/                       # بنية التسجيل

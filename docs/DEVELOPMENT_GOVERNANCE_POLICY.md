@@ -1,12 +1,13 @@
 # SAEQ DRIVER — Development Governance Policy
 ## Permanent Engineering Directive · Version 1.1
 
-> **الحالة:** إلزامي  
-> **الإصدار:** 1.1 (الملحق A — Decision Hierarchy and AI Recommendation Policy)  
-> **التاريخ:** 2026-07-25  
-> **نطاق التطبيق:** جميع أعمال تطوير SAEQ Driver الحالية والمستقبلية  
-> **آلية Cursor:** `.cursor/rules/saeq-development-governance.mdc` (`alwaysApply: true`)  
-> **التجاوز:** فقط بقرار معماري صريح (ADR مقبول) أو موافقة صريحة من مالك المشروع  
+> **الحالة:** إلزامي
+> **الإصدار:** 1.1 (الملحق A — Decision Hierarchy and AI Recommendation Policy)
+> **التاريخ:** 2026-07-25
+> **نطاق التطبيق:** جميع أعمال تطوير SAEQ Driver الحالية والمستقبلية
+> **آلية Cursor:** `.cursor/rules/saeq-development-governance.mdc` (`alwaysApply: true`)
+> **التجاوز:** فقط بقرار معماري صريح (ADR مقبول) أو موافقة صريحة من مالك المشروع
+> **محاذاة المنصة (2026-07-25):** قواعد الأعمال `docs/41_OFFICIAL_BUSINESS_RULES.md` · المجال `docs/42_PLATFORM_DOMAIN_ARCHITECTURE.md` · ADR-014 · Web Admin لملاك المنصة · Merchant Mobile للإدارة اليومية · لا تبدأ PHASE 2.3 دون أمر صريح
 
 عند التعارض بين المصادر، يُطبَّق الترتيب الرسمي في **§14 Decision Hierarchy**.
 

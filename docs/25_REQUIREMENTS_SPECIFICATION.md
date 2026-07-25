@@ -1,10 +1,12 @@
 # SAEQ — Requirements Specification
 
-> **Version:** 1.0.0  
-> **Status:** Draft  
-> **Last Updated:** 2026-07-24  
-> **Author:** Senior Flutter Software Engineer  
-> **Related:** [00_PROJECT_BIBLE.md](./00_PROJECT_BIBLE.md), [01_BUSINESS_VISION.md](./01_BUSINESS_VISION.md)
+> **Version:** 1.1.0
+> **Status:** Draft (payment & channel clauses aligned 2026-07-25)
+> **Last Updated:** 2026-07-25
+> **Author:** Senior Flutter Software Engineer
+> **Related:** [00_PROJECT_BIBLE.md](./00_PROJECT_BIBLE.md), [01_BUSINESS_VISION.md](./01_BUSINESS_VISION.md), [41_OFFICIAL_BUSINESS_RULES.md](./41_OFFICIAL_BUSINESS_RULES.md)
+
+> **Authority note:** Stable platform business rules with IDs `BR-ORDER-*`, `BR-BRANCH-*`, `BR-DRIVER-*`, `BR-PAY-*`, etc. live in `41_OFFICIAL_BUSINESS_RULES.md` and **override** conflicting rows in this file.
 
 ---
 
@@ -20,7 +22,7 @@ This document is the **official source of truth** for all system requirements. I
 |----|-------------|----------|--------|
 | BR-001 | Provide a platform connecting customers with delivery drivers | Critical | Business Vision |
 | BR-002 | Enable real-time order tracking for customers | High | Market Research |
-| BR-003 | Support cashless payments and digital wallets | High | Saudi Vision 2030 |
+| BR-003 | Support **electronic payments as the primary path**, plus digital wallets; **optional cash** per merchant/branch/platform policy ([BR-PAY-001…005](./41_OFFICIAL_BUSINESS_RULES.md)) | High | Saudi Vision 2030 + ADR-014 |
 | BR-004 | Ensure compliance with Saudi regulations (SDAIA, ZATCA) | Critical | Legal |
 | BR-005 | Support Arabic and English languages | High | Localization |
 | BR-006 | Enable offline operation for drivers in low-connectivity areas | Medium | Field Research |
@@ -112,7 +114,7 @@ This document is the **official source of truth** for all system requirements. I
 
 | ID | Requirement | UR Link |
 |----|-------------|---------|
-| FR-PAY-001 | System shall support multiple payment methods (card, wallet, cash) | UR-CUS-004 |
+| FR-PAY-001 | System shall support electronic payment methods as primary (card, wallet, and approved gateways). **Cash is optional** and only when enabled by merchant/branch policy under platform rules (BR-PAY-001…004). Do not interpret this FR as cashless-only or as cash-always-on. | UR-CUS-004 |
 | FR-PAY-002 | System shall process payments securely via PCI-compliant gateway | UR-CUS-004 |
 | FR-PAY-003 | System shall support automatic payment capture on delivery | UR-CUS-004 |
 | FR-PAY-004 | System shall handle refunds and chargebacks | UR-CUS-009 |

@@ -1,16 +1,45 @@
 # SAEQ — Offline Guide
 
-> **Version:** 1.0.0  
-> **Status:** Approved  
-> **Last Updated:** 2026-07-23  
-> **Author:** Senior Flutter Software Engineer  
-> **Related:** [00_PROJECT_BIBLE.md](./00_PROJECT_BIBLE.md)  
+> **Version:** 1.1.0
+> **Status:** Active
+> **Last Updated:** 2026-07-25
+> **Author:** Senior Flutter Software Engineer
+> **Related:** [00_PROJECT_BIBLE.md](./00_PROJECT_BIBLE.md), [42_PLATFORM_DOMAIN_ARCHITECTURE.md](./42_PLATFORM_DOMAIN_ARCHITECTURE.md), [PHASE_2_FEATURE_DEVELOPMENT_ROADMAP.md](./PHASE_2_FEATURE_DEVELOPMENT_ROADMAP.md)
+
+---
+
+## 0. Driver Offline-First (MVP design — binding intent)
+
+For **SAEQ Driver**, Offline-First is part of the **Driver Operational MVP** (Stage C), not an optional extra.
+
+### Priority offline operations
+
+- Persist / show the active order
+- Confirm arrival at branch
+- Confirm order pickup
+- Update trip status
+- Proof of delivery (including media/signature/code when used)
+- Record delivery failure
+
+### Sync requirements
+
+Local Queue · Retry Policy · Idempotency · Operation Ordering · Conflict Resolution · Sync Status UI · Failed Operation History · Network Recovery · Duplicate Prevention (especially PoD)
+
+Existing components in this repo (`OfflineQueue`, `SyncManager`, `NetworkMonitor`) must be **wired to the delivery lifecycle** in a later coding phase — **not** in Documentation Stage A.
+
+### Other clients
+
+| Client | MVP offline expectation |
+|--------|-------------------------|
+| Customer | Browse cache + local cart only |
+| Merchant | Limited critical ops later |
+| Web Admin | Server as source of truth |
 
 ---
 
 ## 1. نظرة عامة
 
-يضمن مشروع SAEQ أن يظل التطبيق قابلًا للاستخدام ويوفر تجربة جيدة حتى بدون اتصال إنترنت. يستخدم نهج **cache-first, network-fallback** للقراءة و **queue-and-sync** للكتابة.
+يضمن مشروع SAEQ أن يظل **تطبيق السائق** قابلًا للاستخدام ويوفر تجربة جيدة حتى بدون اتصال إنترنت. يستخدم نهج **cache-first, network-fallback** للقراءة و **queue-and-sync** للكتابة للعمليات الحرجة أعلاه.
 
 ---
 

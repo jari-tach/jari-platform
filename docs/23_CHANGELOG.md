@@ -1,10 +1,10 @@
 # SAEQ — Changelog
 
-> **Version:** 1.0.0  
-> **Status:** Approved  
-> **Last Updated:** 2026-07-23  
-> **Author:** Senior Flutter Software Engineer  
-> **Related:** [00_PROJECT_BIBLE.md](./00_PROJECT_BIBLE.md)  
+> **Version:** 1.0.0
+> **Status:** Approved
+> **Last Updated:** 2026-07-23
+> **Author:** Senior Flutter Software Engineer
+> **Related:** [00_PROJECT_BIBLE.md](./00_PROJECT_BIBLE.md)
 
 ---
 
@@ -14,7 +14,24 @@
 
 ---
 
-## 2. [1.0.0] — 2026-07-23
+## 2. [docs-alignment-1.0] — 2026-07-25
+
+### تمت إضافته (وثائق فقط)
+- `41_OFFICIAL_BUSINESS_RULES.md` — قواعد الأعمال برموز ثابتة.
+- `42_PLATFORM_DOMAIN_ARCHITECTURE.md` — Multi-Tenant، Catalog/Offer، Inventory، Order SM، Modular Monolith، AuthZ، Audit، Observability، Offline.
+- `adr/ADR_014_PLATFORM_CHANNEL_AND_DOMAIN_ALIGNMENT.md` — قنوات Merchant Mobile + Web Admin + محاذاة المجال.
+- `LEGACY_DI_MIGRATION_PLAN.md` — خطة إزالة `service_locator`/`get_it` لاحقًا.
+
+### تغيّر
+- مواءمة Bible / Vision / Enterprise / Catalog / Requirements / Roadmap / Offline / Data Dictionary / Index / Traceability Matrix مع القرارات المعتمدة.
+- `31_TRACEABILITY_MATRIX.md` v2: ربط `BR-ORDER-*` … `BR-SEC-*` + توحيد سياسة الدفع.
+- ARCH-008 (get_it) → Superseded by ADR-010.
+- تنظيف trailing whitespace لنجاح `git diff --check`.
+- لا تعديل Dart / لا PHASE 2.3 / لا Commit في هذه الخطوة وحدها.
+
+---
+
+## 3. [1.0.0] — 2026-07-23
 
 ### تمت إضافته
 - **00_PROJECT_BIBLE.md:** المرجع الرسمي الوحيد للمشروع.

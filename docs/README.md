@@ -1,10 +1,10 @@
 # SAEQ — Documentation Hub
 
-> **Version:** 1.0.0  
-> **Status:** Approved  
-> **Last Updated:** 2026-07-23  
-> **Author:** Senior Flutter Software Engineer  
-> **Related:** [00_PROJECT_BIBLE.md](./00_PROJECT_BIBLE.md)  
+> **Version:** 1.0.0
+> **Status:** Approved
+> **Last Updated:** 2026-07-23
+> **Author:** Senior Flutter Software Engineer
+> **Related:** [00_PROJECT_BIBLE.md](./00_PROJECT_BIBLE.md)
 
 ---
 
@@ -16,10 +16,10 @@
 
 | # | التطبيق | الاسم الإنجليزي | المسؤولية |
 |---|---------|-----------------|-----------|
-| 1 | جاري | **Jari** | طلبات العملاء، التتبع، المدفوعات |
-| 2 | فزعة | **Fazaa Driver** | توصيل الطلبات، التنقل، الأرباح |
-| 3 | منفعة | **Manafa Merchant** | إدارة القوائم، معالجة الطلبات |
-| 4 | لوحة التحكم | **SAEQ Admin Dashboard** | إدارة النظام بالكامل |
+| 1 | جاري | **Jari** (Customer Mobile) | طلبات العملاء، التتبع، المدفوعات |
+| 2 | فزعة | **Fazaa Driver** (Driver Mobile) | توصيل الطلبات، التنقل، الأرباح |
+| 3 | منفعة | **Manafa Merchant** (Merchant Mobile) | الإدارة اليومية للفروع والطلبات |
+| 4 | لوحة التحكم | **SAEQ Web Admin** | حوكمة المنصة لملاك SAEQ فقط |
 
 بالإضافة إلى التطبيقات الأربعة، تشمل المنصة: قاعدة بيانات مركزية، فهررس منتجات مركزي، سوق الجملة، خدمات الذكاء الاصطناعي، والتكامل مع الجهات الحكومية السعودية.
 
@@ -29,9 +29,10 @@
 
 ### 2.1 نقطة الدخول الرسيسة
 
-- **للمطورين الجدد:** ابدأ بقراءة [00_PROJECT_BIBLE.md](./00_PROJECT_BIBLE.md) — المرجع الرسمي الوحيد للمشروع.
+- **للمطورين الجدد:** ابدأ بـ [00_PROJECT_BIBLE.md](./00_PROJECT_BIBLE.md) ثم [41_OFFICIAL_BUSINESS_RULES.md](./41_OFFICIAL_BUSINESS_RULES.md) و[ADR-014](./adr/ADR_014_PLATFORM_CHANNEL_AND_DOMAIN_ALIGNMENT.md).
 - **للمراجعة السريعة:** استخدم [24_INDEX.md](./24_INDEX.md) — فهرس جميع الوثائق.
-- **للبحث عن قرار معماري:** استخدم [docs/adr/ADR_TEMPLATE.md](./adr/ADR_TEMPLATE.md) كقالب، وابحث في ملفات ADR.
+- **للبحث عن قرار معماري:** [27_ARCHITECTURAL_DECISIONS.md](./27_ARCHITECTURAL_DECISIONS.md) وملفات `docs/adr/`.
+- **نموذج المجال / Multi-Tenant:** [42_PLATFORM_DOMAIN_ARCHITECTURE.md](./42_PLATFORM_DOMAIN_ARCHITECTURE.md).
 
 ### 2.2 تنسيق الأسماء
 

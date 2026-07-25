@@ -155,7 +155,7 @@
 | `OfflineQueue` | **DEFERRED** | نفس الحالة |
 | `SyncManager` | **DEFERRED** | نفس الحالة |
 | `SecurityInterceptor` / `CertificatePinning` / `JwtManager` / `TokenRefreshManager` | **DEFERRED** | موجودة، تترجَم، غير مُضافة كـ `Dio.interceptors` فعليًا |
-| `service_locator.dart` (get_it) | **PARTIALLY READY / تقنية دين** | تسجيل موازٍ كامل لكل الخدمات عبر `get_it`، **لكنه غير مستخدَم في أي مكان بالتطبيق** (المسار الفعلي هو `AppServiceRegistry` فقط) — كود ميت مكرِّر يجب حسم مصيره قبل توسّع الميزات |
+| `service_locator.dart` (get_it) | **LEGACY / UNUSED / CONFLICTS ADR-010** | مرشّح لإزالة لاحقة فقط — راجع `docs/LEGACY_DI_MIGRATION_PLAN.md`. المسار الرسمي: `AppServiceRegistry`. |
 
 ### 9.6 Widgets المشتركة الحالية
 **READY (للنطاق الحالي فقط).** `SaeqPrimaryButton`, `SaeqSectionCard` — بسيطتان، مُستخدَمتان فعليًا في `WelcomeScreen`، لا مشاكل. لا توجد بعد أي Widgets متخصصة لقوائم الطلبات، الخرائط، أو الحالة (Status Badges، Cards للطلبات، إلخ) — هذه **MISSING** وستُبنى ضمن المراحل القادمة.
@@ -875,3 +875,26 @@ Unit Tests، Repository Tests، Service Tests، State Management Tests (Riverpod
 ---
 
 **نهاية التقرير. تم التوقف وفق تعليمات المهمة — بانتظار المراجعة قبل بدء PHASE 2.3.**
+
+---
+
+## تحديث لاحق — Stage A Documentation Alignment (2026-07-25)
+
+تمت مواءمة وثائق المنصة (قواعد الأعمال، ADR-014، Catalog/Offer، Merchant Mobile، Web Admin، Multi-Tenant، Modular Monolith، ADR-010/get_it Legacy). التفاصيل في `docs/41_OFFICIAL_BUSINESS_RULES.md` و`docs/42_PLATFORM_DOMAIN_ARCHITECTURE.md` و`docs/adr/ADR_014_PLATFORM_CHANNEL_AND_DOMAIN_ALIGNMENT.md`.
+
+**ترتيب المنصة المرجعي (لا يبدأ تلقائيًا):**
+
+```text
+Stage A — Documentation and Architecture Alignment  ← docs alignment
+Stage B — PHASE 2.3 Driver Identity and Profile      ← Not started
+Stage C — Driver Operational MVP
+Stage D — Backend Modular Monolith Foundation
+Stage E — Merchant Mobile MVP
+Stage F — Customer Mobile MVP
+Stage G — Web Admin Operational MVP
+Stage H — Platform Expansion
+```
+
+**`service_locator.dart` / get_it:** Legacy / Unused / Conflicting with ADR-010 — خطة الإزالة في `docs/LEGACY_DI_MIGRATION_PLAN.md` (لا حذف في Stage A).
+
+**PHASE 2.3 تبقى غير مبدوءة** حتى أمر تنفيذ صريح من مالك المشروع.

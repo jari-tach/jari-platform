@@ -1,10 +1,10 @@
 # SAEQ — Folder Structure
 
-> **Version:** 1.0.0  
-> **Status:** Approved  
-> **Last Updated:** 2026-07-23  
-> **Author:** Senior Flutter Software Engineer  
-> **Related:** [00_PROJECT_BIBLE.md](./00_PROJECT_BIBLE.md)، [04_CLEAN_ARCHITECTURE.md](./04_CLEAN_ARCHITECTURE.md)  
+> **Version:** 1.0.0
+> **Status:** Approved
+> **Last Updated:** 2026-07-23
+> **Author:** Senior Flutter Software Engineer
+> **Related:** [00_PROJECT_BIBLE.md](./00_PROJECT_BIBLE.md)، [04_CLEAN_ARCHITECTURE.md](./04_CLEAN_ARCHITECTURE.md)
 
 ---
 
@@ -23,7 +23,7 @@ lib/
 │   │   ├── app_constants.dart           # بيانات التطبيق، الأبعاد، المدد
 │   │   └── app_keys.dart                # المفاتيح العامة للتنقل/الاختبار
 │   ├── di/
-│   │   ├── di.dart                    # إعداد محرك الخدمات (get_it)
+│   │   ├── di.dart                    # ~~get_it~~ → **Deprecated**. Live DI: `shared/services/app_service_registry.dart` (ADR-010)
 │   │   └── di_module.dart             # تسجيل الوحدات
 │   ├── error/
 │   │   ├── exceptions/                  # الاستثناءات الخاصة بالمجال

@@ -6,10 +6,19 @@ alwaysApply: true
 # SAEQ Platform — Master Development Directive
 
 This repository (`saeq_driver`) is **SAEQ Driver only** — one of four fully
-independent applications in the SAEQ Platform (SAEQ Driver, SAEQ Customer,
-SAEQ Merchant, SAEQ Admin — Web in phase 1). Each app has its own project,
-package name, identity, signing, store listing, and release cycle. Full
-decision record: `docs/adr/ADR_SEPARATE_APPLICATIONS_STRATEGY.md` (ADR-013).
+independent client products in the SAEQ Platform:
+
+- SAEQ Driver (Mobile)
+- SAEQ Customer (Mobile)
+- SAEQ Merchant (Mobile — daily merchant ops)
+- SAEQ **Web Admin** (platform owners & authorized platform staff only)
+
+plus a shared **Backend Platform**. Web Admin is **not** a merchant daily
+console and is **not** a Windows Desktop admin product. Merchant channel and
+domain alignment: `docs/adr/ADR_014_PLATFORM_CHANNEL_AND_DOMAIN_ALIGNMENT.md`.
+Separate-apps decision: `docs/adr/ADR_SEPARATE_APPLICATIONS_STRATEGY.md`
+(ADR-013, Merchant wording amended by ADR-014). Official business rules:
+`docs/41_OFFICIAL_BUSINESS_RULES.md`.
 
 ## Absolutely forbidden
 

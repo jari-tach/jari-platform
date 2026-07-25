@@ -1,23 +1,35 @@
 # SAEQ — Product Catalog Architecture
 
-> **Version:** 1.0.0  
-> **Status:** Approved  
-> **Last Updated:** 2026-07-23  
-> **Author:** Senior Flutter Software Engineer  
-> **Related:** [00_PROJECT_BIBLE.md](./00_PROJECT_BIBLE.md)  
+> **Version:** 1.1.0
+> **Status:** Active
+> **Last Updated:** 2026-07-25
+> **Author:** Senior Flutter Software Engineer
+> **Related:** [00_PROJECT_BIBLE.md](./00_PROJECT_BIBLE.md), [41_OFFICIAL_BUSINESS_RULES.md](./41_OFFICIAL_BUSINESS_RULES.md), [42_PLATFORM_DOMAIN_ARCHITECTURE.md](./42_PLATFORM_DOMAIN_ARCHITECTURE.md), [ADR-014](./adr/ADR_014_PLATFORM_CHANNEL_AND_DOMAIN_ALIGNMENT.md)
+
+---
+
+## 0. Binding split (2026-07-25)
+
+```text
+Catalog Product  →  platform master data (no branch price / stock / availability)
+Branch Product Offer → business_id + branch_id commerce fields
+```
+
+Rules: **BR-CATALOG-001**, **BR-CATALOG-002**, **BR-CATALOG-003**.
+Any older paragraph that places store `price` or store `isAvailable` on the central catalog product is **Superseded**.
 
 ---
 
 ## 1. نظرة عامة
 
-**فهرس المنتجات المركزي** هو أساس بنية نظام SAEQ.  
+**فهرس المنتجات المركزي** هو أساس بنية نظام SAEQ.
 وليس ميزة إضافية، بل هو جزء أساسي من البنية التحتية.
 
-يخدم الفهرس:
-- العميل (جاري)
-- التاجر (منفعة)
-- السائق (فزعة)
-- لوحة التحكم (SAEQ Admin)
+يخدم الفهرس (كمرجع منتجات معتمد):
+- العميل (جاري) — عبر عروض الفروع
+- التاجر (منفعة — Merchant Mobile) — لربط العروض بالفهرس
+- السائق (فزعة) — قراءة وصفية عند الحاجة فقط
+- لوحة التحكم (SAEQ **Web Admin** — ملاك المنصة) — اعتماد ومراجعة الفهرس
 - سوق الجملة
 - سوق التجزئة
 
@@ -66,26 +78,46 @@ Product Catalog
 └── Units
 ```
 
-### 3.2 خصائص المنتج
+### 3.2 خصائص Catalog Product (مركزي)
 
 | الخاصية | الوصف |
 |--------|-------|
 | `id` | المعرف الفريد |
-| `name` | الاسم (متعدد اللغات) |
+| `name_ar` / `name_en` | الاسم عربي / إنجليزي |
 | `description` | الوصف (متعدد اللغات) |
 | `barcode` | الباركود (UPC/EAN/QR) |
 | `images` | صور المنتج |
 | `specifications` | المواصفات (JSON) |
 | `brandId` | معرف العلامة التجارية |
 | `categoryId` | معرف الفئة |
-| `supplierId` | معرف المورد |
 | `unitId` | معرف الوحدة |
-| `price` | السعر |
-| `currency` | العملة |
-| `origin` | الأصل (محلي/مستورد) |
-| `isAvailable` | متاح للبيع |
+| `weight` / `dimensions` | الوزن والحجم عند الحاجة |
+| `dataSource` | مصدر البيانات |
+| `reviewStatus` / `approvalStatus` | المراجعة والاعتماد |
+| `origin` | الأصل (محلي/مستورد) — اختياري |
 | `createdAt` | تاريخ الإنشاء |
 | `updatedAt` | تاريخ آخر تحديث |
+
+**لا تُخزَّن على Catalog Product:** سعر بيع الفرع، كمية المخزون، توفر الفرع، عروض الفرع، حدود الشراء.
+
+`supplierId` على المنتج المركزي اختياري لربط جملة/مورد مرجعي؛ تسعير الجملة التشغيلي ومخزون الاستلام يبقيان خارج عرض فرع التجزئة (راجع Wholesale + Inventory docs).
+
+### 3.3 خصائص Branch Product Offer (على مستوى الفرع)
+
+| الخاصية | الوصف |
+|--------|-------|
+| `id` | معرف العرض |
+| `catalog_product_id` | رابط المنتج المركزي |
+| `business_id` | النشاط |
+| `branch_id` | الفرع |
+| `price` | سعر البيع |
+| `compare_at_price` | السعر قبل الخصم |
+| `isAvailable` | توفر العرض في الفرع |
+| `publishStatus` | حالة النشر |
+| `maxOrderQty` | الحد الأعلى للطلب |
+| `promotion` | عرض/خصم الفرع |
+| `sellSettings` | إعدادات البيع |
+| `inventoryLink` | علاقة المخزون / الرصيد |
 
 ---
 

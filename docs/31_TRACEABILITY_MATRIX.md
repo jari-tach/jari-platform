@@ -1,152 +1,175 @@
 # SAEQ — Traceability Matrix
 
-> **Version:** 1.0.0  
-> **Status:** Draft  
-> **Last Updated:** 2026-07-24  
-> **Author:** Senior Flutter Software Engineer  
-> **Related:** [25_REQUIREMENTS_SPECIFICATION.md](./25_REQUIREMENTS_SPECIFICATION.md), [18_TESTING_GUIDE.md](./18_TESTING_GUIDE.md)
+> **Version:** 2.0.0
+> **Status:** Active
+> **Last Updated:** 2026-07-25
+> **Author:** Platform Architecture Alignment
+> **Related:** [41_OFFICIAL_BUSINESS_RULES.md](./41_OFFICIAL_BUSINESS_RULES.md), [42_PLATFORM_DOMAIN_ARCHITECTURE.md](./42_PLATFORM_DOMAIN_ARCHITECTURE.md), [25_REQUIREMENTS_SPECIFICATION.md](./25_REQUIREMENTS_SPECIFICATION.md), [ADR-014](./adr/ADR_014_PLATFORM_CHANNEL_AND_DOMAIN_ALIGNMENT.md), [18_TESTING_GUIDE.md](./18_TESTING_GUIDE.md)
 
 ---
 
 ## 1. Purpose
 
-This document provides a **complete traceability matrix** linking Business Requirements → Functional Requirements → Use Cases → API Endpoints → Database Entities → UI Screens → Tests → Acceptance Criteria. This ensures every requirement is implemented, tested, and verified.
+This matrix links **official platform business rules** (`BR-ORDER-*`, `BR-WHOLESALE-*`, …) to domain modules, data/API impacts, applications, security, tests, and planned stages.
+
+**Authority:** When this file conflicts with older legacy BR-001…BR-010 rows for payment/cart/tenant semantics, **`41_OFFICIAL_BUSINESS_RULES.md` wins**.
+
+### Status legend
+
+| Status | Meaning |
+|--------|---------|
+| DocumentedOnly | Spec only; not in code/DB/API yet |
+| PartiallyImplemented | Partial (e.g. Driver Fake Auth) |
+| Implemented | Delivered in a product |
+| NotStarted | Planned, not started |
+| Deferred | Explicitly postponed |
+| Historical | Superseded mapping kept for history |
+
+### Planned Stage legend
+
+Stage A (docs) · B (PHASE 2.3) · C (Driver MVP) · D (Backend) · E (Merchant) · F (Customer) · G (Web Admin) · H (Expansion)
 
 ---
 
-## 2. Traceability Matrix
+## 2. Official Business Rules Traceability
 
-| BR ID | FR ID | Use Case | API Endpoint | DB Entity | UI Screen | Test | Acceptance Criteria |
-|-------|-------|----------|-------------|-----------|-----------|------|-------------------|
-| BR-001 | FR-AUTH-001 | UC-001 | POST /auth/login | User | LoginScreen | TC-AUTH-001 | Login completes in ≤3s |
-| BR-001 | FR-AUTH-002 | UC-005 | POST /auth/otp | User | OTPScreen | TC-AUTH-002 | OTP sent within 5s |
-| BR-001 | FR-AUTH-003 | UC-001 | POST /auth/biometric | User | LoginScreen | TC-AUTH-003 | Biometric login ≤2s |
-| BR-001 | FR-AUTH-004 | UC-001 | POST /auth/refresh | User | - | TC-AUTH-004 | Token refresh works |
-| BR-001 | FR-AUTH-006 | - | - | User | AdminPanel | TC-AUTH-006 | RBAC enforced |
-| BR-002 | FR-ORD-001 | UC-002 | POST /orders | Order | CreateOrderScreen | TC-ORD-001 | Order created in ≤5s |
-| BR-002 | FR-ORD-002 | UC-003 | POST /orders/{id}/assign | Order, Driver | - | TC-ORD-002 | Driver assigned in ≤3s |
-| BR-002 | FR-ORD-003 | UC-003 | WebSocket /orders/stream | Order | HomeScreen | TC-ORD-003 | Notification received |
-| BR-002 | FR-ORD-004 | UC-003 | POST /orders/{id}/accept | Order | OrderDetailScreen | TC-ORD-004 | Accept/reject works |
-| BR-002 | FR-ORD-005 | UC-004 | POST /orders/{id}/status | Order, Trip | DeliveryScreen | TC-ORD-005 | Status updates correctly |
-| BR-002 | FR-ORD-006 | UC-002 | POST /orders/{id}/cancel | Order | OrderDetailScreen | TC-ORD-006 | Cancellation with refund |
-| BR-002 | FR-ORD-007 | UC-002 | POST /orders (scheduled) | Order | CreateOrderScreen | TC-ORD-007 | Scheduled order works |
-| BR-002 | FR-ORD-008 | - | GET /orders | Order | OrderHistoryScreen | TC-ORD-008 | History loads in ≤1s |
-| BR-003 | FR-PAY-001 | UC-002 | POST /payments | Payment | PaymentScreen | TC-PAY-001 | Multiple methods supported |
-| BR-003 | FR-PAY-002 | UC-004 | POST /payments/capture | Payment | - | TC-PAY-002 | PCI compliant |
-| BR-003 | FR-PAY-003 | UC-004 | POST /payments/capture | Payment | DeliveryScreen | TC-PAY-003 | Auto-capture on delivery |
-| BR-003 | FR-PAY-004 | - | POST /payments/refund | Payment | AdminPanel | TC-PAY-004 | Refund processed |
-| BR-003 | FR-PAY-005 | - | GET /earnings | Payment | EarningsScreen | TC-PAY-005 | Earnings calculated |
-| BR-003 | FR-PAY-006 | - | POST /payouts/request | Payment | EarningsScreen | TC-PAY-006 | Payout requested |
-| BR-003 | FR-PAY-007 | UC-004 | GET /payments/{id}/receipt | Payment | OrderDetailScreen | TC-PAY-007 | Receipt generated |
-| BR-004 | FR-AUTH-006 | - | - | User, AuditLog | AdminPanel | TC-COMP-001 | RBAC and audit logs |
-| BR-004 | FR-RPT-004 | - | GET /audit-logs | AuditLog | AdminPanel | TC-COMP-002 | Audit trail complete |
-| BR-005 | - | - | - | - | All screens | TC-L10N-001 | Arabic/English support |
-| BR-006 | FR-OFF-001 | UC-006 | POST /sync | Order (local) | - | TC-OFF-001 | Local cache works |
-| BR-006 | FR-OFF-002 | UC-006 | - | SyncQueue | - | TC-OFF-002 | Queue actions offline |
-| BR-006 | FR-OFF-003 | UC-006 | POST /sync | SyncQueue | - | TC-OFF-003 | Sync in ≤30s |
-| BR-006 | FR-OFF-004 | UC-006 | POST /sync | SyncQueue | - | TC-OFF-004 | Conflict resolution |
-| BR-007 | FR-RPT-001 | - | GET /earnings/report | Payment | EarningsScreen | TC-RPT-001 | Report in ≤5s |
-| BR-007 | FR-RPT-002 | - | GET /admin/dashboard | Multiple | AdminDashboard | TC-RPT-002 | Dashboard loads |
-| BR-007 | FR-RPT-003 | - | GET /earnings/export | Payment | EarningsScreen | TC-RPT-003 | Export works |
-| BR-008 | FR-ORD-007 | UC-002 | POST /orders (scheduled) | Order | CreateOrderScreen | TC-ORD-007 | Scheduled delivery |
-| BR-009 | FR-TRK-001 | UC-004 | PUT /driver/location | Driver | MapScreen | TC-TRK-001 | Location updates |
-| BR-009 | FR-TRK-002 | UC-004 | WebSocket /tracking | Driver | CustomerMapScreen | TC-TRK-002 | Map displays driver |
-| BR-009 | FR-TRK-003 | UC-004 | GET /orders/{id}/eta | Order | MapScreen | TC-TRK-003 | ETA accurate |
-| BR-009 | FR-TRK-004 | UC-004 | - | Order, Trip | MapScreen | TC-TRK-004 | Status updates by location |
-| BR-009 | FR-TRK-005 | UC-004 | - | Trip | - | TC-TRK-005 | Geofencing works |
-| BR-010 | FR-DOC-001 | UC-010 | POST /documents | Document | DocumentsScreen | TC-DOC-001 | Upload works |
-| BR-010 | FR-DOC-002 | UC-010 | POST /documents/verify | Document | AdminPanel | TC-DOC-002 | Verification workflow |
-| BR-010 | FR-DOC-003 | UC-010 | - | Document | - | TC-DOC-003 | Encryption verified |
-| BR-010 | FR-DOC-004 | - | - | Document | - | TC-DOC-004 | Expiry notification |
+| Rule ID | Rule Name | Business Requirement | Domain Module | Database Impact | API Impact | Application Impact | Security/Authorization Impact | Required Tests | Current Implementation Status | Planned Stage |
+|---------|-----------|----------------------|---------------|-----------------|------------|---------------------|-------------------------------|----------------|-------------------------------|---------------|
+| BR-ORDER-001 | Single business per order | طلب عميل ← `business_id` واحد | RetailOrders | `orders.business_id` NOT NULL + FK | Create/update order scoped | Customer Mobile | Reject cross-business ids | Isolation: cannot create multi-business order | DocumentedOnly | D, F |
+| BR-ORDER-002 | Single branch per order | طلب عميل ← `branch_id` واحد | RetailOrders, Branches | `orders.branch_id` NOT NULL + FK | Order APIs branch-scoped | Customer, Merchant | Branch Scope on read/write | Isolation: single branch constraint | DocumentedOnly | D, F |
+| BR-ORDER-003 | Single-store cart | لا دمج متاجر في سلة واحدة | RetailOrders | Cart owned by one business | Cart APIs | Customer Mobile | Server validates cart business | Cart isolation tests | DocumentedOnly | D, F |
+| BR-ORDER-004 | Single-branch cart/lines | لا دمج فروع في طلب/سلة | RetailOrders, Branches | Line items same `branch_id` | Cart/Order APIs | Customer Mobile | Branch Scope | Multi-branch cart rejected | DocumentedOnly | D, F |
+| BR-ORDER-005 | One cart per order | سلة واحدة لكل طلب | RetailOrders | 1:1 cart–order | — | Customer Mobile | — | Unit: cart cardinality | DocumentedOnly | D, F |
+| BR-ORDER-006 | One delivery per order | توصيل واحد لكل طلب | Delivery | 1:1 delivery–order | Delivery APIs | Customer, Driver | Driver branch scope | Delivery 1:1 tests | DocumentedOnly | C, D |
+| BR-ORDER-007 | One payment context | سياق دفع واحد + محاولات فاشلة | Payments | `payment` + `payment_attempts` | Payments API | Customer, Web Admin (support) | No client-forged payment context | Payment attempt / idempotency | DocumentedOnly | D, F |
+| BR-ORDER-008 | Price snapshot at submit | تثبيت السعر وقت التأكيد | RetailOrders, BranchOffers | Order line snapshot columns | Order submit payload stores snapshot | Customer, Merchant | Tamper-check amounts server-side | Snapshot immutability after submit | DocumentedOnly | D, F |
+| BR-WHOLESALE-001 | Single supplier per wholesale order | طلب جملة ← مورد واحد | Wholesale, Suppliers | `wholesale_orders.supplier_id` | Wholesale APIs | Merchant Mobile | Wholesale/Merchant scopes | Multi-supplier order rejected | DocumentedOnly | D, E |
+| BR-WHOLESALE-002 | No multi-supplier basket | لا دمج موردين في طلب جملة | Wholesale | Constraint on lines | Cart/order wholesale | Merchant Mobile | Server enforce | Basket isolation | DocumentedOnly | D, E |
+| BR-WHOLESALE-003 | Receipt → stock movements | استلام جملة = حركات مخزون | Inventory, Wholesale | Immutable stock_movements | Receipt APIs | Merchant, Warehouse roles | Actor + reason on movement | Movement created; no silent balance edit | DocumentedOnly | D, E |
+| BR-WHOLESALE-004 | Partial receipt readiness | استلام جزئي دون كسر النموذج | Wholesale, Inventory | Partial qty / PartiallyReceived | Receipt APIs | Merchant | Audited partials | Partial receipt SM tests | DocumentedOnly | H (design now; exec Deferred) |
+| BR-BRANCH-001 | Branch operating independence | فرع = نطاق تشغيلي مستقل | Branches | Branch settings tables | Branch APIs | Merchant Mobile | Branch Scope | Branch settings isolation | DocumentedOnly | D, E |
+| BR-BRANCH-002 | Branch belongs to business | الفرع تابع لـ Business | Businesses, Branches | `branch.business_id` | — | Merchant, Web Admin | Cannot orphan branch | FK integrity tests | DocumentedOnly | D, E |
+| BR-BRANCH-003 | Independent warehouse | مستودع مستقل لكل فرع | Inventory, Branches | `warehouse.branch_id` | Warehouse APIs | Merchant | Warehouse/Branch roles | Warehouse cross-branch deny | DocumentedOnly | D, E |
+| BR-BRANCH-004 | Independent inventory | مخزون غير مشترك تلقائيًا | Inventory | Balances per warehouse/branch | Stock APIs | Merchant | Tenant + branch isolation | Stock leak tests | DocumentedOnly | D, E |
+| BR-BRANCH-005 | Independent users & permissions | مستخدمون/صلاحيات ضمن نطاق الفرع | IdentityAndAccess, Branches | Role grants + scopes | AuthZ APIs | Merchant Mobile | Business + Branch Scope | Cross-branch staff deny | DocumentedOnly | D, E |
+| BR-BRANCH-006 | Independent orders/drivers/reports | طلبات/سائقون/تقارير معزولة | RetailOrders, Drivers, Reports | Scoped queries | List/report APIs | Merchant, Driver | Enforce scopes on every list | Report/order leak tests | DocumentedOnly | D, E, C |
+| BR-DRIVER-001 | Driver bound to business + branch | سائق ↔ business + branch | Drivers | `drivers.business_id`, `branch_id` | Driver profile/assign | Driver, Merchant | Reassignment audited | Driver scope on tokens | DocumentedOnly | B (model readiness), C, D |
+| BR-DRIVER-002 | Branch-scoped operations | عمليات ضمن الفرع المصرح | Drivers, Delivery | — | Driver delivery APIs | Driver Mobile | Server-side branch filter | Cannot fetch other branch jobs | DocumentedOnly | C, D |
+| BR-DRIVER-003 | No cross-branch orders | لا طلبات فرع آخر | Delivery, RetailOrders | — | Offers/orders APIs | Driver Mobile | AuthZ deny | Isolation suite | DocumentedOnly | C, D |
+| BR-DRIVER-004 | No cross-branch customers/inventory/reports | لا عملاء/مخزون/تقارير فرع آخر | Drivers, Inventory, Reports | — | Deny endpoints | Driver Mobile | AuthZ deny | Negative authz tests | DocumentedOnly | C, D |
+| BR-DRIVER-005 | Server-side enforcement | ليس UI-only | Authorization | — | All driver APIs | Driver Mobile | RBAC + Branch Scope | UI hide ≠ sufficient (API tests) | DocumentedOnly | D, C |
+| BR-DRIVER-006 | Branch reassignment audited | تغيير ارتباط الفرع موثّق | Drivers, Audit | Audit + driver history | Admin/Merchant assign APIs | Merchant, Web Admin | Audit required | Audit fields present | DocumentedOnly | D, E, G |
+| BR-ADMIN-001 | Merchant daily ops via Merchant Mobile | التاجر لا يعتمد Web Admin يوميًا | Merchants, Administration | — | Merchant APIs only for ops | Merchant Mobile | No platform admin role for merchants | Channel policy review | DocumentedOnly | E |
+| BR-ADMIN-002 | Platform ops via Web Admin | إدارة المنصة من Web Admin | Administration | Admin tables | Admin APIs | Web Admin | Platform roles only | Admin authz tests | DocumentedOnly | G |
+| BR-ADMIN-003 | Merchant has no platform powers | لا صلاحيات منصة للتاجر | Authorization | Role catalog | Token scopes | Merchant, Web Admin | Deny platform permissions | Privilege escalation tests | DocumentedOnly | D, E, G |
+| BR-ADMIN-004 | Sensitive admin actions audited | تدخل حساس → Audit Log | Audit, Administration | audit_logs | Admin mutation APIs | Web Admin | Mandatory audit middleware | Audit completeness | DocumentedOnly | D, G |
+| BR-ADMIN-005 | Intervention reason required | سبب إلزامي للتدخل | Audit | reason NOT NULL on sensitive | Admin APIs | Web Admin | Reject empty reason | Validation tests | DocumentedOnly | D, G |
+| BR-ADMIN-006 | Before/after values | previous/new values | Audit | JSON before/after | Admin APIs | Web Admin | Tamper-evident log | Audit payload tests | DocumentedOnly | D, G |
+| BR-CATALOG-001 | Central catalog | فهرس مركزي للمنصة | Catalog | catalog_products | Catalog APIs | Web Admin, Merchant (link) | Catalog Admin roles | Catalog CRUD authz | DocumentedOnly | D, G |
+| BR-CATALOG-002 | Branch-level commerce fields | سعر/مخزون/توفر على Offer | BranchOffers, Inventory | branch_product_offers | Offer APIs | Merchant, Customer | Branch Scope on offers | Offer vs catalog field tests | DocumentedOnly | D, E, F |
+| BR-CATALOG-003 | No store price on catalog product | ممنوع سعر/مخزون الفرع على المركزي | Catalog | No price/stock cols on catalog | Catalog write APIs reject | Web Admin, Merchant | Schema + API validation | Reject catalog price write | DocumentedOnly | D, G |
+| BR-PAY-001 | Electronic payment primary | الدفع الإلكتروني أساسي | Payments | payment methods config | Payments API | Customer, Merchant settings | PCI / gateway | Electronic path happy-path | DocumentedOnly | D, F |
+| BR-PAY-002 | Cash optional | النقدي اختياري | Payments | cash_enabled flags | Settings + checkout | Merchant, Customer | Policy + plan gates | Cash disabled → reject cash | DocumentedOnly | D, E, F |
+| BR-PAY-003 | Merchant cash toggle | تفعيل/تعطيل نقدي للتاجر | Payments, Merchants | business/branch payment settings | Merchant settings API | Merchant Mobile | Business/Branch Scope | Toggle audited | DocumentedOnly | D, E |
+| BR-PAY-004 | Cash scoping | تقييد نقدي بنشاط/فرع/مدينة/نوع طلب | Payments | policy tables | Checkout validation | Customer, Merchant | Server policy engine | Matrix of scope rules | DocumentedOnly | D, H |
+| BR-PAY-005 | Docs not cashless-only | توحيد الوثائق: إلكتروني + نقدي اختياري | Payments (policy) | — | — | Docs / all apps | — | Doc consistency review | PartiallyImplemented (docs aligned Stage A) | A (done), keep |
+| BR-SEC-001 | Server-side authorization | RBAC + scopes على الخادم | Authorization | grants/policies | All sensitive APIs | All apps | Core AuthZ | Authz suite | DocumentedOnly | D |
+| BR-SEC-002 | Audit sensitive interventions | Audit للعمليات الحساسة | Audit | audit_logs | Admin/finance APIs | Web Admin | Audit + Security logs | Audit required actions list | DocumentedOnly | D, G |
+| BR-SEC-003 | No client-trusted tenant IDs | لا ثقة بـ business_id/branch_id من العميل دون تحقق | Authorization | — | Gateway/API | All apps | Derive scope from token | Forged tenant id rejected | DocumentedOnly | D |
 
----
-
-## 3. Test Case Index
-
-| TC ID | Description | Type | FR Link | Automation |
-|-------|-------------|------|---------|------------|
-| TC-AUTH-001 | Email/password login flow | Integration | FR-AUTH-001 | ✅ Automated |
-| TC-AUTH-002 | OTP verification flow | Integration | FR-AUTH-002 | ✅ Automated |
-| TC-AUTH-003 | Biometric authentication | Widget | FR-AUTH-003 | ⬜ Manual |
-| TC-AUTH-004 | Token refresh mechanism | Unit | FR-AUTH-004 | ✅ Automated |
-| TC-AUTH-005 | Account lockout after 5 attempts | Integration | FR-AUTH-007 | ✅ Automated |
-| TC-AUTH-006 | RBAC enforcement | Integration | FR-AUTH-006 | ✅ Automated |
-| TC-ORD-001 | Create order with valid data | Integration | FR-ORD-001 | ✅ Automated |
-| TC-ORD-002 | Auto-assign driver | Integration | FR-ORD-002 | ✅ Automated |
-| TC-ORD-003 | Real-time order notification | Integration | FR-ORD-003 | ✅ Automated |
-| TC-ORD-004 | Accept/reject order | Widget | FR-ORD-004 | ✅ Automated |
-| TC-ORD-005 | Order status state machine | Unit | FR-ORD-005 | ✅ Automated |
-| TC-ORD-006 | Order cancellation with refund | Integration | FR-ORD-006 | ✅ Automated |
-| TC-ORD-007 | Scheduled order creation | Integration | FR-ORD-007 | ✅ Automated |
-| TC-ORD-008 | Order history with filters | Widget | FR-ORD-008 | ✅ Automated |
-| TC-PAY-001 | Multiple payment methods | Integration | FR-PAY-001 | ✅ Automated |
-| TC-PAY-002 | Payment capture on delivery | Integration | FR-PAY-003 | ✅ Automated |
-| TC-PAY-003 | Refund processing | Integration | FR-PAY-004 | ✅ Automated |
-| TC-PAY-004 | Driver earnings calculation | Unit | FR-PAY-005 | ✅ Automated |
-| TC-PAY-005 | Payout request flow | Integration | FR-PAY-006 | ✅ Automated |
-| TC-PAY-006 | Receipt generation | Unit | FR-PAY-007 | ✅ Automated |
-| TC-TRK-001 | Driver location update | Integration | FR-TRK-001 | ✅ Automated |
-| TC-TRK-002 | Customer map display | Widget | FR-TRK-002 | ⬜ Manual |
-| TC-TRK-003 | ETA calculation accuracy | Integration | FR-TRK-003 | ✅ Automated |
-| TC-TRK-004 | Geofence trigger | Integration | FR-TRK-005 | ✅ Automated |
-| TC-OFF-001 | Local data caching | Unit | FR-OFF-001 | ✅ Automated |
-| TC-OFF-002 | Offline action queue | Unit | FR-OFF-002 | ✅ Automated |
-| TC-OFF-003 | Sync on reconnection | Integration | FR-OFF-003 | ✅ Automated |
-| TC-OFF-004 | Sync conflict resolution | Unit | FR-OFF-004 | ✅ Automated |
-| TC-DOC-001 | Document upload | Integration | FR-DOC-001 | ✅ Automated |
-| TC-DOC-002 | Document verification | Integration | FR-DOC-002 | ✅ Automated |
-| TC-DOC-003 | Document encryption | Unit | FR-DOC-003 | ✅ Automated |
-| TC-DOC-004 | Document expiry notification | Unit | FR-DOC-004 | ✅ Automated |
-| TC-RPT-001 | Earnings report generation | Integration | FR-RPT-001 | ✅ Automated |
-| TC-RPT-002 | Admin dashboard metrics | Widget | FR-RPT-002 | ⬜ Manual |
-| TC-RPT-003 | Report export (PDF/CSV) | Integration | FR-RPT-003 | ✅ Automated |
-| TC-COM-001 | In-app chat messaging | Integration | FR-COM-001 | ✅ Automated |
-| TC-COM-002 | Push notification delivery | Integration | FR-COM-002 | ✅ Automated |
-| TC-COM-003 | SMS notification delivery | Integration | FR-COM-003 | ⬜ Manual |
-| TC-COM-004 | In-app notification center | Widget | FR-COM-004 | ✅ Automated |
-| TC-L10N-001 | Arabic RTL layout | Widget | - | ⬜ Manual |
-| TC-L10N-002 | English LTR layout | Widget | - | ⬜ Manual |
-| TC-L10N-003 | String translation coverage | Unit | - | ✅ Automated |
-| TC-COMP-001 | SDAIA compliance checks | Integration | - | ⬜ Manual |
-| TC-COMP-002 | Audit log completeness | Integration | FR-RPT-004 | ✅ Automated |
+**Count of official Rule IDs in §2:** 40 (ORDER 8 + WHOLESALE 4 + BRANCH 6 + DRIVER 6 + ADMIN 6 + CATALOG 3 + PAY 5 + SEC 3).
 
 ---
 
-## 4. UI Screen Traceability
+## 3. Payment policy (single source)
 
-| Screen | FR ID | BR ID | Test | Platform |
-|--------|-------|-------|------|----------|
-| LoginScreen | FR-AUTH-001, FR-AUTH-003 | BR-001 | TC-AUTH-001, TC-AUTH-003 | Driver, Customer |
-| OTPScreen | FR-AUTH-002 | BR-001 | TC-AUTH-002 | Driver, Customer |
-| HomeScreen | FR-ORD-003 | BR-002 | TC-ORD-003 | Driver |
-| CreateOrderScreen | FR-ORD-001, FR-ORD-007 | BR-002, BR-008 | TC-ORD-001, TC-ORD-007 | Customer |
-| OrderDetailScreen | FR-ORD-004, FR-ORD-006 | BR-002 | TC-ORD-004, TC-ORD-006 | Driver, Customer |
-| OrderHistoryScreen | FR-ORD-008 | BR-002 | TC-ORD-008 | Driver, Customer |
-| DeliveryScreen | FR-ORD-005, FR-PAY-003 | BR-002, BR-003 | TC-ORD-005, TC-PAY-002 | Driver |
-| MapScreen | FR-TRK-001, FR-TRK-003, FR-TRK-004 | BR-009 | TC-TRK-001, TC-TRK-003, TC-TRK-004 | Driver, Customer |
-| PaymentScreen | FR-PAY-001 | BR-003 | TC-PAY-001 | Customer |
-| EarningsScreen | FR-PAY-005, FR-PAY-006, FR-RPT-001, FR-RPT-003 | BR-003, BR-007 | TC-PAY-004, TC-PAY-005, TC-RPT-001, TC-RPT-003 | Driver |
-| DocumentsScreen | FR-DOC-001 | BR-010 | TC-DOC-001 | Driver |
-| AdminDashboard | FR-RPT-002 | BR-007 | TC-RPT-002 | Admin |
-| AdminPanel | FR-AUTH-006, FR-DOC-002, FR-RPT-004 | BR-004, BR-010 | TC-AUTH-006, TC-DOC-002, TC-COMP-002 | Admin |
-| ChatScreen | FR-COM-001 | BR-001 | TC-COM-001 | Driver, Customer |
-| NotificationsScreen | FR-COM-004 | BR-002 | TC-COM-004 | Driver, Customer |
+| Topic | Official rule | Legacy mapping |
+|-------|---------------|----------------|
+| Primary path | **BR-PAY-001** electronic | Old “cashless only” wording → **Historical / Superseded** |
+| Optional cash | **BR-PAY-002…004** merchant/branch/platform policy | Old FR-PAY-001 “card, wallet, cash” as equal primaries → clarified in `25_REQUIREMENTS_SPECIFICATION.md` |
+| Requirements link | `25_REQUIREMENTS_SPECIFICATION.md` BR-003 + FR-PAY-001 (updated) | Must not reintroduce cashless-only |
+| Domain | Payments + Merchant/Branch settings | |
+| Tests | TC-PAY-ELEC-001 (electronic), TC-PAY-CASH-001 (cash when enabled), TC-PAY-CASH-002 (cash rejected when disabled) | Planned Stage D/F — DocumentedOnly |
+
+**Do not maintain two conflicting payment policies.**
 
 ---
 
-## 5. Coverage Summary
+## 4. Critical order / branch / driver / inventory links
 
-| Category | Total | Covered | Coverage % |
-|----------|-------|---------|------------|
-| Business Requirements (BR) | 10 | 10 | 100% |
-| Functional Requirements (FR) | 36 | 36 | 100% |
-| Use Cases | 10 | 10 | 100% |
-| API Endpoints | 25 | 25 | 100% |
-| Database Entities | 10 | 10 | 100% |
-| UI Screens | 15 | 15 | 100% |
-| Test Cases | 42 | 42 | 100% |
-| Acceptance Criteria | 36 | 36 | 100% |
+| Concern | Rule IDs | Domains |
+|---------|----------|---------|
+| Single business order | BR-ORDER-001 | RetailOrders |
+| Single branch order | BR-ORDER-002 | RetailOrders, Branches |
+| No multi-store cart | BR-ORDER-003 | RetailOrders |
+| No multi-branch cart | BR-ORDER-004 | RetailOrders, Branches |
+| Price snapshot | BR-ORDER-008 | RetailOrders, BranchOffers |
+| Single supplier wholesale | BR-WHOLESALE-001, BR-WHOLESALE-002 | Wholesale |
+| Driver–branch binding | BR-DRIVER-001…006 | Drivers, Delivery, Authorization, Audit |
+| Independent warehouse/inventory | BR-BRANCH-003, BR-BRANCH-004, BR-WHOLESALE-003 | Branches, Inventory |
 
 ---
 
-*This traceability matrix ensures complete coverage from business requirements to test cases. Any gap must be addressed before release.*
+## 5. Legacy BR-001…BR-010 matrix (Historical mapping)
+
+> **Status:** Historical for **payment/cart/tenant** semantics. Kept so older FR/TC IDs remain findable. Prefer §2 for platform rules.
+
+| Legacy BR | FR examples | Notes |
+|-----------|-------------|-------|
+| BR-001 | FR-AUTH-* | Still useful for auth tracing; Driver Fake Auth = PartiallyImplemented |
+| BR-002 | FR-ORD-* | Must be read **with** BR-ORDER-001…008 (single business/branch) |
+| BR-003 | FR-PAY-* | **Superseded wording** → use BR-PAY-001…005 (electronic primary, cash optional) |
+| BR-004…BR-010 | compliance, offline, reports, tracking, documents | Still valid as legacy product BRs; align tests when Backend exists |
+
+### Legacy FR ↔ Test index (preserved)
+
+| TC ID | Description | FR Link | Notes |
+|-------|-------------|---------|-------|
+| TC-AUTH-001…006 | Auth flows / RBAC | FR-AUTH-* | Driver: Fake Auth foundation only (Stage 2.2) |
+| TC-ORD-001…008 | Order flows | FR-ORD-* | Must later assert BR-ORDER-* constraints |
+| TC-PAY-001…006 | Payments / earnings | FR-PAY-* | Update acceptance to BR-PAY-* (not cashless-only) |
+| TC-TRK-*, TC-OFF-*, TC-DOC-*, TC-RPT-*, TC-COM-*, TC-L10N-*, TC-COMP-* | As in v1 matrix | — | Historical index; re-validate at implementation |
+
+---
+
+## 6. Application / channel impact summary
+
+| Application | Rules most relevant | Status |
+|-------------|---------------------|--------|
+| Customer Mobile | BR-ORDER-*, BR-PAY-*, BR-CATALOG-002 | NotStarted (app absent) |
+| Merchant Mobile | BR-BRANCH-*, BR-WHOLESALE-*, BR-ADMIN-001, BR-PAY-003, BR-CATALOG-002 | NotStarted |
+| Driver Mobile | BR-DRIVER-*, BR-ORDER-006, offline | PartiallyImplemented (Auth foundation only) |
+| Web Admin | BR-ADMIN-002…006, BR-CATALOG-001/003, BR-SEC-*, BR-PAY policy oversight | NotStarted |
+| Backend | All rules — source of enforcement | NotStarted (Modular Monolith planned Stage D) |
+
+---
+
+## 7. Coverage summary (official rules)
+
+| Rule group | Count | DocumentedOnly | PartiallyImplemented | Deferred exec |
+|------------|-------|----------------|----------------------|---------------|
+| BR-ORDER-* | 8 | 8 | 0 | 0 |
+| BR-WHOLESALE-* | 4 | 3 | 0 | 1 (partial receipt exec) |
+| BR-BRANCH-* | 6 | 6 | 0 | 0 |
+| BR-DRIVER-* | 6 | 6 | 0 | 0 |
+| BR-ADMIN-* | 6 | 6 | 0 | 0 |
+| BR-CATALOG-* | 3 | 3 | 0 | 0 |
+| BR-PAY-* | 5 | 4 | 1 (BR-PAY-005 docs) | 0 |
+| BR-SEC-* | 3 | 3 | 0 | 0 |
+| **Total** | **40** | **39** | **1** | **1** |
+
+Implementation coverage of official rules in code: **~0% product logic** (documentation Stage A complete for tracing).
+
+---
+
+## 8. PHASE status note
+
+| Item | Status |
+|------|--------|
+| Stage A Documentation Alignment | Finalization in progress → pending owner approval |
+| PHASE 2.1 / 2.2 | Done (see phase reports) |
+| PHASE 2.3 | **NotStarted** — requires explicit start command |
+
+---
+
+*Gaps between §2 rules and runnable tests/APIs are expected until Stages D–G. Do not mark official rules Implemented without evidence.*

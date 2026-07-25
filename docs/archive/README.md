@@ -1,10 +1,10 @@
 # SAEQ — Documentation Archive
 
-> **Version:** 1.0.0  
-> **Status:** Archived  
-> **Last Updated:** 2026-07-23  
-> **Author:** Senior Flutter Software Engineer  
-> **Related:** [00_PROJECT_BIBLE.md](../00_PROJECT_BIBLE.md)  
+> **Version:** 1.0.0
+> **Status:** Archived
+> **Last Updated:** 2026-07-23
+> **Author:** Senior Flutter Software Engineer
+> **Related:** [00_PROJECT_BIBLE.md](../00_PROJECT_BIBLE.md)
 
 ---
 
@@ -14,9 +14,10 @@
 
 ### القواعد
 
-1. **المراجع الرسمية هي فقط النسخ المرقمة** (00_*.md — 35_*.md) في المجلد الرئيسي `docs/`.
-2. **لا تستخدم ملفات الأرشيف كمرجع للتطوير.**
-3. **جميع الروابط الداخلية يجب أن تشير إلى النسخ المرقمة فقط.**
+1. **المراجع الرسمية النشطة** في `docs/` المرقّمة + `41_*` / `42_*` / ADRs المقبولة.
+2. **لا تستخدم ملفات الأرشيف كمرجع للتطوير.** محتويات الأرشيف التي تذكر get_it أو Merchant React Dashboard هي **Historical**.
+3. **جميع الروابط الداخلية يجب أن تشير إلى النسخ النشطة فقط.**
+4. عند التعارض: ADR-014 + `41_OFFICIAL_BUSINESS_RULES.md` يفوقان نصوص الأرشيف.
 
 ### الملفات المؤرشفة
 

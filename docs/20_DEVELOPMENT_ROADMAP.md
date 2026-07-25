@@ -1,138 +1,81 @@
 # SAEQ — Development Roadmap
 
-> **Version:** 1.0.0  
-> **Status:** Approved  
-> **Last Updated:** 2026-07-23  
-> **Author:** Senior Flutter Software Engineer  
-> **Related:** [00_PROJECT_BIBLE.md](./00_PROJECT_BIBLE.md)  
+> **Version:** 2.0.0
+> **Status:** Active
+> **Last Updated:** 2026-07-25
+> **Author:** Platform Architecture Alignment
+> **Related:** [00_PROJECT_BIBLE.md](./00_PROJECT_BIBLE.md), [PHASE_2_FEATURE_DEVELOPMENT_ROADMAP.md](./PHASE_2_FEATURE_DEVELOPMENT_ROADMAP.md), [ADR-014](./adr/ADR_014_PLATFORM_CHANNEL_AND_DOMAIN_ALIGNMENT.md)
 
 ---
 
-## 1. نظرة عامة
+## 0. Authority
 
-تنظم خريطة طريق التطوير إلى **5 مراحل**، كل منها يبني على المرحلة السابقة. كل مرحلة تسلّم زيادة عمل قابلة للاختبار.
+This file defines the **platform-level stage order**.
+Driver-specific PHASE 2.x detail lives in `PHASE_2_FEATURE_DEVELOPMENT_ROADMAP.md`.
 
----
+**Every stage requires explicit owner approval before execution.** This document is not an automatic start order.
 
-## 2. ملخص خريطة الطريق
-
-| المرحلة | الاسم | الإطار الزمني | المكاسب الرئيسية |
-|---------|-------|---------------|-----------------|
-| المرحلة 0 | الأساسيات والعمارة (الحالية) | Q3 2026 | العمارة، معايير البرمجة، CI/CD، البنية الأساسية |
-| المرحلة 1 | المصادقة والتسجيل | Q4 2026 | تسجيل الدخول، التسجيل، إعداد الملف الشخصي |
-| المرحلة 2 | ميزات السائق الأساسية | Q1 2027 | قائمة الطلبات، تفاصيل الطلب، التنقل |
-| المرحلة 3 | التسليم والأرباح | Q2 2027 | التدفق النشط، متابعة الأرباح، المدفوعات |
-| المرحلة 4 | الملف الشخصي والإعدادات | Q3 2027 | إدارة الملف الشخصي، الإعدادات، الإشعارات |
-| المرحلة 5 | ميزات متقدمة | Q4 2027+ | الذكاء الاصطناعي، التحليمات، التكاملات الحكومية |
+Historical “Phase 0–5” checklists that claimed Auth was not started / get_it pending are **Superseded** for status tracking (see §4).
 
 ---
 
-## 3. المرحلة 0: الأساسيات والعمارة
+## 1. Official stage order
 
-> **الحالة:** قيد التنفيذ  
-> **الإطار الزمني:** Q3 2026 (يوليو — سبتمبر 2026)
+```text
+Stage A — Documentation and Architecture Alignment
+Stage B — PHASE 2.3 Driver Identity and Profile
+Stage C — Driver Operational MVP
+Stage D — Backend Modular Monolith Foundation
+Stage E — Merchant Mobile MVP
+Stage F — Customer Mobile MVP
+Stage G — Web Admin Operational MVP
+Stage H — Platform Expansion
+```
 
-### الأهداف
-- إنشاء العمارة والمعايير
-- إعداد خط CI/CD
-- تنفيذ البنية الأساسية (DI، تسجيل، إدارة الأخطاء، شبكة)
-- إنشاء بيئة التطبيق الأساسية
-
-### المكتمل
-- [x] وثائق العمارة
-- [x] معايير البرمجة
-- [x] رؤية المشروع
-- [x] نظام التصميم
-- [x] الترجمة (عربي/إنجليزي)
-- [x] بيئة التطبيق الأساسية
-
-### قيد الانتظار
-- [ ] خط CI/CD
-- [ ] حقن الاعتماديات (get_it + injectable)
-- [ ] خدمة التسجيل
-- [ ] إطار إدارة الأخطاء
-- [ ] طبقة الشبكة (Dio)
-- [ ] التخزين الآمن
-- [ ] قاعدة البيانات المحلية (Drift)
-- [ ] بنية الاختبار
+| Stage | Status (2026-07-25) | Notes |
+|-------|---------------------|-------|
+| **A** | **In progress / completing** | Docs + ADRs + business rules alignment |
+| Pre-B (Stabilization, 2.1, 2.2) | **Done** (with documented conditions) | Do not rewrite as “not started” |
+| **B (PHASE 2.3)** | **Not started** | Explicit start command required |
+| **C–H** | Not started | Each needs separate approval; may span multiple repos |
 
 ---
 
-## 4. المرحلة 1: المصادقة والتسجيل
+## 2. Stage summaries
 
-> **الحالة:** غير مبدوءة  
-> **الإطار الزمني:** Q4 2026 (أكتوبر — ديسمبر 2026)
+### Stage A — Documentation and Architecture Alignment
+Fix channel model (Merchant Mobile + Web Admin), business rules, multi-tenant design, catalog/offer split, inventory/order SM docs, Modular Monolith, ADR-010/get_it legacy labeling. **No feature coding.**
 
-### الأهداف
-- تنفيذ مصادقة آمنة (تسجيل الدخول، تسجيل، إعادة تعيين كلمة المرور)
-- إنشاء تدفق التسجيل (جولة التطبيق، الأذونات، إعداد الملف الشخصي)
-- إعداد إدارة الجلسات وتجديد الرموز
-- تنفيذ المصادقة البيومترية
+### Stage B — PHASE 2.3 Driver Identity and Profile
+Driver-only. Design identity/profile so `business_id` / `branch_id` can be added later. Keep Fake Auth production guard. Tests required. No other apps / no Monorepo.
 
----
+### Stage C — Driver Operational MVP
+Availability, delivery loop, offline sync for critical ops, per PHASE 2 roadmap (2.4+).
 
-## 5. المرحلة 2: ميزات السائق الأساسية
+### Stage D — Backend Modular Monolith Foundation
+Identity, Businesses/Branches, Catalog/Offers, Inventory movements, Retail Orders SM, Delivery, Payments, Audit — tenant isolation from day one.
 
-> **الحالة:** غير مبدوءة  
-> **الإطار الزمني:** Q1 2027 (يناير — مارس 2027)
+### Stage E — Merchant Mobile MVP
+Daily ops app (not Web Admin). Branch-scoped offers, orders, drivers, optional cash setting.
 
-### الأهداف
-- إدارة الطلبات (القائمة، التفاصيل، تحديث الحالة)
-- إدارة حالة السائق (الاتصال/غير المتصل، التوافر)
-- دمج الخرائط للتنقل
-- إعداد التحديثات في الوقت الحقيقي
+### Stage F — Customer Mobile MVP
+Single-business / single-branch cart & order (BR-ORDER-*). Electronic payment primary.
 
----
+### Stage G — Web Admin Operational MVP
+Platform owners only: approvals, catalog governance, subscriptions, finance, support, audit, flags (as needed).
 
-## 6. المرحلة 3: التسليم والأرباح
-
-> **الحالة:** غير مبدوءة  
-> **الإطار الزمني:** Q2 2027 (أبريل — يونيو 2027)
-
-### الأهداف
-- تنفيذ تدفق التسليم النشط (الاستلام، التنقل، التسليم)
-- إنشاء نظام أرباح شامل
-- تنفيذ نظام المدفوعات
-- إضافة تقييم التسليم والتعليقات
+### Stage H — Platform Expansion
+Wholesale depth, branch transfers, advanced observability, feature flags breadth, optional Monorepo revisit via new ADR.
 
 ---
 
-## 7. المرحلة 4: الملف الشخصي والإعدادات
+## 3. DI note
 
-> **الحالة:** غير مبدوءة  
-> **الإطار الزمني:** Q3 2027 (يوليو — سبتمبر 2027)
-
-### الأهداف
-- إدارة ملف المستخدم الشخصي
-- إعدادات التطبيق والتفضيلات
-- إدارة الإشعارات
-- إضافة مركز الدعم
+Official Driver DI: **AppServiceRegistry (ADR-010)**.
+`get_it` / `service_locator.dart`: Legacy — see `LEGACY_DI_MIGRATION_PLAN.md`.
 
 ---
 
-## 8. المرحلة 5: ميزات متقدمة
+## 4. Historical Phase 0–5 (Superseded for status)
 
-> **الحالة:** غير مبدوءة  
-> **الإطار الزمني:** Q4 2027+ (أكتوبر 2027 وما بعده)
-
-### الأهداف
-- دمج خدمات الذكاء الاصطناعي (تحسين التوجيه، التنبؤ بالطلبات، كشف الاحتيال)
-- تنفيذ تحليلات متقدمة
-- إضافة تكاملات حكومية
-- دعم لغات إضافية
-
-> التفاصيل الكاملة موجودة في [21_AI_ROADMAP.md](./21_AI_ROADMAP.md)
-
----
-
-## 9. الترابط مع باقي الوثائق
-
-| الموضوع | الوثيقة المرجعية |
-|---------|-------------------|
-| الذكاء الاصطناعي | [21_AI_ROADMAP.md](./21_AI_ROADMAP.md) |
-| النشر | [19_DEPLOYMENT_GUIDE.md](./19_DEPLOYMENT_GUIDE.md) |
-| الامتثال السعودي | [22_SAUDI_COMPLIANCE.md](./22_SAUDI_COMPLIANCE.md) |
-
----
-
-*هذه الوثيقة جزء من المرجع الرسمية لمشروع SAEQ. راجع [00_PROJECT_BIBLE.md](./00_PROJECT_BIBLE.md) للحصول على النظرة العامة الكاملة.*
+The previous Version 1.0.0 content describing “Phase 0 in progress”, “Auth not started”, and “get_it + injectable pending” is **Historical / Superseded**. Keep archive copies under `docs/archive/` if needed; do not use them to decide current work.

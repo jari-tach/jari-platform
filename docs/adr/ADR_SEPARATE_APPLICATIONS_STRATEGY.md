@@ -2,11 +2,11 @@
 
 > **ADR Number:** ADR-013
 > **Title:** Separate Applications Strategy (Driver / Customer / Merchant / Admin)
-> **Status:** ✅ Accepted
+> **Status:** ✅ Accepted (Merchant channel **amended** by [ADR-014](./ADR_014_PLATFORM_CHANNEL_AND_DOMAIN_ALIGNMENT.md))
 > **Date:** 2026-07-24
 > **Author:** Senior Flutter Software Engineer / Lead Software Architect
-> **Last Updated:** 2026-07-24
-> **Related:** [00_PROJECT_BIBLE.md](../00_PROJECT_BIBLE.md), [01_BUSINESS_VISION.md](../01_BUSINESS_VISION.md), [02_SYSTEM_ARCHITECTURE.md](../02_SYSTEM_ARCHITECTURE.md), [03_ENTERPRISE_ARCHITECTURE.md](../03_ENTERPRISE_ARCHITECTURE.md), [36_RELEASE_MANAGEMENT.md](../36_RELEASE_MANAGEMENT.md), [27_ARCHITECTURAL_DECISIONS.md](../27_ARCHITECTURAL_DECISIONS.md)
+> **Last Updated:** 2026-07-25
+> **Related:** [00_PROJECT_BIBLE.md](../00_PROJECT_BIBLE.md), [01_BUSINESS_VISION.md](../01_BUSINESS_VISION.md), [02_SYSTEM_ARCHITECTURE.md](../02_SYSTEM_ARCHITECTURE.md), [03_ENTERPRISE_ARCHITECTURE.md](../03_ENTERPRISE_ARCHITECTURE.md), [36_RELEASE_MANAGEMENT.md](../36_RELEASE_MANAGEMENT.md), [27_ARCHITECTURAL_DECISIONS.md](../27_ARCHITECTURAL_DECISIONS.md), [ADR-014](./ADR_014_PLATFORM_CHANNEL_AND_DOMAIN_ALIGNMENT.md)
 
 ---
 
@@ -39,8 +39,8 @@ The current repository (`saeq_driver`) is the **first application** built for th
 |---|---|---|---|---|
 | 1 | **SAEQ Driver** | فزعة (Fazaa Driver) | Delivery drivers | Independent Android/iOS app |
 | 2 | **SAEQ Customer** | جاري (Jari) | End consumers | Independent Android/iOS app |
-| 3 | **SAEQ Merchant** | منفعة (Manafa Merchant) | Restaurants/stores | Independent app (Web Admin-style dashboard acceptable first; mobile app optional later) |
-| 4 | **SAEQ Admin** | SAEQ Admin Dashboard | Platform operators | Independent application; **Web Admin preferred for phase 1** |
+| 3 | **SAEQ Merchant** | منفعة (Manafa Merchant) | Restaurants/stores | Independent **Merchant Mobile App** for daily operations ([ADR-014](./ADR_014_PLATFORM_CHANNEL_AND_DOMAIN_ALIGNMENT.md); prior “Web dashboard first” guidance is **Superseded**) |
+| 4 | **SAEQ Admin** | SAEQ Admin Dashboard (**Web Admin**) | SAEQ platform owners & authorized platform staff only | Independent **Web** application — **not** a merchant daily console; **not** Windows Desktop |
 
 ### Boundaries of each application
 

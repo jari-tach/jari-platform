@@ -1,10 +1,10 @@
 # SAEQ — Documentation Index
 
-> **Version:** 2.0.0  
-> **Status:** Approved  
-> **Last Updated:** 2026-07-24  
-> **Author:** Senior Flutter Software Engineer  
-> **Related:** [00_PROJECT_BIBLE.md](./00_PROJECT_BIBLE.md)  
+> **Version:** 2.0.0
+> **Status:** Approved
+> **Last Updated:** 2026-07-24
+> **Author:** Senior Flutter Software Engineer
+> **Related:** [00_PROJECT_BIBLE.md](./00_PROJECT_BIBLE.md)
 
 ---
 
@@ -80,18 +80,27 @@
 
 | رقم | الوثيقة | الوصف | الحالة |
 |-----|---------|-------|--------|
-| [25](./25_REQUIREMENTS_SPECIFICATION.md) | REQUIREMENTS_SPECIFICATION | متطلبات النظام الوظيفية والتجارية | ✅ مكتمل |
+| [25](./25_REQUIREMENTS_SPECIFICATION.md) | REQUIREMENTS_SPECIFICATION | متطلبات النظام الوظيفية والتجارية | ✅ (محدّث دفع 2026-07-25) |
 | [26](./26_NON_FUNCTIONAL_REQUIREMENTS.md) | NON_FUNCTIONAL_REQUIREMENTS | متطلبات الجودة (الأداء، الأمان، إلخ) | ✅ مكتمل |
-| [27](./27_ARCHITECTURAL_DECISIONS.md) | ARCHITECTURAL_DECISIONS | سجل القرارات المعمارية (ADR) | ✅ مكتمل |
+| [27](./27_ARCHITECTURAL_DECISIONS.md) | ARCHITECTURAL_DECISIONS | سجل القرارات المعمارية (ADR) | ✅ Active (+ ADR-014) |
 | [28](./28_SEQUENCE_DIAGRAMS.md) | SEQUENCE_DIAGRAMS | مخططات تسلسل UML | ✅ مكتمل |
-| [29](./29_DATA_DICTIONARY.md) | DATA_DICTIONARY | قاموس البيانات الكامل | ✅ مكتمل |
+| [29](./29_DATA_DICTIONARY.md) | DATA_DICTIONARY | قاموس البيانات (+ معرفات Multi-Tenant مستقبلية) | ✅ Draft محدّث |
+
+### 2.8b محاذاة المنصة (2026-07-25)
+
+| وثيقة | الوصف | الحالة |
+|-------|--------|--------|
+| [41_OFFICIAL_BUSINESS_RULES.md](./41_OFFICIAL_BUSINESS_RULES.md) | قواعد الأعمال برموز ثابتة | ✅ Active |
+| [42_PLATFORM_DOMAIN_ARCHITECTURE.md](./42_PLATFORM_DOMAIN_ARCHITECTURE.md) | Multi-Tenant، Catalog/Offer، Inventory، SM، Backend | ✅ Active |
+| [LEGACY_DI_MIGRATION_PLAN.md](./LEGACY_DI_MIGRATION_PLAN.md) | خطة إزالة get_it / service_locator | ✅ Active (plan) |
+| [ADR-014](./adr/ADR_014_PLATFORM_CHANNEL_AND_DOMAIN_ALIGNMENT.md) | قنوات Merchant Mobile + Web Admin | ✅ Accepted |
 
 ### 2.9 العمارة المتقدمة
 
 | رقم | الوثيقة | الوصف | الحالة |
 |-----|---------|-------|--------|
 | [30](./30_EVENT_DRIVEN_ARCHITECTURE.md) | EVENT_DRIVEN_ARCHITECTURE | العمارة المبنية على الأحداث | ✅ مكتمل |
-| [31](./31_TRACEABILITY_MATRIX.md) | TRACEABILITY_MATRIX | مصفوفة التتبع (BR → FR → API → DB → UI → Test) | ✅ مكتمل |
+| [31](./31_TRACEABILITY_MATRIX.md) | TRACEABILITY_MATRIX | تتبع BR الرسمية (`BR-ORDER-*` …) + فهرس FR/TC التاريخي | ✅ Active v2 (2026-07-25) |
 
 ### 2.10 إدارة المخاطر والتشغيل
 

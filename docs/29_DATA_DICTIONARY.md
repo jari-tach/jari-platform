@@ -1,10 +1,28 @@
 # SAEQ — Data Dictionary
 
-> **Version:** 1.0.0  
-> **Status:** Draft  
-> **Last Updated:** 2026-07-24  
-> **Author:** Senior Flutter Software Engineer  
-> **Related:** [09_DATABASE_ARCHITECTURE.md](./09_DATABASE_ARCHITECTURE.md)
+> **Version:** 1.1.0
+> **Status:** Draft (multi-tenant & offer fields added as **future model** — not implemented in Driver Drift)
+> **Last Updated:** 2026-07-25
+> **Author:** Senior Flutter Software Engineer
+> **Related:** [09_DATABASE_ARCHITECTURE.md](./09_DATABASE_ARCHITECTURE.md), [42_PLATFORM_DOMAIN_ARCHITECTURE.md](./42_PLATFORM_DOMAIN_ARCHITECTURE.md), [41_OFFICIAL_BUSINESS_RULES.md](./41_OFFICIAL_BUSINESS_RULES.md)
+
+---
+
+## 0. Future multi-tenant identifiers (documentation only)
+
+| Field | Type | Description | Rules |
+|-------|------|-------------|-------|
+| business_id | UUID | Tenant business | Required on branch-scoped commerce records; never trusted from client without authz |
+| branch_id | UUID | Branch under business | Required for inventory, offers, retail orders, drivers |
+| warehouse_id | UUID | Warehouse under branch | Required on stock balances/movements |
+| supplier_id | UUID | Wholesale supplier | Required on wholesale orders (single supplier per order) |
+| driver_id | UUID | Driver principal | Bound to business_id + branch_id (BR-DRIVER-001) |
+| customer_id | UUID | Customer principal | Retail orders |
+| order_id | UUID | Retail or wholesale order | Lifecycle + payments + delivery |
+| catalog_product_id | UUID | Central catalog product | No branch price/stock on this entity |
+| branch_product_offer_id | UUID | Offer at a branch | Holds price, availability, publish flags |
+
+See `42_PLATFORM_DOMAIN_ARCHITECTURE.md` for hierarchy and isolation. **Do not add these columns to Drift in Stage A.**
 
 ---
 

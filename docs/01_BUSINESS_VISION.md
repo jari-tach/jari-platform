@@ -1,10 +1,10 @@
 # SAEQ — Business Vision
 
-> **Version:** 1.0.0  
-> **Status:** Approved  
-> **Last Updated:** 2026-07-23  
-> **Author:** Senior Flutter Software Engineer  
-> **Related:** [00_PROJECT_BIBLE.md](./00_PROJECT_BIBLE.md)  
+> **Version:** 1.1.0
+> **Status:** Approved
+> **Last Updated:** 2026-07-25
+> **Author:** Senior Flutter Software Engineer
+> **Related:** [00_PROJECT_BIBLE.md](./00_PROJECT_BIBLE.md), [41_OFFICIAL_BUSINESS_RULES.md](./41_OFFICIAL_BUSINESS_RULES.md), [ADR-014](./adr/ADR_014_PLATFORM_CHANNEL_AND_DOMAIN_ALIGNMENT.md)
 
 ---
 
@@ -12,18 +12,26 @@
 
 ### 1.1 نظرة عامة
 
-مشروع **SAEQ** هو منصة تقنية متكاملة (Enterprise Platform) تقدم خدمات توصيل شاملة تخدم المملكة العربية السعودية، وتدعم التوسع الإقليمي المستقبلي.
+مشروع **SAEQ** هو منصة SaaS سعودية لإدارة التجارة المحلية (متاجر، فروع، مخزون، طلبات، توصيل، سوق جملة، فهرس منتجات موحّد) — وليست مجرد منصة توصيل.
 
-المنصة تتكوّن من أربع تطبيقات رئيسية:
+المنصة تتكوّن من:
+
+```text
+Customer Mobile App
+Merchant Mobile App
+Driver Mobile App
+Web Admin for SAEQ Platform Owners
+Backend Platform
+```
 
 | # | التطبيق | الاسم الإنجليزي | المستخدمون | المجال الأساسي |
 |---|---------|-----------------|------------|----------------|
-| 1 | جاري | **Jari** | المستهلكون | طلبات الطعام، التتبع، المدفوعات |
-| 2 | فزعة | **Fazaa Driver** | السائقون | توصيل الطلبات، التنقل، الأرباح |
-| 3 | منفعة | **Manafa Merchant** | المطاعم/المتاجر | إدارة القوائم، معالجة الطلبات |
-| 4 | لوحة التحكم | **SAEQ Admin Dashboard** | مشغلي المنصة | الإدارة العامة، الإعدادات، التحليلات |
+| 1 | جاري | **Jari** (Customer Mobile) | المستهلكون | تصفح، طلب، دفع، تتبع |
+| 2 | فزعة | **Fazaa Driver** (Driver Mobile) | سائقو الفروع | توصيل، offline، إثبات تسليم |
+| 3 | منفعة | **Manafa Merchant** (Merchant Mobile) | التجار وموظفو الفروع | إدارة يومية للفروع/المخزون/الطلبات/السائقين |
+| 4 | لوحة التحكم | **SAEQ Web Admin** | ملاك المنصة والإدارة المركزية فقط | حوكمة المنصة — **ليست** لوحة تاجر |
 
-> ⚠️ **قرار معماري ملزم (ADR-013):** كل تطبيق من الأربعة أعلاه مستقل تمامًا — مشروع مستقل، Package Name/Bundle ID مستقل، هوية بصرية مستقلة، ودورة Build/Test/Release مستقلة، ويُنشر في صفحة متجر مستقلة (لوحة التحكم Admin يفضّل أن تكون Web Admin في المرحلة الأولى). **يُمنع** دمج أكثر من دور داخل تطبيق واحد يعتمد على اختيار نوع المستخدم بعد تسجيل الدخول. التطبيقات الأربعة تتشارك فقط بنية خلفية مشتركة (Backend، API Gateway، المصادقة، قاعدة البيانات المركزية، الإشعارات، الخرائط والتتبع، المدفوعات، المراقبة). التفاصيل الكاملة في [ADR_SEPARATE_APPLICATIONS_STRATEGY.md](./adr/ADR_SEPARATE_APPLICATIONS_STRATEGY.md). المشروع الحالي (`saeq_driver`) يمثل تطبيق **SAEQ Driver (فزعة)** فقط.
+> ⚠️ **ADR-013 + ADR-014:** تطبيقات مستقلة؛ Web Admin للمنصة فقط؛ Merchant Mobile للإدارة اليومية؛ يُمنع دمج الأدوار. التفاصيل: [ADR-013](./adr/ADR_SEPARATE_APPLICATIONS_STRATEGY.md)، [ADR-014](./adr/ADR_014_PLATFORM_CHANNEL_AND_DOMAIN_ALIGNMENT.md). المشروع الحالي = Driver فقط. قواعد الأعمال: [41_OFFICIAL_BUSINESS_RULES.md](./41_OFFICIAL_BUSINESS_RULES.md).
 
 بالإضافة إلى التطبيقات الأربعة، تشمل المنصة:
 

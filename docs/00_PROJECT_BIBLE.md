@@ -1,24 +1,26 @@
 # SAEQ — Project Bible
 
-> **Version:** 1.0.0  
-> **Status:** Approved  
-> **Last Updated:** 2026-07-23  
-> **Author:** Senior Flutter Software Engineer  
-> **Review Date:** 2026-07-23  
-> **Next Review:** 2027-01-23  
+> **Version:** 1.1.0
+> **Status:** Approved (channel & DI clauses updated 2026-07-25)
+> **Last Updated:** 2026-07-25
+> **Author:** Senior Flutter Software Engineer
+> **Review Date:** 2026-07-25
+> **Next Review:** 2027-01-23
+> **Also read:** [41_OFFICIAL_BUSINESS_RULES.md](./41_OFFICIAL_BUSINESS_RULES.md), [ADR-014](./adr/ADR_014_PLATFORM_CHANNEL_AND_DOMAIN_ALIGNMENT.md)
 
 ---
 
 ## ⚠️ التعليمة الأولى للمطورين ونماذج الذكاء الاصطناعي
 
-**هذا الملف هو المرجع الرسمي الوحيد لمشروع SAEQ.**  
-يجب على أي مطور أو نموذج ذكاء اصطناعي يعمل على المشروع قراءة هذا الملف أولًا قبل تنفيذ أي مهمة.
+**هذا الملف مرجع أساسي لمشروع SAEQ.**
+عند التعارض مع ADR مقبول أحدث، أو مع `41_OFFICIAL_BUSINESS_RULES.md`، أو مع `DEVELOPMENT_GOVERNANCE_POLICY.md` §14 Decision Hierarchy: **القرار الأعلى في الهرمية يفوز** (ADR → هذا الملف → …).
+يجب قراءة هذا الملف و`41_OFFICIAL_BUSINESS_RULES.md` وADR-013/014 قبل تنفيذ أي مهمة منصة.
 
 ---
 
 ## 1. رؤية المشروع
 
-مشروع **SAEQ** ليس مجرد تطبيق Flutter واحد.  
+مشروع **SAEQ** ليس مجرد تطبيق Flutter واحد.
 بل هو منصة تقنية متكاملة (Enterprise Platform) تخدم المملكة العربية السعودية وتدعم التوسع الإقليمي المستقبلي.
 
 ### 1.1 التطبيقات الأربعة
@@ -27,12 +29,20 @@
 
 | # | اسم التطبيق | الاسم الإنجليزي | المسؤولية |
 |---|-------------|-----------------|-----------|
-| 1 | جاري | **Jari** (Customer Application) | طلبات العملاء، التتبع، المدفوعات |
-| 2 | فزعة | **Fazaa Driver** (Driver Application) | توصيل الطلبات، التنقل، الأرباح |
-| 3 | منفعة | **Manafa Merchant** (Merchant Application) | إدارة القوائم، معالجة الطلبات |
-| 4 | لوحة التحكم | **SAEQ Admin Dashboard** | إدارة النظام بالكامل |
+| 1 | جاري | **Jari** (Customer Mobile App) | طلبات العملاء، التتبع، المدفوعات |
+| 2 | فزعة | **Fazaa Driver** (Driver Mobile App) | توصيل الطلبات، التنقل، الأرباح |
+| 3 | منفعة | **Manafa Merchant** (Merchant Mobile App) | إدارة النشاط اليومية: فروع، مخزون، طلبات، سائقين |
+| 4 | لوحة التحكم | **SAEQ Web Admin** | إدارة المنصة لملاك SAEQ فقط — ليست لوحة تاجر |
 
-> ⚠️ **قرار معماري ملزم:** كل تطبيق من الأربعة أعلاه هو **تطبيق مستقل بالكامل** (مشروع مستقل، Package Name/Bundle ID مستقل، هوية بصرية مستقلة، دورة Build/Test/Release مستقلة، صفحة متجر مستقلة). **يُمنع** دمج أكثر من دور (سائق/عميل/تاجر/إدارة) داخل تطبيق Flutter واحد يعتمد على اختيار نوع المستخدم بعد تسجيل الدخول. التطبيقات الأربعة تتصل ببنية خلفية مشتركة فقط (Backend، API Gateway، المصادقة، قاعدة البيانات المركزية). راجع القرار الكامل في [ADR-013: Separate Applications Strategy](./adr/ADR_SEPARATE_APPLICATIONS_STRATEGY.md). المشروع الحالي `saeq_driver` يمثل تطبيق **SAEQ Driver (فزعة)** فقط، ولا يحتوي على أي شاشات أو منطق خاص بالأدوار الأخرى.
+```text
+Customer Mobile App
+Merchant Mobile App
+Driver Mobile App
+Web Admin for SAEQ Platform Owners
+Backend Platform
+```
+
+> ⚠️ **قرار معماري ملزم:** كل عميل من الأربعة مستقل بالكامل (ADR-013). **Web Admin** لملاك المنصة فقط؛ **Merchant Mobile** للإدارة اليومية (ADR-014). يُمنع دمج الأدوار في تطبيق واحد. المشروع الحالي `saeq_driver` = Driver فقط. قواعد الأعمال: [41_OFFICIAL_BUSINESS_RULES.md](./41_OFFICIAL_BUSINESS_RULES.md).
 
 ### 1.2 مكوّنات المنصة الكاملة
 
@@ -242,32 +252,30 @@
 
 ## 5. مراحل التنفيذ
 
-| المرحلة | التركيز | الإطار الزمني | الحالة |
-|---------|---------|---------------|--------|
-| **المرحلة 0** | الأساسيات والعمارة (الحالية) | Q3 2026 | قيد التنفيذ |
-| **المرحلة 1** | المصادقة والتسجيل | Q4 2026 | غير مبدوءة |
-| **المرحلة 2** | ميزات السائق الأساسية (الطلبات، التنقل) | Q1 2027 | غير مبدوءة |
-| **المرحلة 3** | التسليم والأرباح | Q2 2027 | غير مبدوءة |
-| **المرحلة 4** | الملف الشخصي والإعدادات | Q3 2027 | غير مبدوءة |
-| **المرحلة 5** | ميزات متقدمة (ذكاء اصطناعي، تحليلات) | Q4 2027+ | غير مبدوءة |
+| المرحلة / Stage | الاسم | ملاحظة الحالة (2026-07-25) |
+|-----------------|------|------------------------------|
+| **Stage A** | Documentation and Architecture Alignment | **Active (this phase)** |
+| **Stabilization** | إغلاق استقرار Driver | **Closed WITH CONDITIONS** (انظر تقارير STABILIZATION) |
+| **PHASE 2.1** | App Bootstrap Service Activation | **Done** (تقرير PHASE_2_1) |
+| **PHASE 2.2** | Authentication Foundation | **Done** (تقرير PHASE_2_2) |
+| **PHASE 2.3** | Driver Identity and Profile | **Not started** — يتطلب أمر تنفيذ صريح |
+| **Stages C–H** | Driver MVP → Backend → Merchant → Customer → Web Admin → Expansion | مرجع ترتيب فقط؛ كل مرحلة بموافقة صريحة |
 
-> التفاصيل الكاملة للمراحل موجودة في [20_DEVELOPMENT_ROADMAP.md](./20_DEVELOPMENT_ROADMAP.md)
+> المرجع التشغيلي التفصيلي لسائق: [PHASE_2_FEATURE_DEVELOPMENT_ROADMAP.md](./PHASE_2_FEATURE_DEVELOPMENT_ROADMAP.md).
+> الترتيب المنصّي المرجعي: [20_DEVELOPMENT_ROADMAP.md](./20_DEVELOPMENT_ROADMAP.md) (مُحدَّث).
+> خارطة «المرحلة 0–5» القديمة في ملفات أخرى: **Historical / Superseded** للحالة الزمنية — لا تستخدمها لتحديد «ما العمل الآن».
 
-### 5.1 مرحلة التنفيذ الحالية (المرحلة 0)
+### 5.1 مرحلة التنفيذ الحالية (Stage A + ما بعد 2.2)
 
-في المرحلة الحالية:
-- ❌ لا تبدأ بإضافة أي منطق أعمال (Business Logic).
-- ❌ لا تقم ببناء الميزات التشغيلية بعد.
-- ✅ التركيز الحالي فقط على:
-  - تنظيم الوثائق.
-  - استكمال جميع الوثائق.
-  - إنشاء PROJECT_BIBLE.md.
-  - إزالة التكرار بين الوثائق.
-  - بناء مرجع هندسي احترافي للمشروع.
-  - تجهيز الأساس المعماري الذي سيُبنى عليه النظام بالكامل.
+في مرحلة مواءمة الوثائق (Stage A):
+- ✅ تحديث الوثائق وADRs وقواعد الأعمال.
+- ❌ لا تبدأ PHASE 2.3 دون أمر صريح.
+- ❌ لا تُنشأ تطبيقات Customer/Merchant/Web Admin داخل هذا المستودع.
+- ❌ لا Monorepo / لا Microservices لمجرّد التوصية.
+
+بعد اعتماد Stage A، الخطوة التالية المرشحة (بموافقة منفصلة): **PHASE 2.3 Driver Identity and Profile**.
 
 ---
-
 ## 6. القرارات المعمارية الرسمية
 
 | رقم القرار | العنوان | الوثيقة المرجعية | الحالة |
@@ -279,7 +287,7 @@
 | ARCH-005 | اعتماد Dio كعميل HTTP | [13_API_ARCHITECTURE.md](./13_API_ARCHITECTURE.md) | معتمد |
 | ARCH-006 | اعتماد Drift (SQLite) لقاعدة البيانات المحلية | [09_DATABASE_ARCHITECTURE.md](./09_DATABASE_ARCHITECTURE.md) | معتمد |
 | ARCH-007 | اعتماد flutter_secure_storage للبيانات الحساسة | [14_SECURITY_GUIDE.md](./14_SECURITY_GUIDE.md) | معتمد |
-| ARCH-008 | اعتماد get_it + injectable لحقن الاعتماديات | [17_ERROR_HANDLING.md](./17_ERROR_HANDLING.md) | معتمد |
+| ARCH-008 | ~~اعتماد get_it + injectable~~ → **Superseded:** استخدام `AppServiceRegistry` (ADR-010). ملف `lib/core/di/service_locator.dart` Legacy/Unused — راجع [LEGACY_DI_MIGRATION_PLAN.md](./LEGACY_DI_MIGRATION_PLAN.md) | [27_ARCHITECTURAL_DECISIONS.md](./27_ARCHITECTURAL_DECISIONS.md) | **Deprecated / Superseded by ADR-010** |
 | ARCH-009 | اعتماد Material 3 مع دعم RTL كامل | [08_UI_DESIGN_SYSTEM.md](./08_UI_DESIGN_SYSTEM.md) | معتمد |
 | ARCH-010 | اعتماد GoogleFonts Tajawal للخطوط | [08_UI_DESIGN_SYSTEM.md](./08_UI_DESIGN_SYSTEM.md) | معتمد |
 | ARCH-011 | اعتماد flutter_screenutil للتصميم المتجاوب | [08_UI_DESIGN_SYSTEM.md](./08_UI_DESIGN_SYSTEM.md) | معتمد |

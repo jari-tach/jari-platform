@@ -1,10 +1,10 @@
 # SAEQ — Enterprise Architecture
 
-> **Version:** 1.0.0  
-> **Status:** Approved  
-> **Last Updated:** 2026-07-23  
-> **Author:** Senior Flutter Software Engineer  
-> **Related:** [00_PROJECT_BIBLE.md](./00_PROJECT_BIBLE.md)  
+> **Version:** 1.0.0
+> **Status:** Approved
+> **Last Updated:** 2026-07-23
+> **Author:** Senior Flutter Software Engineer
+> **Related:** [00_PROJECT_BIBLE.md](./00_PROJECT_BIBLE.md)
 
 ---
 
@@ -13,7 +13,7 @@
 1. [Multi Vendor Architecture](#1-multi-vendor-architecture)
 2. [Driver App Architecture](#2-driver-app-architecture)
 3. [Customer App Architecture](#3-customer-app-architecture)
-4. [Merchant Dashboard](#4-merchant-dashboard)
+4. [Merchant Mobile Application](#4-merchant-mobile-application-منفعة)
 5. [Admin Dashboard](#5-admin-dashboard)
 6. [Delivery Pricing Engine](#6-delivery-pricing-engine)
 7. [Smart Order Assignment Engine](#7-smart-order-assignment-engine)
@@ -51,10 +51,10 @@ The Saeq ecosystem is a **multi-vendor delivery platform** serving four stakehol
 
 | Vendor Type | Application | Primary Users | Core Domain |
 |-------------|-------------|---------------|-------------|
-| **Driver** | فزعة (Fazaa Driver) | Delivery drivers | Order fulfillment, navigation, earnings |
-| **Customer** | جاري (Jari) | End consumers | Ordering, tracking, payments |
-| **Merchant** | منفعة (Manafa Merchant) | Restaurants/stores | Menu management, order processing |
-| **Admin** | SAEQ Admin Dashboard | Platform operators | Oversight, configuration, analytics |
+| **Driver** | فزعة (Fazaa Driver) — Mobile | Delivery drivers | Order fulfillment, navigation, earnings |
+| **Customer** | جاري (Jari) — Mobile | End consumers | Ordering, tracking, payments |
+| **Merchant** | منفعة (Manafa Merchant) — **Mobile** (daily ops) | Restaurants/stores | Branches, offers, inventory, orders, drivers |
+| **Admin** | SAEQ **Web Admin** | Platform owners & authorized platform staff only | Platform governance (not merchant daily ops) |
 
 ### 1.2 Shared Infrastructure
 
@@ -65,7 +65,11 @@ The Saeq ecosystem is a **multi-vendor delivery platform** serving four stakehol
                           │
                           ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                    MICROSERVICES LAYER                          │
+│                    BACKEND LAYER (MVP: Modular Monolith)        │
+│  Modules: Orders │ Drivers │ Payments │ Catalog │ Inventory …   │
+│  (Microservices diagram below is Historical aspiration only;    │
+│   MVP deployable unit is one Modular Monolith — ADR-014 /       │
+│   docs/42_PLATFORM_DOMAIN_ARCHITECTURE.md)                        │
 │  Order Service │ Driver Service │ Payment Service │ AI Service  │
 │  Catalog Service │ Notification Service │ Tracking Service     │
 └─────────────────────────────────────────────────────────────────┘
@@ -183,41 +187,50 @@ The Customer App (جاري) is the Flutter mobile application for end consumers.
 
 ---
 
-## 4. Merchant Dashboard
+## 4. Merchant Mobile Application (منفعة)
+
+> **Status note (2026-07-25):** Prior title “Merchant Dashboard” and React.js web stack below are **Superseded** for **daily merchant operations**. Binding decision: [ADR-014](./adr/ADR_014_PLATFORM_CHANNEL_AND_DOMAIN_ALIGNMENT.md). Merchants manage day-to-day ops in **Merchant Mobile App**. **Web Admin is not the merchant daily console.**
 
 ### 4.1 Overview
 
-The Merchant Dashboard (منفعة) is a web-based application for restaurants and stores.
+The Merchant product (منفعة) is an **independent mobile application** for restaurants and stores to run daily operations: branches, staff, catalog offers/pricing, inventory, orders, drivers, delivery assignment, hours, zones/fees, optional cash payment settings, reports, and wholesale purchasing.
 
 ### 4.2 Feature Modules
 
 | Feature | Description | Phase |
 |---------|-------------|-------|
-| **Auth** | Login, RBAC, password reset | Phase 1 |
-| **Dashboard** | Overview metrics, pending orders | Phase 1 |
-| **Menu Management** | Product catalog, categories, pricing | Phase 1 |
-| **Order Management** | View, accept/reject, status updates | Phase 1 |
-| **Inventory** | Stock management, alerts | Phase 2 |
-| **Analytics** | Sales reports, popular items | Phase 2 |
-| **Settings** | Business hours, delivery zones | Phase 2 |
+| **Auth** | Login, business/branch-scoped RBAC | Phase 1 |
+| **Business & Branches** | Business profile, branch independence (BR-BRANCH-*) | Phase 1 |
+| **Staff & Permissions** | Users with Business Scope + Branch Scope | Phase 1 |
+| **Branch Product Offers** | Link Catalog Product; set price/availability (not central catalog price) | Phase 1 |
+| **Order Management** | View, accept/reject, prepare, ready | Phase 1 |
+| **Drivers & Assignment** | Branch-scoped drivers (BR-DRIVER-*) | Phase 1 |
+| **Inventory** | Movement-based stock (see Domain Architecture) | Phase 2 |
+| **Analytics** | Branch/business reports | Phase 2 |
+| **Settings** | Hours, delivery zones, fees, cash toggle (BR-PAY-*) | Phase 2 |
+| **Wholesale** | Single-supplier orders (BR-WHOLESALE-*) | Phase 2+ |
 
-### 4.3 Technical Stack
+### 4.3 Technical Stack (target)
 
 | Layer | Technology |
 |-------|-----------|
-| **Frontend** | React.js + TypeScript + Material-UI |
-| **State Management** | Redux Toolkit |
-| **Routing** | React Router v6 |
-| **HTTP Client** | Axios |
-| **Deployment** | Docker + Kubernetes |
+| **Client** | Flutter (Merchant Mobile) — separate app/repo per ADR-013/014 |
+| **State Management** | Riverpod (platform standard for Flutter apps) |
+| **Routing** | GoRouter |
+| **HTTP Client** | Dio |
+| **Backend** | Shared Modular Monolith (see `42_PLATFORM_DOMAIN_ARCHITECTURE.md`) |
+
+> Historical React.js + Redux Merchant Dashboard stack text is **Deprecated** as the primary merchant channel. Do not implement a merchant-facing React dashboard as the daily ops product unless a future ADR explicitly reintroduces it as an *additional* channel.
 
 ---
 
-## 5. Admin Dashboard
+## 5. Admin Dashboard (Web Admin)
 
 ### 5.1 Overview
 
-The Admin Dashboard is a web-based application for platform operators.
+The Admin Dashboard is a **Web Admin** application for **SAEQ platform owners** and authorized platform staff only. It governs the platform (merchants, catalog approval, subscriptions, finance, support, feature flags, audit). It is **not** used by merchants for daily store management ([ADR-014](./adr/ADR_014_PLATFORM_CHANNEL_AND_DOMAIN_ALIGNMENT.md), BR-ADMIN-001…003).
+
+**Not in scope for Admin strategy:** Windows Desktop Admin, Flutter Windows Admin, MSIX packaging as the admin product.
 
 ### 5.2 Feature Modules
 
