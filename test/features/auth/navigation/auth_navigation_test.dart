@@ -61,6 +61,7 @@ Future<GoRouter> _pumpRouterApp(
     UncontrolledProviderScope(
       container: container,
       child: MaterialApp.router(
+        locale: const Locale('en', 'US'),
         localizationsDelegates: const [
           AppLocalizations.delegate,
           GlobalMaterialLocalizations.delegate,

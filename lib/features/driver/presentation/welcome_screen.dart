@@ -106,9 +106,7 @@ class WelcomeScreen extends ConsumerWidget {
               SaeqSectionCard(
                 title: localizations.nextStepsTitle,
                 subtitle: localizations.nextStepsSubtitle,
-                child: const Text(
-                  'التركيز الآن على الأساسيات والهيكلية قبل إضافة الميزات التجارية.',
-                ),
+                child: Text(localizations.nextStepsFocusMessage),
               ),
             ],
           ),

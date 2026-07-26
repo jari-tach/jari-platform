@@ -20,11 +20,13 @@ Future<void> _pump(
   WidgetTester tester,
   Widget child, {
   required List<Override> overrides,
+  Locale locale = const Locale('en', 'US'),
 }) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: overrides,
       child: MaterialApp(
+        locale: locale,
         localizationsDelegates: const [
           AppLocalizations.delegate,
           GlobalMaterialLocalizations.delegate,
@@ -169,6 +171,7 @@ void main() {
         UncontrolledProviderScope(
           container: container,
           child: MaterialApp(
+            locale: const Locale('en', 'US'),
             localizationsDelegates: const [
               AppLocalizations.delegate,
               GlobalMaterialLocalizations.delegate,

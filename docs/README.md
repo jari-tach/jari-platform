@@ -75,6 +75,7 @@ NN_DOCUMENT_NAME.md
 | 17 | [16_LOGGING_GUIDE.md](./16_LOGGING_GUIDE.md) | سياسات التسجيل |
 | 18 | [17_ERROR_HANDLING.md](./17_ERROR_HANDLING.md) | إدارة الأخطاء |
 | 19 | [18_TESTING_GUIDE.md](./18_TESTING_GUIDE.md) | الاختبارات |
+| — | [localization/localization-guidelines.md](./localization/localization-guidelines.md) | إرشادات التعريب (PHASE 2.4.1) |
 | 20 | [19_DEPLOYMENT_GUIDE.md](./19_DEPLOYMENT_GUIDE.md) | النشر والـ CI/CD |
 | 21 | [20_DEVELOPMENT_ROADMAP.md](./20_DEVELOPMENT_ROADMAP.md) | خريطة طريق التطوير |
 | 22 | [21_AI_ROADMAP.md](./21_AI_ROADMAP.md) | خطة دمج الذكاء الاصطناعي |
