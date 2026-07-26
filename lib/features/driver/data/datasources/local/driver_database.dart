@@ -2,20 +2,32 @@ import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 part 'driver_database.g.dart';
 
-/// Driver database for offline-first data persistence
+/// Driver database for offline-first data persistence.
 ///
-/// This database stores:
+/// Stores:
 /// - Driver profile
-/// - Delivery orders (cached)
+/// - Delivery orders scaffold (legacy; not PHASE 2.5 domain)
+/// - Accepted delivery assignments (ADR-028 / schema v2)
 /// - Offline queue
 /// - Sync metadata
+///
+/// Schema versions:
+/// - 1: initial tables (profiles, orders scaffold, offline queue, sync)
+/// - 2: adds [DeliveryAssignments] for restart-safe accepted work (ADR-028)
 @DriftDatabase(
-  tables: [DriverProfiles, DeliveryOrders, OfflineQueue, SyncMetadata],
+  tables: [
+    DriverProfiles,
+    DeliveryOrders,
+    DeliveryAssignments,
+    OfflineQueue,
+    SyncMetadata,
+  ],
 )
 class DriverDatabase extends _$DriverDatabase {
   static final DriverDatabase _instance = DriverDatabase._internal();
@@ -24,8 +36,14 @@ class DriverDatabase extends _$DriverDatabase {
 
   DriverDatabase._internal() : super(_openConnection());
 
+  /// Creates a database bound to [executor] (tests / alternate open paths).
+  ///
+  /// Does **not** replace the production [DriverDatabase] singleton.
+  @visibleForTesting
+  DriverDatabase.forExecutor(super.executor);
+
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -33,8 +51,11 @@ class DriverDatabase extends _$DriverDatabase {
       await m.createAll();
     },
     onUpgrade: (Migrator m, int from, int to) async {
-      // Handle migrations here
-      // Example: if (from < 2) { await m.addColumn(todos, todos.status); }
+      // v1 → v2: add DeliveryAssignments only. Do not drop or rewrite
+      // existing tables (profiles / scaffold orders / queue / sync).
+      if (from < 2) {
+        await m.createTable(deliveryAssignments);
+      }
     },
   );
 
@@ -43,6 +64,9 @@ class DriverDatabase extends _$DriverDatabase {
 
   Future<List<DeliveryOrder>> get allDeliveryOrders =>
       select(deliveryOrders).get();
+
+  Future<List<DeliveryAssignment>> get allDeliveryAssignments =>
+      select(deliveryAssignments).get();
 
   Future<List<OfflineQueueData>> get allOfflineQueueItems =>
       select(offlineQueue).get();
@@ -95,6 +119,34 @@ class DriverDatabase extends _$DriverDatabase {
 
   Future<int> deleteDeliveryOrder(int id) {
     return (delete(deliveryOrders)..where((t) => t.id.equals(id))).go();
+  }
+
+  // Delivery Assignment operations (ADR-028)
+  Future<DeliveryAssignment?> getActiveDeliveryAssignment(
+    String driverId,
+  ) async {
+    final query = select(deliveryAssignments)
+      ..where((t) => t.driverId.equals(driverId));
+    return query.getSingleOrNull();
+  }
+
+  /// Atomically replaces any existing row for [insert.driverId].
+  Future<void> upsertDeliveryAssignment(
+    DeliveryAssignmentsCompanion insert,
+  ) async {
+    await transaction(() async {
+      final driverId = insert.driverId.value;
+      await (delete(
+        deliveryAssignments,
+      )..where((t) => t.driverId.equals(driverId))).go();
+      await into(deliveryAssignments).insert(insert);
+    });
+  }
+
+  Future<int> clearDeliveryAssignment(String driverId) {
+    return (delete(
+      deliveryAssignments,
+    )..where((t) => t.driverId.equals(driverId))).go();
   }
 
   // Offline Queue operations
@@ -160,6 +212,26 @@ class DeliveryOrders extends Table {
   DateTimeColumn get scheduledAt => dateTime()();
   DateTimeColumn get completedAt => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+/// Accepted [DeliveryAssignment] snapshots (PHASE 2.5 / ADR-028).
+///
+/// One row per [driverId] (unique). Payload is the full model JSON so nested
+/// [DeliveryOrder] fields round-trip without inventing a second schema.
+/// Distinct from the scaffold [DeliveryOrders] table.
+class DeliveryAssignments extends Table {
+  IntColumn get id => integer().autoIncrement()();
+
+  /// Authenticated driver — at most one active assignment row.
+  TextColumn get driverId => text().unique()();
+
+  /// Authoritative assignment id (also availability `activeAssignmentId`).
+  TextColumn get assignmentId => text()();
+
+  /// Full [DeliveryAssignmentModel.toJson] document (no tokens/secrets).
+  TextColumn get payloadJson => text()();
+
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
 

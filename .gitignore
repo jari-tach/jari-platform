@@ -135,3 +135,8 @@ test_coverage/
 **/linux/flutter/generated_plugin_registrant.h
 **/web/flutter_bootstrap.js
 **/web/index.html
+# Local device Alpha test artifacts
+/device_test_artifacts/
+device_alpha_run*.log
+flutter_analyze_report.txt
+

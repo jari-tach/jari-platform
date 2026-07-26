@@ -4,6 +4,10 @@ import 'package:connectivity_plus_platform_interface/connectivity_plus_platform_
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 
+import 'package:saeq_driver/features/delivery/data/datasources/drift_delivery_local_data_source.dart';
+import 'package:saeq_driver/features/delivery/data/fake/fake_delivery_remote_data_source.dart';
+import 'package:saeq_driver/features/delivery/data/repositories/local_delivery_assignment_repository.dart';
+import 'package:saeq_driver/features/delivery/data/repositories/remote_delivery_offer_repository.dart';
 import 'package:saeq_driver/shared/services/app_service_registry.dart';
 
 /// Returns a valid documents path, letting DriverDatabase's real
@@ -57,5 +61,27 @@ void main() {
     expect(AppServiceRegistry.database, isNotNull);
     expect(AppServiceRegistry.networkMonitor, isNotNull);
     expect(AppServiceRegistry.networkMonitor!.isOnline, isTrue);
+
+    // PHASE 2.6 Delivery DI — full stack when DB opens (non-production Fake).
+    expect(
+      AppServiceRegistry.deliveryRemoteDataSource,
+      isA<FakeDeliveryRemoteDataSource>(),
+    );
+    expect(
+      AppServiceRegistry.deliveryLocalDataSource,
+      isA<DriftDeliveryLocalDataSource>(),
+    );
+    expect(
+      AppServiceRegistry.deliveryOfferRepository,
+      isA<RemoteDeliveryOfferRepository>(),
+    );
+    expect(
+      AppServiceRegistry.deliveryAssignmentRepository,
+      isA<LocalDeliveryAssignmentRepository>(),
+    );
+    expect(AppServiceRegistry.getDeliveryOffers, isNotNull);
+    expect(AppServiceRegistry.acceptDeliveryOffer, isNotNull);
+    expect(AppServiceRegistry.rejectDeliveryOffer, isNotNull);
+    expect(AppServiceRegistry.getActiveDelivery, isNotNull);
   });
 }

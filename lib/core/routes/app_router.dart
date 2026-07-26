@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/auth/domain/entities/authentication_status.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
+import '../../features/delivery/presentation/pages/incoming_delivery_offer_page.dart';
 import '../../features/driver/presentation/home_screen.dart';
 import '../../features/driver/presentation/welcome_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
@@ -19,11 +20,20 @@ class AppRoutes {
   static const String profile = '/profile';
   static const String settings = '/settings';
 
+  /// Full-screen delivery offer / assignment (ADR-026). Outside shell nav.
+  static const String deliveryOffer = '/delivery/offer';
+
   /// Routes that require an authenticated session (PHASE 2.2).
   /// `welcome` and `comingSoon` intentionally stay public so the existing
   /// Explore Architecture flow keeps working unauthenticated (no
   /// regression — see STABILIZATION STEP 4C).
-  static const List<String> protectedPaths = [home, orders, profile, settings];
+  static const List<String> protectedPaths = [
+    home,
+    orders,
+    profile,
+    settings,
+    deliveryOffer,
+  ];
 
   static bool isProtected(String path) => protectedPaths.contains(path);
 
@@ -89,7 +99,12 @@ class AppRouter {
           case AuthenticationStatus.unauthenticated:
             return AppRoutes.isProtected(path) ? AppRoutes.login : null;
           case AuthenticationStatus.authenticated:
-            return isLoginRoute ? AppRoutes.home : null;
+            // Trial sessions restore on cold start; send drivers to Home so
+            // Drift assignment + busy reconciliation are visible immediately.
+            if (isLoginRoute || path == AppRoutes.welcome) {
+              return AppRoutes.home;
+            }
+            return null;
         }
       },
 
@@ -124,6 +139,12 @@ class AppRouter {
         GoRoute(
           path: AppRoutes.login,
           builder: (context, state) => const LoginScreen(),
+        ),
+
+        // Full-screen delivery offer (protected, outside bottom nav — ADR-026)
+        GoRoute(
+          path: AppRoutes.deliveryOffer,
+          builder: (context, state) => const IncomingDeliveryOfferPage(),
         ),
 
         // Shell route for main app (with bottom nav) — protected
@@ -174,8 +195,19 @@ class AppRouter {
   /// Build bottom navigation bar
   static Widget _buildBottomNav(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final path = GoRouterState.of(context).uri.path;
+    final currentIndex = switch (path) {
+      AppRoutes.orders => 1,
+      AppRoutes.profile => 2,
+      AppRoutes.settings => 3,
+      _ => 0,
+    };
     return BottomNavigationBar(
       type: BottomNavigationBarType.fixed,
+      currentIndex: currentIndex,
+      // Narrow phones (320dp) + Arabic labels: avoid overflow paint errors.
+      selectedFontSize: 12,
+      unselectedFontSize: 11,
       items: [
         BottomNavigationBarItem(
           icon: const Icon(Icons.home),

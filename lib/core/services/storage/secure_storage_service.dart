@@ -84,7 +84,6 @@ class SecureStorageServiceImpl implements SecureStorageService {
   Future<void> write(String key, String value) async {
     try {
       await _storage.write(key: key, value: value);
-      _logger.debug('SecureStorageService: Written key=$key');
     } catch (e, stackTrace) {
       _logger.error(
         'SecureStorageService: Failed to write key=$key',
@@ -98,11 +97,7 @@ class SecureStorageServiceImpl implements SecureStorageService {
   @override
   Future<String?> read(String key) async {
     try {
-      final value = await _storage.read(key: key);
-      _logger.debug(
-        'SecureStorageService: Read key=$key, exists=${value != null}',
-      );
-      return value;
+      return await _storage.read(key: key);
     } catch (e, stackTrace) {
       _logger.error(
         'SecureStorageService: Failed to read key=$key',
@@ -117,7 +112,6 @@ class SecureStorageServiceImpl implements SecureStorageService {
   Future<void> delete(String key) async {
     try {
       await _storage.delete(key: key);
-      _logger.debug('SecureStorageService: Deleted key=$key');
     } catch (e, stackTrace) {
       _logger.error(
         'SecureStorageService: Failed to delete key=$key',

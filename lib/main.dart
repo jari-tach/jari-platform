@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/config/app_config.dart';
 import 'core/localization/app_localizations.dart';
 import 'core/providers/app_providers.dart';
 import 'core/theme/app_theme.dart';
@@ -9,6 +10,9 @@ import 'shared/services/app_service_registry.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Forces Environment.dev under kDebugMode; required before registry Fake
+  // remote policy evaluation logs and API URL selection.
+  AppConfig.init();
   await AppServiceRegistry.init();
   runApp(const ProviderScope(child: SaeqApp()));
 }

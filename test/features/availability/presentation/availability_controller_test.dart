@@ -73,6 +73,7 @@ void main() {
   Future<ProviderContainer> boot(
     FakeDriverAvailabilityRepository fake, {
     AvailabilityEligibilityReader? eligibilityReader,
+    AvailabilityDebugTrialConfirmer? debugTrialConfirmer,
   }) async {
     final container = ProviderContainer(
       overrides: [
@@ -81,6 +82,7 @@ void main() {
             repositoryReader: (_) => fake,
             eligibilityReader:
                 eligibilityReader ?? (_, _) => AvailabilitySuccess(eligible()),
+            debugTrialConfirmer: debugTrialConfirmer,
           ),
         ),
       ],
@@ -277,6 +279,37 @@ void main() {
       expect(state.current!.driverId, 'drv-1');
       expect(fake.requestCallCount, greaterThan(0));
     });
+
+    test(
+      'DEV-ONLY confirmer applies confirmation without self-dependency',
+      () async {
+        final fake = FakeDriverAvailabilityRepository(seed: unavailable());
+        var confirmerCalls = 0;
+        final container = await boot(
+          fake,
+          debugTrialConfirmer: (ref, driverId) async {
+            confirmerCalls++;
+            // Must not read availabilityControllerProvider here.
+            return AuthoritativeAvailabilityUpdate(
+              driverId: driverId,
+              status: AvailabilityStatus.available,
+              source: AvailabilitySource.system,
+              confirmedAt: DateTime.utc(2026, 7, 26, 21),
+              reason: 'dev.fake_trial_confirm',
+            );
+          },
+        );
+        await container
+            .read(availabilityControllerProvider.notifier)
+            .requestAvailable();
+        await Future<void>.delayed(const Duration(milliseconds: 40));
+        final state = container.read(availabilityControllerProvider);
+        expect(confirmerCalls, 1);
+        expect(state.current!.status, AvailabilityStatus.available);
+        expect(state.isConfirmedAvailable, isTrue);
+        expect(state.failure, isNull);
+      },
+    );
 
     test('explicit eligible override permits pending available', () async {
       final fake = FakeDriverAvailabilityRepository(seed: unavailable());

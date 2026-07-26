@@ -887,7 +887,7 @@ Unit Tests، Repository Tests، Service Tests، State Management Tests (Riverpod
 ```text
 Stage A — Documentation and Architecture Alignment  ← done
 Stage B — PHASE 2.3 Driver Identity and Profile      ← Done (merged 123fdba)
-Stage C — Driver Operational MVP (starts PHASE 2.4) ← Architecture Accepted / Implementation Not Started
+Stage C — Driver Operational MVP                     ← PHASE 2.4 + 2.4.1 Complete; PHASE 2.5 Complete
 Stage D — Backend Modular Monolith Foundation
 Stage E — Merchant Mobile MVP
 Stage F — Customer Mobile MVP
@@ -897,9 +897,22 @@ Stage H — Platform Expansion
 
 **`service_locator.dart` / get_it:** Legacy / Unused / Conflicting with ADR-010 — خطة الإزالة في `docs/LEGACY_DI_MIGRATION_PLAN.md` (لا حذف في Stage A).
 
-**PHASE 2.3:** مدمج في `main`.
-**PHASE 2.4:** وثائق التصميم في `docs/PHASE_2_4_DRIVER_AVAILABILITY_ARCHITECTURE.md` + ADR-015…019 — **Architecture Accepted**؛ **Implementation Not Started**؛ PHASE 2.5 لم يبدأ.
+**PHASE 2.3:** مدمج في `main` — **Complete**.
 
-> **ملاحظة مواءمة AC التاريخية لـ 2.4:** معيار «صفّ تبديل التوفر أثناء Offline ثم مزامنة» **مُلغى لاتجاه → available** بموجب ADR-017 (يُسمح بنية unavailable فقط).
+**PHASE 2.4 — Driver Availability:** مدمج في `main` (PR #3, merge `05d1285`) — **Complete** (implementation + ADR-015…019).
 
-**PHASE 2.3:** التنفيذ على فرع `feature/phase-2.3-driver-identity-profile` — Validated؛ بانتظار تفويض Commit/Push/PR.
+**PHASE 2.4.1 — Application Localization Foundation:** مدمج في `main` (PR #4, merge `88685fd`) — **Complete**.
+
+**PHASE 2.5 — Delivery Request Lifecycle:** **Implementation Complete** (validated locally). Docs: `docs/PHASE_2_5_DELIVERY_REQUEST_LIFECYCLE_ARCHITECTURE.md` + ADR-020…028 + `docs/PHASE_2_5_DELIVERY_REQUEST_TEST_PLAN.md`. Stack: Domain/Data/Fake remote (non-production)/Drift assignment persistence/DI/Riverpod/UI + ADR-025 accept→busy coordinator.
+
+**PHASE 2.5 validation (formal closeout):** `flutter analyze` 0 issues; `flutter test` **+474 All tests passed**.
+
+**PHASE 2.5 deferred (explicitly not complete):**
+- Production remote Backend adapter for delivery offers
+- Map / active-delivery journey UI (PHASE 2.6)
+- Push notifications
+- Real estimated-earnings field on domain order (product decision)
+
+> **ملاحظة مواءمة AC التاريخية لـ 2.4:** معيار «صفّ تبديل التوفر أثناء offline ثم مزامنة» **مُلغى لاتجاه → available** بموجب ADR-017 (يُسمح بنية unavailable فقط).
+
+**Next phase:** Do **not** start PHASE 2.6 until explicitly authorized after PHASE 2.5 commit review.

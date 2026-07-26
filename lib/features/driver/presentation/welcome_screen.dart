@@ -79,13 +79,23 @@ class WelcomeScreen extends ConsumerWidget {
                 onPressed: () => context.push(AppRoutes.comingSoon),
               ),
               const SizedBox(height: 12),
-              OutlinedButton.icon(
-                // `go` (not `push`): login is an entry point, not a
-                // sub-screen of Welcome. Keeps the back stack clean after
-                // a successful sign-in redirects to /home.
-                onPressed: () => context.go(AppRoutes.login),
-                icon: const Icon(Icons.login),
-                label: Text(localizations.signIn),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  // `go` (not `push`): login is an entry point, not a
+                  // sub-screen of Welcome. Keeps the back stack clean after
+                  // a successful sign-in redirects to /home.
+                  onPressed: () => context.go(AppRoutes.login),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(0, 48),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                  icon: const Icon(Icons.login),
+                  label: Text(localizations.signIn),
+                ),
               ),
               const SizedBox(height: 24),
               SaeqSectionCard(

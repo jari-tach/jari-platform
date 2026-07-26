@@ -324,6 +324,141 @@ class AppLocalizations {
       _t('Availability message', 'رسالة التوفر');
   String get availabilitySemanticsProgress =>
       _t('Availability update in progress', 'جارٍ تحديث التوفر');
+
+  // —— Delivery offer (PHASE 2.5 / ADR-026) ——
+  String get deliveryOfferTitle => _t('New delivery offer', 'عرض توصيل جديد');
+  String get deliveryOfferStoreLabel => _t('Store', 'المتجر');
+  String get deliveryOfferPickupLabel => _t('Pickup', 'الاستلام');
+  String get deliveryOfferDropoffLabel => _t('Delivery', 'التسليم');
+  String get deliveryOfferDistanceLabel =>
+      _t('Estimated distance', 'المسافة التقديرية');
+  String get deliveryOfferEarningsLabel =>
+      _t('Estimated earnings', 'الأرباح التقديرية');
+  String get deliveryOfferEarningsUnavailable =>
+      _t('Not available', 'غير متاح');
+  String get deliveryOfferCountdownLabel =>
+      _t('Time remaining', 'الوقت المتبقي');
+  String get deliveryOfferCountdownExpired => _t('Expired', 'انتهى الوقت');
+  String deliveryOfferCountdownValue(int minutes, int seconds) {
+    final mm = minutes.toString().padLeft(2, '0');
+    final ss = seconds.toString().padLeft(2, '0');
+    return _t('$mm:$ss', '$mm:$ss');
+  }
+
+  String deliveryOfferDistanceMeters(int meters) =>
+      _t('$meters m', '$meters م');
+  String deliveryOfferDistanceKilometers(String kilometers) =>
+      _t('$kilometers km', '$kilometers كم');
+  String get deliveryOfferDistanceUnavailable =>
+      _t('Not available', 'غير متاح');
+  String get deliveryOfferUnknownStore => _t('Store', 'متجر');
+
+  String get deliveryAccept => _t('Accept', 'قبول');
+  String get deliveryReject => _t('Reject', 'رفض');
+  String get deliveryAccepting => _t('Accepting…', 'جارٍ القبول…');
+  String get deliveryRejecting => _t('Rejecting…', 'جارٍ الرفض…');
+  String get deliveryRetry => _t('Retry', 'إعادة المحاولة');
+  String get deliveryDismissFailure => _t('Dismiss', 'إغلاق');
+  String get deliveryRefreshing => _t('Refreshing…', 'جارٍ التحديث…');
+
+  String get deliveryLoadingTitle => _t('Loading offers', 'جارٍ تحميل العروض');
+  String get deliveryLoadingMessage => _t(
+    'Checking for available delivery offers.',
+    'جارٍ التحقق من عروض التوصيل المتاحة.',
+  );
+
+  String get deliveryEmptyTitle =>
+      _t('No available offers', 'لا توجد عروض متاحة');
+  String get deliveryEmptyMessage => _t(
+    'There are no delivery offers right now. Pull to refresh or try again later.',
+    'لا توجد عروض توصيل الآن. حدّث القائمة أو حاول لاحقًا.',
+  );
+
+  String get deliveryErrorTitle =>
+      _t('Could not load offers', 'تعذر تحميل العروض');
+  String get deliveryErrorGenericMessage => _t(
+    'Something went wrong while loading delivery offers.',
+    'حدث خطأ أثناء تحميل عروض التوصيل.',
+  );
+
+  String get deliveryAcceptedTitle =>
+      _t('Delivery accepted', 'تم قبول التوصيل');
+  String get deliveryAcceptedMessage => _t(
+    'You are assigned to this delivery. Continue when you are ready.',
+    'تم تعيينك لهذا التوصيل. تابع عندما تكون جاهزًا.',
+  );
+  String get deliveryContinueDelivery =>
+      _t('Continue Delivery', 'متابعة التوصيل');
+  String get deliveryAssignmentIdLabel => _t('Assignment', 'التعيين');
+  String get deliveryOrderIdLabel => _t('Order', 'الطلب');
+
+  String get deliveryHomeOfferBannerTitle =>
+      _t('Incoming delivery offer', 'عرض توصيل وارد');
+  String get deliveryHomeOfferBannerAction => _t('View offer', 'عرض التفاصيل');
+  String get deliveryHomeAssignmentBannerTitle =>
+      _t('Active delivery', 'توصيل نشط');
+  String get deliveryHomeAssignmentBannerAction =>
+      _t('View delivery', 'عرض التوصيل');
+
+  String get deliveryFailureUnauthenticated => _t(
+    'Your session has ended. Sign in again.',
+    'انتهت الجلسة. سجّل الدخول مجددًا.',
+  );
+  String get deliveryFailureOfflineAccept => _t(
+    'Connect to the internet before accepting an offer.',
+    'اتصل بالإنترنت قبل قبول العرض.',
+  );
+  String get deliveryFailureNotAvailable => _t(
+    'Start receiving requests before accepting an offer.',
+    'ابدأ استقبال الطلبات قبل قبول العرض.',
+  );
+  String get deliveryFailureOfferNotFound =>
+      _t('This offer is no longer available.', 'هذا العرض لم يعد متاحًا.');
+  String get deliveryFailureOfferExpired =>
+      _t('This offer has expired.', 'انتهت صلاحية هذا العرض.');
+  String get deliveryFailureOfferTaken =>
+      _t('Another driver accepted this offer.', 'قبل سائق آخر هذا العرض.');
+  String get deliveryFailureConflict => _t(
+    'This offer changed. Refresh and try again.',
+    'تغيّر هذا العرض. حدّث وحاول مجددًا.',
+  );
+  String get deliveryFailureInvalidTransition =>
+      _t('That offer action is not allowed.', 'إجراء العرض هذا غير مسموح.');
+  String get deliveryFailureActiveOfferConflict =>
+      _t('Another offer is already active.', 'يوجد عرض نشط بالفعل.');
+  String get deliveryFailureActiveAssignmentExists =>
+      _t('You already have an active delivery.', 'لديك توصيل نشط بالفعل.');
+  String get deliveryFailurePersistence => _t(
+    'Could not save the delivery on this device.',
+    'تعذر حفظ التوصيل على الجهاز.',
+  );
+  String get deliveryFailureSecurityDenied => _t(
+    'This action could not be completed for account security reasons.',
+    'تعذر تنفيذ الطلب لأسباب تتعلق بأمان الحساب.',
+  );
+  String get deliveryFailureAvailabilityBind => _t(
+    'Delivery was accepted, but availability could not be updated to busy. Your assignment was saved.',
+    'تم قبول التوصيل، لكن تعذر تحديث التوفر إلى مشغول. تم حفظ التعيين.',
+  );
+  String get deliveryFailureUnknown => _t(
+    'Something went wrong while updating the delivery offer.',
+    'حدث خطأ أثناء تحديث عرض التوصيل.',
+  );
+
+  String get deliverySemanticsOffer =>
+      _t('Delivery offer details', 'تفاصيل عرض التوصيل');
+  String get deliverySemanticsCountdown =>
+      _t('Offer time remaining', 'الوقت المتبقي للعرض');
+  String get deliverySemanticsAccept =>
+      _t('Accept delivery offer', 'قبول عرض التوصيل');
+  String get deliverySemanticsReject =>
+      _t('Reject delivery offer', 'رفض عرض التوصيل');
+  String get deliverySemanticsFailure =>
+      _t('Delivery offer message', 'رسالة عرض التوصيل');
+  String get deliverySemanticsProgress =>
+      _t('Delivery update in progress', 'جارٍ تحديث التوصيل');
+  String get deliverySemanticsAssignment =>
+      _t('Active delivery assignment', 'تعيين التوصيل النشط');
 }
 
 /// Localizations delegate

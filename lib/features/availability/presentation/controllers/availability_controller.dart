@@ -30,6 +30,15 @@ typedef AvailabilityEligibilityReader =
       String driverId,
     );
 
+/// Optional DEV-ONLY post-hook after a successful local →available request.
+///
+/// Returns an authoritative update for the controller to apply on itself.
+/// Must NOT call [availabilityControllerProvider] (Riverpod self-dependency).
+/// Used for Fake-backed device testing when no Backend confirmation exists.
+/// Must be null in production wiring.
+typedef AvailabilityDebugTrialConfirmer =
+    Future<AuthoritativeAvailabilityUpdate?> Function(Ref ref, String driverId);
+
 /// Coordinates availability use cases for the UI (PHASE 2.4 Increment 4).
 ///
 /// Depends on domain use cases only — never SharedPreferences or datasources.
@@ -37,11 +46,15 @@ class AvailabilityController extends Notifier<AvailabilityControllerState> {
   AvailabilityController({
     DriverAvailabilityRepository? Function(Ref ref)? repositoryReader,
     AvailabilityEligibilityReader? eligibilityReader,
+    this.debugTrialConfirmer,
   }) : _repositoryReader = repositoryReader ?? _defaultRepositoryReader,
        _eligibilityReader = eligibilityReader ?? _defaultEligibilityReader;
 
   final DriverAvailabilityRepository? Function(Ref ref) _repositoryReader;
   final AvailabilityEligibilityReader _eligibilityReader;
+
+  /// DEV-ONLY Fake-trial confirmer; null outside debug device wiring.
+  final AvailabilityDebugTrialConfirmer? debugTrialConfirmer;
 
   static DriverAvailabilityRepository? _defaultRepositoryReader(Ref ref) =>
       null;
@@ -268,6 +281,17 @@ class AvailabilityController extends Notifier<AvailabilityControllerState> {
     }
     _commandInFlight = false;
     _applyCommandResult(result, fallback: stable);
+
+    // DEV-ONLY: Fake device testing has no Backend confirmation channel.
+    // Confirmer returns an update; this notifier applies it (never re-enters
+    // availabilityControllerProvider — that asserts dependency != origin).
+    final confirmer = debugTrialConfirmer;
+    if (result.isSuccess && confirmer != null) {
+      final trialUpdate = await confirmer(ref, stable.driverId);
+      if (trialUpdate != null && _isCurrent(generation)) {
+        await applyAuthoritativeUpdate(trialUpdate);
+      }
+    }
   }
 
   Future<void> requestUnavailable() async {

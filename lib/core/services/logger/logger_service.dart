@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Log level for filtering messages
@@ -238,10 +239,12 @@ class ConsoleLoggerService implements LoggerService {
 
   void _printLog(LogEntry entry) {
     if (Platform.isAndroid || Platform.isIOS) {
-      // Release mode: JSON format
       developer.log(jsonEncode(entry.toJson()));
+      // Mirror to Flutter console on debug device runs.
+      if (kDebugMode) {
+        debugPrint('[${entry.level.name.toUpperCase()}] ${entry.message}');
+      }
     } else {
-      // Debug mode: Pretty format
       final color = _getColorForLevel(entry.level);
       developer.log(color(entry.toString()));
     }

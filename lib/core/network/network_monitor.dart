@@ -76,9 +76,11 @@ class NetworkMonitor {
         ? ConnectivityStatus.online
         : ConnectivityStatus.offline;
 
-    _logger.info(
-      'NetworkMonitor: Connectivity changed: $previousStatus -> $_status',
-    );
+    if (previousStatus != _status) {
+      _logger.info(
+        'NetworkMonitor: Connectivity changed: $previousStatus -> $_status',
+      );
+    }
     _statusController.add(_status);
   }
 

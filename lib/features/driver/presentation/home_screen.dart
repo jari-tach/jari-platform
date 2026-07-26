@@ -7,11 +7,13 @@ import '../../../core/theme/app_theme.dart';
 import '../../../shared/widgets/saeq_primary_button.dart';
 import '../../auth/presentation/providers/auth_providers.dart';
 import '../../availability/presentation/widgets/driver_availability_card.dart';
+import '../../delivery/presentation/widgets/delivery_offer_home_banner.dart';
 
 /// Authenticated landing screen with availability control (PHASE 2.4).
 ///
 /// Keeps the existing greeting and sign-out flow; availability is inserted
 /// as a high-visibility card without redesigning navigation or shell layout.
+/// Delivery offer entry is a non-blocking banner (ADR-026 full-screen route).
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -23,7 +25,7 @@ class HomeScreen extends ConsumerWidget {
     final isBusy = state.isBusy;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.homeWelcomeTitle)),
+      appBar: AppBar(title: Text(l10n.navHome)),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(AppConstants.contentPadding),
@@ -47,6 +49,8 @@ class HomeScreen extends ConsumerWidget {
                         ),
                       const SizedBox(height: AppTheme.spacingLG),
                       const DriverAvailabilityCard(),
+                      const SizedBox(height: AppTheme.spacingMD),
+                      const DeliveryOfferHomeBanner(),
                     ],
                   ),
                 ),

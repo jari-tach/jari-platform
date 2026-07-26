@@ -1,5 +1,6 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 
+import '../../core/config/app_config.dart';
 import '../../core/network/network_monitor.dart';
 import '../../core/services/api/api_client.dart';
 import '../../core/services/error/app_error_handler.dart';
@@ -11,6 +12,21 @@ import '../../features/auth/domain/repositories/authentication_repository.dart';
 import '../../features/availability/data/datasources/shared_preferences_driver_availability_local_data_source.dart';
 import '../../features/availability/data/repositories/local_driver_availability_repository.dart';
 import '../../features/availability/domain/repositories/driver_availability_repository.dart';
+import '../../features/availability/domain/usecases/apply_authoritative_availability.dart';
+import '../../features/availability/domain/usecases/get_driver_availability.dart';
+import '../../features/delivery/application/accept_delivery_offer_and_bind_busy.dart';
+import '../../features/delivery/data/datasources/delivery_local_data_source.dart';
+import '../../features/delivery/data/datasources/delivery_remote_data_source.dart';
+import '../../features/delivery/data/datasources/drift_delivery_local_data_source.dart';
+import '../../features/delivery/data/fake/fake_delivery_remote_data_source.dart';
+import '../../features/delivery/data/repositories/local_delivery_assignment_repository.dart';
+import '../../features/delivery/data/repositories/remote_delivery_offer_repository.dart';
+import '../../features/delivery/domain/repositories/delivery_assignment_repository.dart';
+import '../../features/delivery/domain/repositories/delivery_offer_repository.dart';
+import '../../features/delivery/domain/usecases/accept_delivery_offer.dart';
+import '../../features/delivery/domain/usecases/get_active_delivery.dart';
+import '../../features/delivery/domain/usecases/get_delivery_offers.dart';
+import '../../features/delivery/domain/usecases/reject_delivery_offer.dart';
 import '../../features/driver/data/datasources/local/driver_database.dart';
 import '../../features/profile/data/repositories/fake_driver_profile_repository.dart';
 import '../../features/profile/domain/repositories/driver_profile_repository.dart';
@@ -136,9 +152,124 @@ final class AppServiceRegistry {
             ),
           );
 
+    // PHASE 2.5 / 2.6 — Delivery Request Lifecycle DI wiring.
+    // Remote: Fake only outside production (ADR-027). Production leaves the
+    // remote port null until a real Backend adapter exists — never Fake.
+    // Local: Drift when DriverDatabase activated (ADR-028).
+    await registry._initDeliveryStack();
+
     _instance = registry;
     registry._logger.info('AppServiceRegistry initialized');
     return registry;
+  }
+
+  /// Wires Delivery datasources → repositories → use cases.
+  Future<void> _initDeliveryStack() async {
+    if (!AppConfig.isProduction) {
+      _deliveryRemoteDataSource = await _safeInit<DeliveryRemoteDataSource>(
+        'FakeDeliveryRemoteDataSource',
+        _logger,
+        () async => FakeDeliveryRemoteDataSource(
+          // Fake constructor also enforces Release/Production policy (ADR-027).
+          isProductionEnvironment: () => AppConfig.isProduction,
+        ),
+      );
+    } else {
+      _deliveryRemoteDataSource = null;
+      _logger.info(
+        'AppServiceRegistry: FakeDeliveryRemoteDataSource skipped in production',
+      );
+    }
+
+    final remote = _deliveryRemoteDataSource;
+    _deliveryOfferRepository = remote == null
+        ? null
+        : await _safeInit<DeliveryOfferRepository>(
+            'DeliveryOfferRepository',
+            _logger,
+            () async => RemoteDeliveryOfferRepository(remoteDataSource: remote),
+          );
+
+    final database = _database;
+    _deliveryLocalDataSource = database == null
+        ? null
+        : await _safeInit<DeliveryLocalDataSource>(
+            'DriftDeliveryLocalDataSource',
+            _logger,
+            () async => DriftDeliveryLocalDataSource(database: database),
+          );
+
+    final local = _deliveryLocalDataSource;
+    _deliveryAssignmentRepository = local == null
+        ? null
+        : await _safeInit<DeliveryAssignmentRepository>(
+            'DeliveryAssignmentRepository',
+            _logger,
+            () async =>
+                LocalDeliveryAssignmentRepository(localDataSource: local),
+          );
+
+    final offerRepository = _deliveryOfferRepository;
+    final assignmentRepository = _deliveryAssignmentRepository;
+
+    _getDeliveryOffers = offerRepository == null
+        ? null
+        : await _safeInit<GetDeliveryOffers>(
+            'GetDeliveryOffers',
+            _logger,
+            () async => GetDeliveryOffers(offerRepository),
+          );
+
+    _acceptDeliveryOffer =
+        (offerRepository == null || assignmentRepository == null)
+        ? null
+        : await _safeInit<AcceptDeliveryOffer>(
+            'AcceptDeliveryOffer',
+            _logger,
+            () async =>
+                AcceptDeliveryOffer(offerRepository, assignmentRepository),
+          );
+
+    _rejectDeliveryOffer = offerRepository == null
+        ? null
+        : await _safeInit<RejectDeliveryOffer>(
+            'RejectDeliveryOffer',
+            _logger,
+            () async => RejectDeliveryOffer(offerRepository),
+          );
+
+    _getActiveDelivery = assignmentRepository == null
+        ? null
+        : await _safeInit<GetActiveDelivery>(
+            'GetActiveDelivery',
+            _logger,
+            () async => GetActiveDelivery(assignmentRepository),
+          );
+
+    // ADR-025 — accept + busy binding coordinator (application layer).
+    final availabilityRepository = _driverAvailabilityRepository;
+    _acceptDeliveryOfferAndBindBusy =
+        (_acceptDeliveryOffer == null || availabilityRepository == null)
+        ? null
+        : await _safeInit<AcceptDeliveryOfferAndBindBusy>(
+            'AcceptDeliveryOfferAndBindBusy',
+            _logger,
+            () async => AcceptDeliveryOfferAndBindBusy(
+              _acceptDeliveryOffer!,
+              ApplyAuthoritativeAvailability(availabilityRepository),
+              GetDriverAvailability(availabilityRepository),
+            ),
+          );
+
+    _logger.info(
+      'AppServiceRegistry delivery stack: '
+      'remote=${_deliveryRemoteDataSource == null ? "none" : _deliveryRemoteDataSource.runtimeType}, '
+      'localDb=${_deliveryLocalDataSource == null ? "none" : "Drift"}, '
+      'offers=${_getDeliveryOffers != null}, '
+      'acceptBind=${_acceptDeliveryOfferAndBindBusy != null}, '
+      'env=${AppConfig.environment.name}, '
+      'debug=${AppConfig.isDebug}',
+    );
   }
 
   /// Releases resources held by services that support explicit disposal
@@ -159,6 +290,10 @@ final class AppServiceRegistry {
     final availability = registry._driverAvailabilityRepository;
     if (availability is LocalDriverAvailabilityRepository) {
       availability.dispose();
+    }
+    final remote = registry._deliveryRemoteDataSource;
+    if (remote is FakeDeliveryRemoteDataSource) {
+      remote.dispose();
     }
 
     _instance = null;
@@ -196,6 +331,15 @@ final class AppServiceRegistry {
   AuthenticationRepository? _authenticationRepository;
   DriverProfileRepository? _driverProfileRepository;
   DriverAvailabilityRepository? _driverAvailabilityRepository;
+  DeliveryRemoteDataSource? _deliveryRemoteDataSource;
+  DeliveryLocalDataSource? _deliveryLocalDataSource;
+  DeliveryOfferRepository? _deliveryOfferRepository;
+  DeliveryAssignmentRepository? _deliveryAssignmentRepository;
+  GetDeliveryOffers? _getDeliveryOffers;
+  AcceptDeliveryOffer? _acceptDeliveryOffer;
+  RejectDeliveryOffer? _rejectDeliveryOffer;
+  GetActiveDelivery? _getActiveDelivery;
+  AcceptDeliveryOfferAndBindBusy? _acceptDeliveryOfferAndBindBusy;
 
   /// The application's logger service.
   static LoggerService get logger => _instance!._logger;
@@ -240,6 +384,42 @@ final class AppServiceRegistry {
   /// initialize. Depends on [authenticationRepository] for session identity.
   static DriverAvailabilityRepository? get driverAvailabilityRepository =>
       _instance!._driverAvailabilityRepository;
+
+  /// PHASE 2.5/2.6 remote delivery port (Fake outside production), or `null`.
+  static DeliveryRemoteDataSource? get deliveryRemoteDataSource =>
+      _instance!._deliveryRemoteDataSource;
+
+  /// PHASE 2.5/2.6 Drift local assignment port, or `null` if DB unavailable.
+  static DeliveryLocalDataSource? get deliveryLocalDataSource =>
+      _instance!._deliveryLocalDataSource;
+
+  /// PHASE 2.5/2.6 offer repository, or `null` when remote is unavailable.
+  static DeliveryOfferRepository? get deliveryOfferRepository =>
+      _instance!._deliveryOfferRepository;
+
+  /// PHASE 2.5/2.6 assignment repository, or `null` when local is unavailable.
+  static DeliveryAssignmentRepository? get deliveryAssignmentRepository =>
+      _instance!._deliveryAssignmentRepository;
+
+  /// Use case: load offers (one-active enforced).
+  static GetDeliveryOffers? get getDeliveryOffers =>
+      _instance!._getDeliveryOffers;
+
+  /// Use case: accept offer and persist assignment.
+  static AcceptDeliveryOffer? get acceptDeliveryOffer =>
+      _instance!._acceptDeliveryOffer;
+
+  /// Use case: reject offer.
+  static RejectDeliveryOffer? get rejectDeliveryOffer =>
+      _instance!._rejectDeliveryOffer;
+
+  /// Use case: restore/read active assignment.
+  static GetActiveDelivery? get getActiveDelivery =>
+      _instance!._getActiveDelivery;
+
+  /// ADR-025 application coordinator: accept + persist + busy bind.
+  static AcceptDeliveryOfferAndBindBusy? get acceptDeliveryOfferAndBindBusy =>
+      _instance!._acceptDeliveryOfferAndBindBusy;
 
   /// True once [init] has completed, regardless of whether every
   /// non-critical service succeeded.

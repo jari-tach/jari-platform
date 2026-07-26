@@ -34,6 +34,9 @@ class SaeqPrimaryButton extends StatelessWidget {
         style: FilledButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
+          // 48dp minimum touch target for phone testing.
+          minimumSize: const Size(0, 48),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
         child: child,
       ),

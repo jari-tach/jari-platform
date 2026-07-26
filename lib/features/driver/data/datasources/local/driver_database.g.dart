@@ -1569,6 +1569,375 @@ class DeliveryOrdersCompanion extends UpdateCompanion<DeliveryOrder> {
   }
 }
 
+class $DeliveryAssignmentsTable extends DeliveryAssignments
+    with TableInfo<$DeliveryAssignmentsTable, DeliveryAssignment> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DeliveryAssignmentsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _driverIdMeta = const VerificationMeta(
+    'driverId',
+  );
+  @override
+  late final GeneratedColumn<String> driverId = GeneratedColumn<String>(
+    'driver_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _assignmentIdMeta = const VerificationMeta(
+    'assignmentId',
+  );
+  @override
+  late final GeneratedColumn<String> assignmentId = GeneratedColumn<String>(
+    'assignment_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _payloadJsonMeta = const VerificationMeta(
+    'payloadJson',
+  );
+  @override
+  late final GeneratedColumn<String> payloadJson = GeneratedColumn<String>(
+    'payload_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    driverId,
+    assignmentId,
+    payloadJson,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'delivery_assignments';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DeliveryAssignment> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('driver_id')) {
+      context.handle(
+        _driverIdMeta,
+        driverId.isAcceptableOrUnknown(data['driver_id']!, _driverIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_driverIdMeta);
+    }
+    if (data.containsKey('assignment_id')) {
+      context.handle(
+        _assignmentIdMeta,
+        assignmentId.isAcceptableOrUnknown(
+          data['assignment_id']!,
+          _assignmentIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_assignmentIdMeta);
+    }
+    if (data.containsKey('payload_json')) {
+      context.handle(
+        _payloadJsonMeta,
+        payloadJson.isAcceptableOrUnknown(
+          data['payload_json']!,
+          _payloadJsonMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_payloadJsonMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DeliveryAssignment map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DeliveryAssignment(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      driverId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}driver_id'],
+      )!,
+      assignmentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}assignment_id'],
+      )!,
+      payloadJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}payload_json'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $DeliveryAssignmentsTable createAlias(String alias) {
+    return $DeliveryAssignmentsTable(attachedDatabase, alias);
+  }
+}
+
+class DeliveryAssignment extends DataClass
+    implements Insertable<DeliveryAssignment> {
+  final int id;
+
+  /// Authenticated driver — at most one active assignment row.
+  final String driverId;
+
+  /// Authoritative assignment id (also availability `activeAssignmentId`).
+  final String assignmentId;
+
+  /// Full [DeliveryAssignmentModel.toJson] document (no tokens/secrets).
+  final String payloadJson;
+  final DateTime updatedAt;
+  const DeliveryAssignment({
+    required this.id,
+    required this.driverId,
+    required this.assignmentId,
+    required this.payloadJson,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['driver_id'] = Variable<String>(driverId);
+    map['assignment_id'] = Variable<String>(assignmentId);
+    map['payload_json'] = Variable<String>(payloadJson);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  DeliveryAssignmentsCompanion toCompanion(bool nullToAbsent) {
+    return DeliveryAssignmentsCompanion(
+      id: Value(id),
+      driverId: Value(driverId),
+      assignmentId: Value(assignmentId),
+      payloadJson: Value(payloadJson),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory DeliveryAssignment.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DeliveryAssignment(
+      id: serializer.fromJson<int>(json['id']),
+      driverId: serializer.fromJson<String>(json['driverId']),
+      assignmentId: serializer.fromJson<String>(json['assignmentId']),
+      payloadJson: serializer.fromJson<String>(json['payloadJson']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'driverId': serializer.toJson<String>(driverId),
+      'assignmentId': serializer.toJson<String>(assignmentId),
+      'payloadJson': serializer.toJson<String>(payloadJson),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  DeliveryAssignment copyWith({
+    int? id,
+    String? driverId,
+    String? assignmentId,
+    String? payloadJson,
+    DateTime? updatedAt,
+  }) => DeliveryAssignment(
+    id: id ?? this.id,
+    driverId: driverId ?? this.driverId,
+    assignmentId: assignmentId ?? this.assignmentId,
+    payloadJson: payloadJson ?? this.payloadJson,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  DeliveryAssignment copyWithCompanion(DeliveryAssignmentsCompanion data) {
+    return DeliveryAssignment(
+      id: data.id.present ? data.id.value : this.id,
+      driverId: data.driverId.present ? data.driverId.value : this.driverId,
+      assignmentId: data.assignmentId.present
+          ? data.assignmentId.value
+          : this.assignmentId,
+      payloadJson: data.payloadJson.present
+          ? data.payloadJson.value
+          : this.payloadJson,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DeliveryAssignment(')
+          ..write('id: $id, ')
+          ..write('driverId: $driverId, ')
+          ..write('assignmentId: $assignmentId, ')
+          ..write('payloadJson: $payloadJson, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, driverId, assignmentId, payloadJson, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DeliveryAssignment &&
+          other.id == this.id &&
+          other.driverId == this.driverId &&
+          other.assignmentId == this.assignmentId &&
+          other.payloadJson == this.payloadJson &&
+          other.updatedAt == this.updatedAt);
+}
+
+class DeliveryAssignmentsCompanion extends UpdateCompanion<DeliveryAssignment> {
+  final Value<int> id;
+  final Value<String> driverId;
+  final Value<String> assignmentId;
+  final Value<String> payloadJson;
+  final Value<DateTime> updatedAt;
+  const DeliveryAssignmentsCompanion({
+    this.id = const Value.absent(),
+    this.driverId = const Value.absent(),
+    this.assignmentId = const Value.absent(),
+    this.payloadJson = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  DeliveryAssignmentsCompanion.insert({
+    this.id = const Value.absent(),
+    required String driverId,
+    required String assignmentId,
+    required String payloadJson,
+    this.updatedAt = const Value.absent(),
+  }) : driverId = Value(driverId),
+       assignmentId = Value(assignmentId),
+       payloadJson = Value(payloadJson);
+  static Insertable<DeliveryAssignment> custom({
+    Expression<int>? id,
+    Expression<String>? driverId,
+    Expression<String>? assignmentId,
+    Expression<String>? payloadJson,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (driverId != null) 'driver_id': driverId,
+      if (assignmentId != null) 'assignment_id': assignmentId,
+      if (payloadJson != null) 'payload_json': payloadJson,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  DeliveryAssignmentsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? driverId,
+    Value<String>? assignmentId,
+    Value<String>? payloadJson,
+    Value<DateTime>? updatedAt,
+  }) {
+    return DeliveryAssignmentsCompanion(
+      id: id ?? this.id,
+      driverId: driverId ?? this.driverId,
+      assignmentId: assignmentId ?? this.assignmentId,
+      payloadJson: payloadJson ?? this.payloadJson,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (driverId.present) {
+      map['driver_id'] = Variable<String>(driverId.value);
+    }
+    if (assignmentId.present) {
+      map['assignment_id'] = Variable<String>(assignmentId.value);
+    }
+    if (payloadJson.present) {
+      map['payload_json'] = Variable<String>(payloadJson.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DeliveryAssignmentsCompanion(')
+          ..write('id: $id, ')
+          ..write('driverId: $driverId, ')
+          ..write('assignmentId: $assignmentId, ')
+          ..write('payloadJson: $payloadJson, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $OfflineQueueTable extends OfflineQueue
     with TableInfo<$OfflineQueueTable, OfflineQueueData> {
   @override
@@ -2610,6 +2979,8 @@ abstract class _$DriverDatabase extends GeneratedDatabase {
   $DriverDatabaseManager get managers => $DriverDatabaseManager(this);
   late final $DriverProfilesTable driverProfiles = $DriverProfilesTable(this);
   late final $DeliveryOrdersTable deliveryOrders = $DeliveryOrdersTable(this);
+  late final $DeliveryAssignmentsTable deliveryAssignments =
+      $DeliveryAssignmentsTable(this);
   late final $OfflineQueueTable offlineQueue = $OfflineQueueTable(this);
   late final $SyncMetadataTable syncMetadata = $SyncMetadataTable(this);
   @override
@@ -2619,6 +2990,7 @@ abstract class _$DriverDatabase extends GeneratedDatabase {
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     driverProfiles,
     deliveryOrders,
+    deliveryAssignments,
     offlineQueue,
     syncMetadata,
   ];
@@ -3367,6 +3739,220 @@ typedef $$DeliveryOrdersTableProcessedTableManager =
       DeliveryOrder,
       PrefetchHooks Function()
     >;
+typedef $$DeliveryAssignmentsTableCreateCompanionBuilder =
+    DeliveryAssignmentsCompanion Function({
+      Value<int> id,
+      required String driverId,
+      required String assignmentId,
+      required String payloadJson,
+      Value<DateTime> updatedAt,
+    });
+typedef $$DeliveryAssignmentsTableUpdateCompanionBuilder =
+    DeliveryAssignmentsCompanion Function({
+      Value<int> id,
+      Value<String> driverId,
+      Value<String> assignmentId,
+      Value<String> payloadJson,
+      Value<DateTime> updatedAt,
+    });
+
+class $$DeliveryAssignmentsTableFilterComposer
+    extends Composer<_$DriverDatabase, $DeliveryAssignmentsTable> {
+  $$DeliveryAssignmentsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get driverId => $composableBuilder(
+    column: $table.driverId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get assignmentId => $composableBuilder(
+    column: $table.assignmentId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get payloadJson => $composableBuilder(
+    column: $table.payloadJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$DeliveryAssignmentsTableOrderingComposer
+    extends Composer<_$DriverDatabase, $DeliveryAssignmentsTable> {
+  $$DeliveryAssignmentsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get driverId => $composableBuilder(
+    column: $table.driverId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get assignmentId => $composableBuilder(
+    column: $table.assignmentId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get payloadJson => $composableBuilder(
+    column: $table.payloadJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DeliveryAssignmentsTableAnnotationComposer
+    extends Composer<_$DriverDatabase, $DeliveryAssignmentsTable> {
+  $$DeliveryAssignmentsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get driverId =>
+      $composableBuilder(column: $table.driverId, builder: (column) => column);
+
+  GeneratedColumn<String> get assignmentId => $composableBuilder(
+    column: $table.assignmentId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get payloadJson => $composableBuilder(
+    column: $table.payloadJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$DeliveryAssignmentsTableTableManager
+    extends
+        RootTableManager<
+          _$DriverDatabase,
+          $DeliveryAssignmentsTable,
+          DeliveryAssignment,
+          $$DeliveryAssignmentsTableFilterComposer,
+          $$DeliveryAssignmentsTableOrderingComposer,
+          $$DeliveryAssignmentsTableAnnotationComposer,
+          $$DeliveryAssignmentsTableCreateCompanionBuilder,
+          $$DeliveryAssignmentsTableUpdateCompanionBuilder,
+          (
+            DeliveryAssignment,
+            BaseReferences<
+              _$DriverDatabase,
+              $DeliveryAssignmentsTable,
+              DeliveryAssignment
+            >,
+          ),
+          DeliveryAssignment,
+          PrefetchHooks Function()
+        > {
+  $$DeliveryAssignmentsTableTableManager(
+    _$DriverDatabase db,
+    $DeliveryAssignmentsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DeliveryAssignmentsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DeliveryAssignmentsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$DeliveryAssignmentsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> driverId = const Value.absent(),
+                Value<String> assignmentId = const Value.absent(),
+                Value<String> payloadJson = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => DeliveryAssignmentsCompanion(
+                id: id,
+                driverId: driverId,
+                assignmentId: assignmentId,
+                payloadJson: payloadJson,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String driverId,
+                required String assignmentId,
+                required String payloadJson,
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => DeliveryAssignmentsCompanion.insert(
+                id: id,
+                driverId: driverId,
+                assignmentId: assignmentId,
+                payloadJson: payloadJson,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$DeliveryAssignmentsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$DriverDatabase,
+      $DeliveryAssignmentsTable,
+      DeliveryAssignment,
+      $$DeliveryAssignmentsTableFilterComposer,
+      $$DeliveryAssignmentsTableOrderingComposer,
+      $$DeliveryAssignmentsTableAnnotationComposer,
+      $$DeliveryAssignmentsTableCreateCompanionBuilder,
+      $$DeliveryAssignmentsTableUpdateCompanionBuilder,
+      (
+        DeliveryAssignment,
+        BaseReferences<
+          _$DriverDatabase,
+          $DeliveryAssignmentsTable,
+          DeliveryAssignment
+        >,
+      ),
+      DeliveryAssignment,
+      PrefetchHooks Function()
+    >;
 typedef $$OfflineQueueTableCreateCompanionBuilder =
     OfflineQueueCompanion Function({
       Value<int> id,
@@ -3903,6 +4489,8 @@ class $DriverDatabaseManager {
       $$DriverProfilesTableTableManager(_db, _db.driverProfiles);
   $$DeliveryOrdersTableTableManager get deliveryOrders =>
       $$DeliveryOrdersTableTableManager(_db, _db.deliveryOrders);
+  $$DeliveryAssignmentsTableTableManager get deliveryAssignments =>
+      $$DeliveryAssignmentsTableTableManager(_db, _db.deliveryAssignments);
   $$OfflineQueueTableTableManager get offlineQueue =>
       $$OfflineQueueTableTableManager(_db, _db.offlineQueue);
   $$SyncMetadataTableTableManager get syncMetadata =>

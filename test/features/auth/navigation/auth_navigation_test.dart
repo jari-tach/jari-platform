@@ -139,6 +139,35 @@ void main() {
       expect(router.state.uri.path, AppRoutes.home);
     });
 
+    testWidgets(
+      'authenticated user is redirected from welcome to home on cold start',
+      (tester) async {
+        final repository = FakeAuthenticationRepository(
+          sessionStorage: sessionStorage,
+          logger: logger,
+          isProductionEnvironment: () => false,
+          signInDelay: Duration.zero,
+        );
+        addTearDown(repository.dispose);
+        await repository.signIn('0501234567');
+
+        final container = ProviderContainer(
+          overrides: [
+            authControllerProvider.overrideWith(
+              () => AuthController(repositoryReader: (ref) => repository),
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
+        final router = await _pumpRouterApp(tester, container);
+
+        router.go(AppRoutes.welcome);
+        await _pumpUntilSettled(tester);
+
+        expect(router.state.uri.path, AppRoutes.home);
+      },
+    );
+
     // 22. Logout prevents Back to protected screen
     testWidgets(
       'signing out redirects away from a protected route and blocks returning to it',

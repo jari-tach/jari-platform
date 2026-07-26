@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 
+import 'package:saeq_driver/features/delivery/data/fake/fake_delivery_remote_data_source.dart';
+import 'package:saeq_driver/features/delivery/data/repositories/remote_delivery_offer_repository.dart';
 import 'package:saeq_driver/shared/services/app_service_registry.dart';
 
 /// Simulates the plugin being unavailable, as happens in a plain
@@ -81,6 +83,21 @@ void main() {
       expect(AppServiceRegistry.database, isNull);
       // A DriverDatabase failure must not block NetworkMonitor activation.
       expect(AppServiceRegistry.networkMonitor, isNotNull);
+      // Delivery remote Fake still wires without DB; local Drift does not.
+      expect(
+        AppServiceRegistry.deliveryRemoteDataSource,
+        isA<FakeDeliveryRemoteDataSource>(),
+      );
+      expect(
+        AppServiceRegistry.deliveryOfferRepository,
+        isA<RemoteDeliveryOfferRepository>(),
+      );
+      expect(AppServiceRegistry.getDeliveryOffers, isNotNull);
+      expect(AppServiceRegistry.rejectDeliveryOffer, isNotNull);
+      expect(AppServiceRegistry.deliveryLocalDataSource, isNull);
+      expect(AppServiceRegistry.deliveryAssignmentRepository, isNull);
+      expect(AppServiceRegistry.acceptDeliveryOffer, isNull);
+      expect(AppServiceRegistry.getActiveDelivery, isNull);
     });
 
     test(

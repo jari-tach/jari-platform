@@ -71,6 +71,10 @@ void main() {
         (l) => l.navOrders,
         (l) => l.loading,
         (l) => l.nextStepsFocusMessage,
+        (l) => l.deliveryOfferTitle,
+        (l) => l.deliveryAccept,
+        (l) => l.deliveryEmptyTitle,
+        (l) => l.deliveryFailureUnknown,
       ];
       for (final getter in getters) {
         expect(getter(en).trim(), isNotEmpty);

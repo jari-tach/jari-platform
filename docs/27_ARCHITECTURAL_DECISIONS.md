@@ -2,9 +2,9 @@
 
 > **Version:** 1.1.0
 > **Status:** Active
-> **Last Updated:** 2026-07-25
+> **Last Updated:** 2026-07-26
 > **Author:** Senior Flutter Software Engineer
-> **Related:** [02_SYSTEM_ARCHITECTURE.md](./02_SYSTEM_ARCHITECTURE.md), [04_CLEAN_ARCHITECTURE.md](./04_CLEAN_ARCHITECTURE.md), [ADR-014](./adr/ADR_014_PLATFORM_CHANNEL_AND_DOMAIN_ALIGNMENT.md)
+> **Related:** [02_SYSTEM_ARCHITECTURE.md](./02_SYSTEM_ARCHITECTURE.md), [04_CLEAN_ARCHITECTURE.md](./04_CLEAN_ARCHITECTURE.md), [ADR-014](./adr/ADR_014_PLATFORM_CHANNEL_AND_DOMAIN_ALIGNMENT.md), [PHASE_2_5_DELIVERY_REQUEST_LIFECYCLE_ARCHITECTURE.md](./PHASE_2_5_DELIVERY_REQUEST_LIFECYCLE_ARCHITECTURE.md)
 
 ---
 
@@ -37,6 +37,15 @@ This document records **every significant architectural decision** made for the 
 | ADR-017 | Offline Availability Policy | ✅ Accepted | 2026-07-25 |
 | ADR-018 | Busy State Ownership | ✅ Accepted | 2026-07-25 |
 | ADR-019 | Availability Persistence and Restoration | ✅ Accepted | 2026-07-25 |
+| ADR-020 | DeliveryOffer vs DeliveryAssignment | ✅ Accepted | 2026-07-26 |
+| ADR-021 | Delivery Request Lifecycle | ✅ Accepted | 2026-07-26 |
+| ADR-022 | Delivery Default-Deny Transitions | ✅ Accepted | 2026-07-26 |
+| ADR-023 | One Active Offer Policy | ✅ Accepted | 2026-07-26 |
+| ADR-024 | Offline Accept Policy | ✅ Accepted | 2026-07-26 |
+| ADR-025 | Delivery Accept Busy Binding | ✅ Accepted — Implemented (PHASE 2.5) | 2026-07-26 |
+| ADR-026 | Full-Screen Offer UI | ✅ Accepted | 2026-07-26 |
+| ADR-027 | Fake Offer Security | ✅ Accepted | 2026-07-26 |
+| ADR-028 | Delivery Assignment Persistence | ✅ Accepted | 2026-07-26 |
 
 ---
 
