@@ -6,11 +6,14 @@ import '../../../../shared/services/app_service_registry.dart';
 import '../../../availability/presentation/providers/availability_providers.dart';
 import '../../../delivery/data/fake/fake_delivery_remote_data_source.dart';
 import '../../application/accept_delivery_offer_and_bind_busy.dart';
+import '../../application/complete_delivery_and_release_busy.dart';
 import '../../domain/repositories/delivery_offer_repository.dart';
 import '../../domain/usecases/accept_delivery_offer.dart';
+import '../../domain/usecases/advance_delivery_workflow.dart';
 import '../../domain/usecases/get_active_delivery.dart';
 import '../../domain/usecases/get_delivery_offers.dart';
 import '../../domain/usecases/reject_delivery_offer.dart';
+import '../../domain/usecases/verify_delivery_code.dart';
 import '../controllers/delivery_controller.dart';
 import '../state/delivery_controller_state.dart';
 
@@ -37,6 +40,20 @@ RejectDeliveryOffer? _readRejectDeliveryOffer(Ref ref) =>
 GetActiveDelivery? _readGetActiveDelivery(Ref ref) =>
     AppServiceRegistry.isInitialized
     ? AppServiceRegistry.getActiveDelivery
+    : null;
+
+AdvanceDeliveryWorkflow? _readAdvanceWorkflow(Ref ref) =>
+    AppServiceRegistry.isInitialized
+    ? AppServiceRegistry.advanceDeliveryWorkflow
+    : null;
+
+VerifyDeliveryCode? _readVerifyCode(Ref ref) => AppServiceRegistry.isInitialized
+    ? AppServiceRegistry.verifyDeliveryCode
+    : null;
+
+CompleteDeliveryAndReleaseBusy? _readCompleteDelivery(Ref ref) =>
+    AppServiceRegistry.isInitialized
+    ? AppServiceRegistry.completeDeliveryAndReleaseBusy
     : null;
 
 DeliveryOfferRepository? _readDeliveryOfferRepository(Ref ref) =>
@@ -90,6 +107,9 @@ final deliveryControllerProvider =
         acceptAndBindReader: _readAcceptAndBind,
         rejectReader: _readRejectDeliveryOffer,
         getActiveReader: _readGetActiveDelivery,
+        advanceWorkflowReader: _readAdvanceWorkflow,
+        verifyCodeReader: _readVerifyCode,
+        completeDeliveryReader: _readCompleteDelivery,
         offerRepositoryReader: _readDeliveryOfferRepository,
         driverIdReader: _readDriverId,
         acceptPreconditionsReader: _readAcceptPreconditions,

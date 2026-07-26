@@ -3,16 +3,20 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../application/accept_delivery_offer_and_bind_busy.dart';
+import '../../application/complete_delivery_and_release_busy.dart';
 import '../../domain/entities/accept_delivery_offer_request.dart';
 import '../../domain/entities/delivery_assignment.dart';
 import '../../domain/entities/delivery_offer.dart';
 import '../../domain/entities/reject_delivery_offer_request.dart';
 import '../../domain/failures/delivery_failure.dart';
+import '../../domain/policies/driver_workflow_transition_policy.dart';
 import '../../domain/repositories/delivery_offer_repository.dart';
 import '../../domain/usecases/accept_delivery_offer.dart';
+import '../../domain/usecases/advance_delivery_workflow.dart';
 import '../../domain/usecases/get_active_delivery.dart';
 import '../../domain/usecases/get_delivery_offers.dart';
 import '../../domain/usecases/reject_delivery_offer.dart';
+import '../../domain/usecases/verify_delivery_code.dart';
 import '../state/delivery_controller_state.dart';
 
 /// Explicit accept preconditions — presentation must not invent eligibility.
@@ -37,6 +41,9 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
     AcceptDeliveryOfferAndBindBusy? Function(Ref ref)? acceptAndBindReader,
     RejectDeliveryOffer? Function(Ref ref)? rejectReader,
     GetActiveDelivery? Function(Ref ref)? getActiveReader,
+    AdvanceDeliveryWorkflow? Function(Ref ref)? advanceWorkflowReader,
+    VerifyDeliveryCode? Function(Ref ref)? verifyCodeReader,
+    CompleteDeliveryAndReleaseBusy? Function(Ref ref)? completeDeliveryReader,
     DeliveryOfferRepository? Function(Ref ref)? offerRepositoryReader,
     String? Function(Ref ref)? driverIdReader,
     DeliveryAcceptPreconditions Function(Ref ref)? acceptPreconditionsReader,
@@ -47,6 +54,11 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
            acceptAndBindReader ?? _defaultAcceptAndBindReader,
        _rejectReader = rejectReader ?? _defaultRejectReader,
        _getActiveReader = getActiveReader ?? _defaultGetActiveReader,
+       _advanceWorkflowReader =
+           advanceWorkflowReader ?? _defaultAdvanceWorkflowReader,
+       _verifyCodeReader = verifyCodeReader ?? _defaultVerifyCodeReader,
+       _completeDeliveryReader =
+           completeDeliveryReader ?? _defaultCompleteDeliveryReader,
        _offerRepositoryReader =
            offerRepositoryReader ?? _defaultOfferRepositoryReader,
        _driverIdReader = driverIdReader ?? _defaultDriverIdReader,
@@ -60,6 +72,10 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
   final AcceptDeliveryOfferAndBindBusy? Function(Ref ref) _acceptAndBindReader;
   final RejectDeliveryOffer? Function(Ref ref) _rejectReader;
   final GetActiveDelivery? Function(Ref ref) _getActiveReader;
+  final AdvanceDeliveryWorkflow? Function(Ref ref) _advanceWorkflowReader;
+  final VerifyDeliveryCode? Function(Ref ref) _verifyCodeReader;
+  final CompleteDeliveryAndReleaseBusy? Function(Ref ref)
+  _completeDeliveryReader;
   final DeliveryOfferRepository? Function(Ref ref) _offerRepositoryReader;
   final String? Function(Ref ref) _driverIdReader;
   final DeliveryAcceptPreconditions Function(Ref ref)
@@ -72,6 +88,12 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
       null;
   static RejectDeliveryOffer? _defaultRejectReader(Ref ref) => null;
   static GetActiveDelivery? _defaultGetActiveReader(Ref ref) => null;
+  static AdvanceDeliveryWorkflow? _defaultAdvanceWorkflowReader(Ref ref) =>
+      null;
+  static VerifyDeliveryCode? _defaultVerifyCodeReader(Ref ref) => null;
+  static CompleteDeliveryAndReleaseBusy? _defaultCompleteDeliveryReader(
+    Ref ref,
+  ) => null;
   static DeliveryOfferRepository? _defaultOfferRepositoryReader(Ref ref) =>
       null;
   static String? _defaultDriverIdReader(Ref ref) => null;
@@ -94,6 +116,10 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
       _acceptAndBindReader(ref);
   RejectDeliveryOffer? get _reject => _rejectReader(ref);
   GetActiveDelivery? get _getActive => _getActiveReader(ref);
+  AdvanceDeliveryWorkflow? get _advanceWorkflow => _advanceWorkflowReader(ref);
+  VerifyDeliveryCode? get _verifyCode => _verifyCodeReader(ref);
+  CompleteDeliveryAndReleaseBusy? get _completeDelivery =>
+      _completeDeliveryReader(ref);
   DeliveryOfferRepository? get _offerRepository => _offerRepositoryReader(ref);
 
   @override
@@ -611,6 +637,234 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
       lastAcceptedAssignment: state.lastAcceptedAssignment,
       boundDriverId: state.boundDriverId,
     );
+  }
+
+  /// Advances the active assignment workflow (PHASE 2.6).
+  ///
+  /// Does **not** bump [_generation].
+  Future<void> advanceWorkflow(DriverWorkflowCommand command) async {
+    if (_commandInFlight || state.isLoading) return;
+    if (state.activeAssignment == null) return;
+
+    final driverId =
+        state.boundDriverId ?? state.activeAssignment!.driverId.trim();
+    if (driverId.isEmpty) {
+      state = DeliveryControllerState.failure(
+        failure: const DeliveryUnauthenticated(),
+        activeAssignment: state.activeAssignment,
+        lastAcceptedAssignment: state.lastAcceptedAssignment,
+        boundDriverId: state.boundDriverId,
+      );
+      return;
+    }
+
+    final advance = _advanceWorkflow;
+    if (advance == null) {
+      state = DeliveryControllerState.failure(
+        failure: const DeliveryUnknownFailure(
+          'Delivery workflow service is unavailable.',
+        ),
+        activeAssignment: state.activeAssignment,
+        lastAcceptedAssignment: state.lastAcceptedAssignment,
+        boundDriverId: driverId,
+      );
+      return;
+    }
+
+    final generation = _generation;
+    _commandInFlight = true;
+    state = DeliveryControllerState.processing(
+      action: DeliveryProcessingAction.advancing,
+      offers: state.offers,
+      activeOffer: state.activeOffer,
+      activeAssignment: state.activeAssignment,
+      lastAcceptedAssignment: state.lastAcceptedAssignment,
+      boundDriverId: driverId,
+    );
+
+    try {
+      final result = await advance(driverId: driverId, command: command);
+      if (!_isCurrent(generation)) return;
+      if (result.isFailure) {
+        state = DeliveryControllerState.failure(
+          failure: result.failureOrNull ?? const DeliveryUnknownFailure(),
+          activeAssignment: state.activeAssignment,
+          lastAcceptedAssignment: state.lastAcceptedAssignment,
+          boundDriverId: driverId,
+        );
+        return;
+      }
+      final assignment = result.valueOrNull;
+      state = DeliveryControllerState.ready(
+        offers: const [],
+        activeAssignment: assignment,
+        lastAcceptedAssignment: assignment ?? state.lastAcceptedAssignment,
+        boundDriverId: driverId,
+      );
+    } finally {
+      if (_isCurrent(generation)) {
+        _commandInFlight = false;
+      }
+    }
+  }
+
+  /// Verifies Fake/Backend delivery code then moves to summary.
+  Future<void> verifyDeliveryCode(String code) async {
+    if (_commandInFlight || state.isLoading) return;
+    if (state.activeAssignment == null) return;
+
+    final driverId =
+        state.boundDriverId ?? state.activeAssignment!.driverId.trim();
+    if (driverId.isEmpty) return;
+
+    final verify = _verifyCode;
+    if (verify == null) {
+      state = DeliveryControllerState.failure(
+        failure: const DeliveryUnknownFailure(
+          'Delivery verification service is unavailable.',
+        ),
+        activeAssignment: state.activeAssignment,
+        lastAcceptedAssignment: state.lastAcceptedAssignment,
+        boundDriverId: driverId,
+      );
+      return;
+    }
+
+    final generation = _generation;
+    _commandInFlight = true;
+    state = DeliveryControllerState.processing(
+      action: DeliveryProcessingAction.verifying,
+      offers: const [],
+      activeAssignment: state.activeAssignment,
+      lastAcceptedAssignment: state.lastAcceptedAssignment,
+      boundDriverId: driverId,
+    );
+
+    try {
+      final result = await verify(driverId: driverId, code: code);
+      if (!_isCurrent(generation)) return;
+      if (result.isFailure) {
+        state = DeliveryControllerState.failure(
+          failure: result.failureOrNull ?? const DeliveryUnknownFailure(),
+          activeAssignment: state.activeAssignment,
+          lastAcceptedAssignment: state.lastAcceptedAssignment,
+          boundDriverId: driverId,
+        );
+        return;
+      }
+      final assignment = result.valueOrNull;
+      state = DeliveryControllerState.ready(
+        offers: const [],
+        activeAssignment: assignment,
+        lastAcceptedAssignment: assignment ?? state.lastAcceptedAssignment,
+        boundDriverId: driverId,
+      );
+    } finally {
+      if (_isCurrent(generation)) {
+        _commandInFlight = false;
+      }
+    }
+  }
+
+  /// Dismisses summary after availability release, then clears assignment.
+  ///
+  /// Does **not** bump [_generation]. On failure, re-reads persisted
+  /// assignment truth so memory cannot diverge from the repository.
+  Future<void> completeDeliverySummary() async {
+    if (_commandInFlight || state.isLoading) return;
+
+    final driverId =
+        state.boundDriverId ?? state.activeAssignment?.driverId.trim();
+    if (driverId == null || driverId.isEmpty) {
+      if (state.activeAssignment == null) {
+        // Allow idempotent retry when memory already cleared but use case
+        // still needs a bound driver id from session.
+        final sessionDriver = _driverIdReader(ref)?.trim();
+        if (sessionDriver == null || sessionDriver.isEmpty) return;
+        return _runCompleteDeliverySummary(sessionDriver);
+      }
+      return;
+    }
+
+    await _runCompleteDeliverySummary(driverId);
+  }
+
+  Future<void> _runCompleteDeliverySummary(String driverId) async {
+    final complete = _completeDelivery;
+    if (complete == null) {
+      state = DeliveryControllerState.failure(
+        failure: const DeliveryUnknownFailure(
+          'Delivery completion service is unavailable.',
+        ),
+        offers: state.activeAssignment != null ? const [] : state.offers,
+        activeOffer: state.activeAssignment != null ? null : state.activeOffer,
+        activeAssignment: state.activeAssignment,
+        lastAcceptedAssignment: state.lastAcceptedAssignment,
+        boundDriverId: driverId,
+      );
+      return;
+    }
+
+    final generation = _generation;
+    _commandInFlight = true;
+    state = DeliveryControllerState.processing(
+      action: DeliveryProcessingAction.completing,
+      offers: const [],
+      activeAssignment: state.activeAssignment,
+      lastAcceptedAssignment: state.lastAcceptedAssignment,
+      boundDriverId: driverId,
+    );
+
+    try {
+      final result = await complete(driverId: driverId);
+      if (!_isCurrent(generation)) return;
+      if (result.isFailure) {
+        final synced = await _syncActiveAssignmentAfterCompletionFailure(
+          driverId: driverId,
+          generation: generation,
+        );
+        if (!_isCurrent(generation)) return;
+        await _availabilityRefreshReader(ref);
+        if (!_isCurrent(generation)) return;
+        state = DeliveryControllerState.failure(
+          failure: result.failureOrNull ?? const DeliveryUnknownFailure(),
+          offers: const [],
+          activeOffer: null,
+          activeAssignment: synced,
+          lastAcceptedAssignment: state.lastAcceptedAssignment,
+          boundDriverId: driverId,
+        );
+        return;
+      }
+      state = DeliveryControllerState.ready(
+        offers: const [],
+        activeAssignment: null,
+        lastAcceptedAssignment: state.lastAcceptedAssignment,
+        boundDriverId: driverId,
+      );
+      await _availabilityRefreshReader(ref);
+    } finally {
+      if (_isCurrent(generation)) {
+        _commandInFlight = false;
+      }
+    }
+  }
+
+  /// Re-reads repository assignment after a failed completion attempt.
+  Future<DeliveryAssignment?> _syncActiveAssignmentAfterCompletionFailure({
+    required String driverId,
+    required int generation,
+  }) async {
+    final getActive = _getActive;
+    if (getActive == null) {
+      return state.activeAssignment;
+    }
+    final activeResult = await getActive(driverId: driverId);
+    if (!_isCurrent(generation)) return state.activeAssignment;
+    if (activeResult.isFailure) {
+      return state.activeAssignment;
+    }
+    return activeResult.valueOrNull;
   }
 
   String _idempotencyKey(String offerId) =>

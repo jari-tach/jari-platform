@@ -80,6 +80,67 @@ class AppLocalizations {
   String get supportScreenTitle => _t('Support', 'الدعم');
   String get activeDeliveryScreenTitle =>
       _t('Active delivery', 'التوصيل النشط');
+  String get deliveryVerifyScreenTitle =>
+      _t('Verify delivery', 'تأكيد التسليم');
+  String get deliveryIssueScreenTitle =>
+      _t('Report an issue', 'الإبلاغ عن مشكلة');
+  String get deliveryMapsAction => _t('Copy maps link', 'نسخ رابط الخرائط');
+  String get deliveryMapsCopied =>
+      _t('Maps link copied', 'تم نسخ رابط الخرائط');
+  String get deliveryReportIssueAction =>
+      _t('Report a problem', 'الإبلاغ عن مشكلة');
+  String get deliveryResumeIssueAction =>
+      _t('Resume delivery', 'استئناف التوصيل');
+  String get deliveryVerifyCodeLabel => _t('Delivery code', 'رمز التسليم');
+  String get deliveryVerifyCodeHint => '1234';
+  String get deliveryVerifySubmit => _t('Confirm code', 'تأكيد الرمز');
+  String get deliveryVerifyHintMessage => _t(
+    'Enter the trial delivery code (Fake).',
+    'أدخل رمز التسليم التجريبي (وهمي).',
+  );
+  String get deliveryDismissSummary =>
+      _t('Finish and return home', 'إنهاء والعودة للرئيسية');
+  String get deliveryIssueCategoryDelay =>
+      _t('Unexpected delay', 'تأخير غير متوقع');
+  String get deliveryIssueCategoryMerchant =>
+      _t('Merchant issue', 'مشكلة لدى التاجر');
+  String get deliveryIssueCategoryCustomer =>
+      _t('Customer issue', 'مشكلة لدى العميل');
+  String get deliveryIssueCategoryOther => _t('Other', 'أخرى');
+  String get deliveryIssueSubmit => _t('Submit issue', 'إرسال البلاغ');
+  String get deliveryStageAssigned => _t('Assigned', 'تم التعيين');
+  String get deliveryStageNavPickup => _t('To pickup', 'إلى نقطة الاستلام');
+  String get deliveryStageArrivedPickup => _t('At pickup', 'عند الاستلام');
+  String get deliveryStageWaitingPickup =>
+      _t('Waiting for order', 'بانتظار الطلب');
+  String get deliveryStageCollected => _t('Collected', 'تم الاستلام');
+  String get deliveryStageNavCustomer => _t('To customer', 'إلى العميل');
+  String get deliveryStageArrivedCustomer => _t('At customer', 'عند العميل');
+  String get deliveryStageVerifying => _t('Verifying', 'جارٍ التحقق');
+  String get deliveryStageDelivered => _t('Delivered', 'تم التسليم');
+  String get deliveryStageSummary => _t('Summary', 'الملخص');
+  String get deliveryStageIssueOpen => _t('Issue open', 'مشكلة مفتوحة');
+  String get deliveryActionStartPickup =>
+      _t('Start trip to pickup', 'بدء التوجه للاستلام');
+  String get deliveryActionArrivedPickup =>
+      _t('I arrived at pickup', 'وصلت لنقطة الاستلام');
+  String get deliveryActionWaitPickup =>
+      _t('Waiting for handoff', 'بانتظار التسليم من التاجر');
+  String get deliveryActionConfirmPickup =>
+      _t('Confirm pickup', 'تأكيد الاستلام');
+  String get deliveryActionStartCustomer =>
+      _t('Start trip to customer', 'بدء التوجه للعميل');
+  String get deliveryActionArrivedCustomer =>
+      _t('I arrived at customer', 'وصلت للعميل');
+  String get deliveryActionStartVerify =>
+      _t('Enter delivery code', 'إدخال رمز التسليم');
+  String get deliveryActionShowSummary => _t('View summary', 'عرض الملخص');
+  String get deliveryWorkflowFailureMessage =>
+      _t('This step is not available right now.', 'هذه الخطوة غير متاحة الآن.');
+  String get deliveryVerificationFailureMessage => _t(
+    'Invalid delivery code. Try again.',
+    'رمز التسليم غير صالح. حاول مجددًا.',
+  );
   String screenComingSoon(String title) =>
       _t('$title screen - Coming soon', 'شاشة $title — قريبًا');
   String get shellPlaceholderMessage => _t(

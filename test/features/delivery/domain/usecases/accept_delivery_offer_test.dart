@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:saeq_driver/features/delivery/domain/entities/accept_delivery_offer_request.dart';
 import 'package:saeq_driver/features/delivery/domain/entities/delivery_offer_status.dart';
+import 'package:saeq_driver/features/delivery/domain/entities/delivery_status.dart';
+import 'package:saeq_driver/features/delivery/domain/entities/driver_workflow_stage.dart';
 import 'package:saeq_driver/features/delivery/domain/failures/delivery_failure.dart';
 import 'package:saeq_driver/features/delivery/domain/usecases/accept_delivery_offer.dart';
 
@@ -63,6 +65,20 @@ void main() {
       final offers = FakeDeliveryOfferRepository(offers: [sampleOffer()]);
       final assignments = FakeDeliveryAssignmentRepository(
         active: sampleAssignment(),
+      );
+      final result = await AcceptDeliveryOffer(offers, assignments)(request());
+      expect(result.failureOrNull, isA<DeliveryActiveAssignmentExists>());
+      expect(offers.acceptCallCount, 0);
+      offers.dispose();
+    });
+
+    test('delivered summary assignment still blocks accept', () async {
+      final offers = FakeDeliveryOfferRepository(offers: [sampleOffer()]);
+      final assignments = FakeDeliveryAssignmentRepository(
+        active: sampleAssignment(
+          status: DeliveryStatus.delivered,
+          workflowStage: DriverWorkflowStage.summary,
+        ),
       );
       final result = await AcceptDeliveryOffer(offers, assignments)(request());
       expect(result.failureOrNull, isA<DeliveryActiveAssignmentExists>());

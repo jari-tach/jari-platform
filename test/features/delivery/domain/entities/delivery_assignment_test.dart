@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:saeq_driver/features/delivery/domain/entities/delivery_status.dart';
+import 'package:saeq_driver/features/delivery/domain/entities/driver_workflow_stage.dart';
 
 import '../../helpers/delivery_fixtures.dart';
 
@@ -12,20 +13,38 @@ void main() {
       expect(a.hashCode, b.hashCode);
     });
 
-    test('isActive for accepted and pickedUp only', () {
+    test('isActive until cancelled (includes delivered summary)', () {
       expect(sampleAssignment().isActive, isTrue);
+      expect(sampleAssignment().blocksNewOffers, isTrue);
       expect(
         sampleAssignment(status: DeliveryStatus.pickedUp).isActive,
         isTrue,
       );
       expect(
         sampleAssignment(status: DeliveryStatus.delivered).isActive,
-        isFalse,
+        isTrue,
+      );
+      expect(
+        sampleAssignment(status: DeliveryStatus.delivered).blocksNewOffers,
+        isTrue,
       );
       expect(
         sampleAssignment(status: DeliveryStatus.cancelled).isActive,
         isFalse,
       );
+      expect(
+        sampleAssignment(status: DeliveryStatus.cancelled).blocksNewOffers,
+        isFalse,
+      );
+    });
+
+    test('summary-stage delivered assignment remains offer-blocking', () {
+      final summary = sampleAssignment(
+        status: DeliveryStatus.delivered,
+        workflowStage: DriverWorkflowStage.summary,
+      );
+      expect(summary.isActive, isTrue);
+      expect(summary.blocksNewOffers, isTrue);
     });
 
     test('copyWith preserves sovereign ids', () {

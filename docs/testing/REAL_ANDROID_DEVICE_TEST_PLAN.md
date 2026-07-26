@@ -307,3 +307,25 @@ Earlier slow UI automation (many `uiautomator dump`s) could exceed the 8s Fake T
 
 **Do not run on Inc 1:** OTP entry, stage advances past accepted, real maps/camera/payments.
 
+---
+
+## 9. PHASE 2.6 Increment 2 — device checklist
+
+**Baseline:** after Inc 1 commit `271d170` (+ Inc 2 changes)
+
+**Device:** VKP NX9 (`AP4EVB6423004646`)
+
+| ID | Scenario | Pass criteria |
+|----|----------|---------------|
+| I2-A | Accept → Active stages | Primary CTA advances Assigned → … → Arrived customer |
+| I2-B | Verify code | Code `1234` reaches Summary; wrong code shows error |
+| I2-C | Issue + resume | Report issue at pickup or to-customer; Resume restores prior stage |
+| I2-D | Finish summary | Availability → unavailable (`delivery.complete`) then assignment cleared; Home only after success |
+| I2-D2 | Finish failure / retry | Failed release keeps summary on screen with error; retry succeeds; no Home on failure |
+| I2-D3 | Rapid Finish | Double-tap Finish runs one completion; single Home navigation |
+| I2-E | Restart mid-stage | Force-stop after Collected; relaunch restores stage + busy |
+| I2-E2 | Restart on summary | Force-stop on summary; relaunch restores summary; no new offer until finish |
+| I2-F | Offer regression | Reject cooldown 8s + accept still work |
+
+**Do not run on Inc 2:** OTP, History/Earnings content, Settings language/theme (Inc 3–4).
+

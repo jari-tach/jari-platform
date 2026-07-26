@@ -1,9 +1,10 @@
 # PHASE 2.6 — Complete Driver UI & Interaction Layer
 
-> **Status:** Architecture **Accepted** — Increment 1 **Implemented** (awaiting review; no commit yet)  
-> **Date:** 2026-07-26  
-> **Baseline:** `7d90851` / `alpha-stable-v1.0`  
-> **Constraint:** Fake-only interactive UI; preserve Clean Architecture; no production backend; no commit/push until review  
+> **Status:** Architecture **Accepted** — Increment 1 committed (`271d170`); Increment 2 **implemented and pending commit** after isolation; Increment 3 draft may exist separately and is **not approved**
+>
+> **Date:** 2026-07-26
+> **Baseline:** `7d90851` / `alpha-stable-v1.0`
+> **Constraint:** Fake-only interactive UI; preserve Clean Architecture; no production backend; no push until review
 > **Related:** [PHASE_2_FEATURE_DEVELOPMENT_ROADMAP.md](./PHASE_2_FEATURE_DEVELOPMENT_ROADMAP.md), [ADR-020…028](./adr/), [testing/REAL_ANDROID_DEVICE_TEST_PLAN.md](./testing/REAL_ANDROID_DEVICE_TEST_PLAN.md)
 
 ---
@@ -21,7 +22,7 @@ Deliver a **complete, interactive Driver shell** (not static mockups): navigatio
 | Increment | Goal |
 |-----------|------|
 | **1** | Shared design kit + 5-tab shell + Home completion + offer polish + `/delivery/active` stub + sign-out confirm (OTP deferred) |
-| **2** | Active delivery stage machine + verify/issue sheets + Drift stage persistence |
+| **2** | Active delivery stage machine + verify/issue sheets + JSON stage persistence |
 | **3** | History / earnings / notifications list+detail+filter |
 | **4** | Profile extended + settings + support + OTP UI |
 | **5** | Responsive / a11y / E2E Fake matrix + docs closeout |
@@ -34,15 +35,36 @@ Deliver a **complete, interactive Driver shell** (not static mockups): navigatio
 
 **Under Profile (no bottom nav):** `/settings`, `/support`, `/support/safety`, `/profile/vehicle`, `/profile/documents`  
 
-**Focus (no bottom nav):** `/delivery/offer`, `/delivery/active`, `/delivery/verify`, `/delivery/issue`, detail routes  
+**Focus (no bottom nav):** `/delivery/offer`, `/delivery/active`, `/delivery/verify`, `/delivery/issue`
 
 **Compat:** `/orders` redirects to `/deliveries`.
+
+Detail routes for History/Earnings/Notifications land in Increment 3.
 
 ---
 
 ## 4. Delivery workflow (Increment 2)
 
-Driver-facing stages persist on the assignment (Fake + Drift JSON). Widgets call controller/use cases only. Do not regress offer `_generation` / watch / Fake reject cooldown. Restart restores assignment + stage; Home/Active reconcile busy binding (ADR-025).
+Driver-facing stages persist on the assignment JSON (`workflowStage`,
+`resumeAfterIssueStage`; legacy JSON defaults to `assigned`). Widgets call
+controller/use cases only. Do not regress offer `_generation` / watch / Fake
+reject cooldown. Restart restores assignment + stage; Home/Active reconcile
+busy binding (ADR-025).
+
+### Completion / release (minimum fixes)
+
+1. **Ordering:** apply authoritative availability → `unavailable`
+   (`delivery.complete`) **before** clearing the active assignment. The summary
+   row remains persisted until availability succeeds.
+2. **Idempotency:** a second complete when the assignment is already absent and
+   availability is already post-completion returns success (no user-facing error).
+3. **Navigation:** Active summary “Finish” and Issue submit navigate only after
+   confirmed controller success.
+4. **Failure re-sync:** `completeDeliverySummary` re-reads the active assignment
+   after a failed completion so memory matches repository truth.
+5. **`isActive`:** includes `delivered` as offer-blocking / active-slot ownership
+   through the summary phase (`blocksNewOffers` alias). Not limited to physical
+   transport.
 
 ---
 
@@ -52,9 +74,9 @@ Driver-facing stages persist on the assignment (Fake + Drift JSON). Widgets call
 |--------|-------|-------|
 | Auth / OTP | Secure storage + Fake | OTP UI in Inc 4; production gate unchanged |
 | Availability | SharedPreferences | Existing + DEV-ONLY Fake confirm |
-| Active assignment + stage | Drift JSON | Stage field in Inc 2 |
+| Active assignment + stage | Drift JSON | Stage field in Inc 2 (no schema migration) |
 | Home earnings/trips placeholders | In-memory Fake seed | Inc 1 — no new Drift schema |
-| History / earnings / notifications | Fake repos | Inc 3 |
+| History / earnings / notifications | Fake repos | Inc 3 (pending) |
 
 ---
 

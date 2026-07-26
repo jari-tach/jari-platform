@@ -34,6 +34,9 @@ class FakeDeliveryOfferRepository implements DeliveryOfferRepository {
 
   final _activeController = StreamController<DeliveryOffer?>.broadcast();
 
+  /// How many times [watchActiveOffer] was invoked (subscription attempts).
+  int watchSubscribeCount = 0;
+
   void emitActive(DeliveryOffer? offer) => _activeController.add(offer);
 
   void dispose() {
@@ -57,8 +60,10 @@ class FakeDeliveryOfferRepository implements DeliveryOfferRepository {
   }
 
   @override
-  Stream<DeliveryOffer?> watchActiveOffer({required String driverId}) =>
-      _activeController.stream;
+  Stream<DeliveryOffer?> watchActiveOffer({required String driverId}) {
+    watchSubscribeCount++;
+    return _activeController.stream;
+  }
 
   @override
   Future<DeliveryResult<DeliveryAssignment>> acceptOffer(

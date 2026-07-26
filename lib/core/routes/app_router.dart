@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/domain/entities/authentication_status.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/delivery/presentation/pages/active_delivery_page.dart';
+import '../../features/delivery/presentation/pages/delivery_issue_page.dart';
+import '../../features/delivery/presentation/pages/delivery_verify_page.dart';
 import '../../features/delivery/presentation/pages/incoming_delivery_offer_page.dart';
 import '../../features/driver/presentation/home_screen.dart';
 import '../../features/driver/presentation/shell_placeholder_screen.dart';
@@ -31,8 +33,14 @@ class AppRoutes {
   /// Full-screen delivery offer (ADR-026). Outside shell nav.
   static const String deliveryOffer = '/delivery/offer';
 
-  /// Active delivery stub (PHASE 2.6 Inc 1). Outside shell nav.
+  /// Active delivery (PHASE 2.6 Inc 2). Outside shell nav.
   static const String deliveryActive = '/delivery/active';
+
+  /// Delivery verification (PHASE 2.6 Inc 2).
+  static const String deliveryVerify = '/delivery/verify';
+
+  /// Delivery issue report (PHASE 2.6 Inc 2).
+  static const String deliveryIssue = '/delivery/issue';
 
   /// Protected path roots (exact or nested under these prefixes).
   static const List<String> protectedRoots = [
@@ -170,10 +178,18 @@ class AppRouter {
           builder: (context, state) => const IncomingDeliveryOfferPage(),
         ),
 
-        // Active delivery stub (protected, outside bottom nav — PHASE 2.6)
+        // Active delivery (protected, outside bottom nav — PHASE 2.6 Inc 2)
         GoRoute(
           path: AppRoutes.deliveryActive,
           builder: (context, state) => const ActiveDeliveryPage(),
+        ),
+        GoRoute(
+          path: AppRoutes.deliveryVerify,
+          builder: (context, state) => const DeliveryVerifyPage(),
+        ),
+        GoRoute(
+          path: AppRoutes.deliveryIssue,
+          builder: (context, state) => const DeliveryIssuePage(),
         ),
 
         // Settings / Support (protected, outside bottom nav — under Profile)

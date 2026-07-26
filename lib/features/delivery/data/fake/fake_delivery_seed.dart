@@ -99,6 +99,7 @@ class FakeDeliverySeed {
       order: offer.order,
       acceptedAt: at,
       serverRevision: serverRevision,
+      workflowStage: 'assigned',
     );
   }
 

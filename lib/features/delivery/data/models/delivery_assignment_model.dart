@@ -1,10 +1,12 @@
 import '../../domain/entities/delivery_assignment.dart';
 import '../../domain/entities/delivery_status.dart';
+import '../../domain/entities/driver_workflow_stage.dart';
 import 'delivery_order_model.dart';
 
-/// Data-layer DTO for [DeliveryAssignment] (PHASE 2.5).
+/// Data-layer DTO for [DeliveryAssignment] (PHASE 2.5 / 2.6).
 ///
 /// No business rules — serialization and mapping only.
+/// [workflowStage] is optional in legacy JSON (defaults to `assigned`).
 class DeliveryAssignmentModel {
   /// Creates an immutable assignment model.
   const DeliveryAssignmentModel({
@@ -15,6 +17,8 @@ class DeliveryAssignmentModel {
     required this.order,
     required this.acceptedAt,
     this.serverRevision,
+    this.workflowStage = 'assigned',
+    this.resumeAfterIssueStage,
   });
 
   final String assignmentId;
@@ -24,6 +28,8 @@ class DeliveryAssignmentModel {
   final DeliveryOrderModel order;
   final DateTime acceptedAt;
   final String? serverRevision;
+  final String workflowStage;
+  final String? resumeAfterIssueStage;
 
   /// Maps a domain entity to this model.
   factory DeliveryAssignmentModel.fromEntity(DeliveryAssignment entity) {
@@ -35,12 +41,14 @@ class DeliveryAssignmentModel {
       order: DeliveryOrderModel.fromEntity(entity.order),
       acceptedAt: entity.acceptedAt.toUtc(),
       serverRevision: entity.serverRevision,
+      workflowStage: entity.workflowStage.name,
+      resumeAfterIssueStage: entity.resumeAfterIssueStage?.name,
     );
   }
 
   /// Maps this model to a domain entity.
   ///
-  /// Throws [FormatException] when [status] is unknown.
+  /// Throws [FormatException] when [status] / stage is unknown.
   DeliveryAssignment toEntity() {
     return DeliveryAssignment(
       assignmentId: assignmentId,
@@ -50,6 +58,10 @@ class DeliveryAssignmentModel {
       order: order.toEntity(),
       acceptedAt: acceptedAt.toUtc(),
       serverRevision: serverRevision,
+      workflowStage: _parseWorkflowStage(workflowStage),
+      resumeAfterIssueStage: resumeAfterIssueStage == null
+          ? null
+          : _parseWorkflowStage(resumeAfterIssueStage!),
     );
   }
 
@@ -88,6 +100,15 @@ class DeliveryAssignmentModel {
       throw const FormatException('acceptedAt must be ISO-8601');
     }
 
+    final stageRaw = json['workflowStage'];
+    final workflowStage = stageRaw is String && stageRaw.trim().isNotEmpty
+        ? stageRaw
+        : DriverWorkflowStage.assigned.name;
+
+    final resumeRaw = json['resumeAfterIssueStage'];
+    final resumeAfterIssueStage =
+        resumeRaw is String && resumeRaw.trim().isNotEmpty ? resumeRaw : null;
+
     return DeliveryAssignmentModel(
       assignmentId: assignmentId,
       offerId: offerId,
@@ -96,6 +117,8 @@ class DeliveryAssignmentModel {
       order: DeliveryOrderModel.fromJson(Map<String, dynamic>.from(orderRaw)),
       acceptedAt: acceptedAt.toUtc(),
       serverRevision: json['serverRevision'] as String?,
+      workflowStage: workflowStage,
+      resumeAfterIssueStage: resumeAfterIssueStage,
     );
   }
 
@@ -108,6 +131,8 @@ class DeliveryAssignmentModel {
     'order': order.toJson(),
     'acceptedAt': acceptedAt.toUtc().toIso8601String(),
     'serverRevision': serverRevision,
+    'workflowStage': workflowStage,
+    'resumeAfterIssueStage': resumeAfterIssueStage,
   };
 
   static DeliveryStatus _parseDeliveryStatus(String raw) {
@@ -115,6 +140,13 @@ class DeliveryAssignmentModel {
       if (value.name == raw) return value;
     }
     throw FormatException('unknown delivery status: $raw');
+  }
+
+  static DriverWorkflowStage _parseWorkflowStage(String raw) {
+    for (final value in DriverWorkflowStage.values) {
+      if (value.name == raw) return value;
+    }
+    throw FormatException('unknown workflow stage: $raw');
   }
 
   @override
@@ -127,7 +159,9 @@ class DeliveryAssignmentModel {
           status == other.status &&
           order == other.order &&
           acceptedAt == other.acceptedAt &&
-          serverRevision == other.serverRevision;
+          serverRevision == other.serverRevision &&
+          workflowStage == other.workflowStage &&
+          resumeAfterIssueStage == other.resumeAfterIssueStage;
 
   @override
   int get hashCode => Object.hash(
@@ -138,5 +172,7 @@ class DeliveryAssignmentModel {
     order,
     acceptedAt,
     serverRevision,
+    workflowStage,
+    resumeAfterIssueStage,
   );
 }

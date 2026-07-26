@@ -6,7 +6,15 @@ import '../../domain/failures/delivery_failure.dart';
 enum DeliveryViewStatus { initial, loading, ready, processing, failure }
 
 /// In-flight user/system command while retaining last ready payloads.
-enum DeliveryProcessingAction { none, accepting, rejecting, refreshing }
+enum DeliveryProcessingAction {
+  none,
+  accepting,
+  rejecting,
+  refreshing,
+  advancing,
+  verifying,
+  completing,
+}
 
 /// Immutable UI-consumable delivery state (PHASE 2.5 presentation).
 ///

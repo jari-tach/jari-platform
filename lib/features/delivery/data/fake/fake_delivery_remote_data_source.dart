@@ -330,7 +330,9 @@ class FakeDeliveryRemoteDataSource implements DeliveryRemoteDataSource {
   }
 
   void _armRejectCooldown(String driverId) {
-    _rejectCooldownUntil[driverId] = _clock().toUtc().add(rejectReissueCooldown);
+    _rejectCooldownUntil[driverId] = _clock().toUtc().add(
+      rejectReissueCooldown,
+    );
     _reissueTimers[driverId]?.cancel();
     // Wall-clock timer so Alpha devices see a new offer without a manual
     // refresh after the empty cooldown. Tests that advance an injected clock
@@ -343,7 +345,9 @@ class FakeDeliveryRemoteDataSource implements DeliveryRemoteDataSource {
       _issueOffer(state, driverId);
       _emitWatch(driverId, state.activeOffer);
       if (kDebugMode) {
-        debugPrint('FakeDeliveryRemote: auto-issued offer after reject cooldown');
+        debugPrint(
+          'FakeDeliveryRemote: auto-issued offer after reject cooldown',
+        );
       }
     });
   }

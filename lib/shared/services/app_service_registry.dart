@@ -15,6 +15,7 @@ import '../../features/availability/domain/repositories/driver_availability_repo
 import '../../features/availability/domain/usecases/apply_authoritative_availability.dart';
 import '../../features/availability/domain/usecases/get_driver_availability.dart';
 import '../../features/delivery/application/accept_delivery_offer_and_bind_busy.dart';
+import '../../features/delivery/application/complete_delivery_and_release_busy.dart';
 import '../../features/delivery/data/datasources/delivery_local_data_source.dart';
 import '../../features/delivery/data/datasources/delivery_remote_data_source.dart';
 import '../../features/delivery/data/datasources/drift_delivery_local_data_source.dart';
@@ -24,9 +25,11 @@ import '../../features/delivery/data/repositories/remote_delivery_offer_reposito
 import '../../features/delivery/domain/repositories/delivery_assignment_repository.dart';
 import '../../features/delivery/domain/repositories/delivery_offer_repository.dart';
 import '../../features/delivery/domain/usecases/accept_delivery_offer.dart';
+import '../../features/delivery/domain/usecases/advance_delivery_workflow.dart';
 import '../../features/delivery/domain/usecases/get_active_delivery.dart';
 import '../../features/delivery/domain/usecases/get_delivery_offers.dart';
 import '../../features/delivery/domain/usecases/reject_delivery_offer.dart';
+import '../../features/delivery/domain/usecases/verify_delivery_code.dart';
 import '../../features/driver/data/datasources/local/driver_database.dart';
 import '../../features/profile/data/repositories/fake_driver_profile_repository.dart';
 import '../../features/profile/domain/repositories/driver_profile_repository.dart';
@@ -246,6 +249,22 @@ final class AppServiceRegistry {
             () async => GetActiveDelivery(assignmentRepository),
           );
 
+    _advanceDeliveryWorkflow = assignmentRepository == null
+        ? null
+        : await _safeInit<AdvanceDeliveryWorkflow>(
+            'AdvanceDeliveryWorkflow',
+            _logger,
+            () async => AdvanceDeliveryWorkflow(assignmentRepository),
+          );
+
+    _verifyDeliveryCode = assignmentRepository == null
+        ? null
+        : await _safeInit<VerifyDeliveryCode>(
+            'VerifyDeliveryCode',
+            _logger,
+            () async => VerifyDeliveryCode(assignmentRepository),
+          );
+
     // ADR-025 — accept + busy binding coordinator (application layer).
     final availabilityRepository = _driverAvailabilityRepository;
     _acceptDeliveryOfferAndBindBusy =
@@ -261,12 +280,26 @@ final class AppServiceRegistry {
             ),
           );
 
+    _completeDeliveryAndReleaseBusy =
+        (assignmentRepository == null || availabilityRepository == null)
+        ? null
+        : await _safeInit<CompleteDeliveryAndReleaseBusy>(
+            'CompleteDeliveryAndReleaseBusy',
+            _logger,
+            () async => CompleteDeliveryAndReleaseBusy(
+              assignmentRepository,
+              ApplyAuthoritativeAvailability(availabilityRepository),
+              GetDriverAvailability(availabilityRepository),
+            ),
+          );
+
     _logger.info(
       'AppServiceRegistry delivery stack: '
       'remote=${_deliveryRemoteDataSource == null ? "none" : _deliveryRemoteDataSource.runtimeType}, '
       'localDb=${_deliveryLocalDataSource == null ? "none" : "Drift"}, '
       'offers=${_getDeliveryOffers != null}, '
       'acceptBind=${_acceptDeliveryOfferAndBindBusy != null}, '
+      'workflow=${_advanceDeliveryWorkflow != null}, '
       'env=${AppConfig.environment.name}, '
       'debug=${AppConfig.isDebug}',
     );
@@ -339,7 +372,10 @@ final class AppServiceRegistry {
   AcceptDeliveryOffer? _acceptDeliveryOffer;
   RejectDeliveryOffer? _rejectDeliveryOffer;
   GetActiveDelivery? _getActiveDelivery;
+  AdvanceDeliveryWorkflow? _advanceDeliveryWorkflow;
+  VerifyDeliveryCode? _verifyDeliveryCode;
   AcceptDeliveryOfferAndBindBusy? _acceptDeliveryOfferAndBindBusy;
+  CompleteDeliveryAndReleaseBusy? _completeDeliveryAndReleaseBusy;
 
   /// The application's logger service.
   static LoggerService get logger => _instance!._logger;
@@ -417,9 +453,21 @@ final class AppServiceRegistry {
   static GetActiveDelivery? get getActiveDelivery =>
       _instance!._getActiveDelivery;
 
+  /// Use case: advance active delivery workflow stage (PHASE 2.6).
+  static AdvanceDeliveryWorkflow? get advanceDeliveryWorkflow =>
+      _instance!._advanceDeliveryWorkflow;
+
+  /// Use case: Fake/Backend delivery code verification (PHASE 2.6).
+  static VerifyDeliveryCode? get verifyDeliveryCode =>
+      _instance!._verifyDeliveryCode;
+
   /// ADR-025 application coordinator: accept + persist + busy bind.
   static AcceptDeliveryOfferAndBindBusy? get acceptDeliveryOfferAndBindBusy =>
       _instance!._acceptDeliveryOfferAndBindBusy;
+
+  /// Application coordinator: clear summary assignment + release busy.
+  static CompleteDeliveryAndReleaseBusy? get completeDeliveryAndReleaseBusy =>
+      _instance!._completeDeliveryAndReleaseBusy;
 
   /// True once [init] has completed, regardless of whether every
   /// non-critical service succeeded.
