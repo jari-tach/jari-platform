@@ -156,6 +156,64 @@ class AppLocalizations {
     'أنت غير متصل. قد تكون بعض الإجراءات غير متاحة.',
   );
 
+  // —— History / Earnings / Notifications (PHASE 2.6 Inc 3) ——
+  String get historyFilterAll => _t('All', 'الكل');
+  String get historyFilterDelivered => _t('Delivered', 'مُسلَّم');
+  String get historyFilterCancelled => _t('Cancelled', 'ملغى');
+  String get historyStatusDelivered => _t('Delivered', 'مُسلَّم');
+  String get historyStatusCancelled => _t('Cancelled', 'ملغى');
+  String get historyEmptyTitle =>
+      _t('No deliveries yet', 'لا توجد توصيلات بعد');
+  String get historyEmptyMessage =>
+      _t('Completed trips will appear here.', 'ستظهر الرحلات المكتملة هنا.');
+  String get historyErrorTitle =>
+      _t('Could not load history', 'تعذر تحميل السجل');
+  String get historyErrorMessage =>
+      _t('Please try again.', 'يرجى المحاولة مجددًا.');
+  String get historyDetailTitle => _t('Delivery details', 'تفاصيل التوصيل');
+
+  String get earningsFilterAll => _t('All', 'الكل');
+  String get earningsFilterToday => _t('Today', 'اليوم');
+  String get earningsFilterWeek => _t('This week', 'هذا الأسبوع');
+  String get earningsFilterMonth => _t('This month', 'هذا الشهر');
+  String get earningsEmptyTitle => _t('No earnings yet', 'لا توجد أرباح بعد');
+  String get earningsEmptyMessage =>
+      _t('Earnings summaries will appear here.', 'ستظهر ملخصات الأرباح هنا.');
+  String get earningsErrorTitle =>
+      _t('Could not load earnings', 'تعذر تحميل الأرباح');
+  String get earningsErrorMessage =>
+      _t('Please try again.', 'يرجى المحاولة مجددًا.');
+  String get earningsDetailTitle => _t('Earnings details', 'تفاصيل الأرباح');
+
+  String get notificationsEmptyTitle =>
+      _t('No notifications', 'لا توجد إشعارات');
+  String get notificationsEmptyMessage =>
+      _t('Updates will appear here.', 'ستظهر التحديثات هنا.');
+  String get notificationsErrorTitle =>
+      _t('Could not load notifications', 'تعذر تحميل الإشعارات');
+  String get notificationsErrorMessage =>
+      _t('Please try again.', 'يرجى المحاولة مجددًا.');
+  String get notificationDetailTitle => _t('Notification', 'إشعار');
+  String get notificationRead => _t('Read', 'مقروء');
+  String get notificationUnread => _t('Unread', 'غير مقروء');
+  String get notificationMarkRead => _t('Mark as read', 'تعليمليم كمقروء');
+  String get notificationTitleOffer =>
+      _t('New delivery offer', 'عرض توصيل جديد');
+  String get notificationTitlePayout => _t('Payout update', 'تحديث الأرباح');
+  String get notificationTitleSystem => _t('System notice', 'تنبيه النظام');
+  String get notificationBodyOffer => _t(
+    'A new offer is available while you are online.',
+    'يتوفر عرض جديد أثناء اتصالك.',
+  );
+  String get notificationBodyPayout => _t(
+    'Your trial earnings summary was updated.',
+    'تم تحديث ملخص أرباحك التجريبي.',
+  );
+  String get notificationBodySystem => _t(
+    'Keep the app updated for the best experience.',
+    'أبقِ التطبيق محدّثًا لأفضل تجربة.',
+  );
+
   // —— Welcome ——
   String get welcomeTitle =>
       _t('Welcome to Saeq Driver', 'مرحبًا بك في سائق صَعِق');

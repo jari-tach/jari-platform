@@ -329,3 +329,17 @@ Earlier slow UI automation (many `uiautomator dump`s) could exceed the 8s Fake T
 
 **Do not run on Inc 2:** OTP, History/Earnings content, Settings language/theme (Inc 3–4).
 
+---
+
+## 10. PHASE 2.6 Increment 3 — device checklist
+
+| ID | Scenario | Pass criteria |
+|----|----------|---------------|
+| I3-A | Deliveries tab | List + filters All/Delivered/Cancelled; open detail |
+| I3-B | Earnings tab | List + filters; open detail amounts |
+| I3-C | Notifications | List; open unread; Mark as read returns to list as read |
+| I3-D | Active entry | From Deliveries, can open Active delivery route |
+| I3-E | Production gate | Release/production must not construct Fake history/earnings/notif repos |
+
+**Do not run on Inc 3:** OTP, Settings language/theme (Inc 4).
+

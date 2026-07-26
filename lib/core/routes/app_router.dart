@@ -10,6 +10,9 @@ import '../../features/delivery/presentation/pages/incoming_delivery_offer_page.
 import '../../features/driver/presentation/home_screen.dart';
 import '../../features/driver/presentation/shell_placeholder_screen.dart';
 import '../../features/driver/presentation/welcome_screen.dart';
+import '../../features/earnings/presentation/screens/earnings_screen.dart';
+import '../../features/history/presentation/screens/deliveries_history_screen.dart';
+import '../../features/notifications/presentation/screens/notifications_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../localization/app_localizations.dart';
 import '../theme/saeq_semantic_colors.dart';
@@ -42,6 +45,12 @@ class AppRoutes {
 
   /// Delivery issue report (PHASE 2.6 Inc 2).
   static const String deliveryIssue = '/delivery/issue';
+
+  static String deliveryHistoryDetail(String id) => '/deliveries/$id';
+
+  static String earningsDetail(String id) => '/earnings/$id';
+
+  static String notificationDetail(String id) => '/notifications/$id';
 
   /// Protected path roots (exact or nested under these prefixes).
   static const List<String> protectedRoots = [
@@ -179,7 +188,7 @@ class AppRouter {
           builder: (context, state) => const IncomingDeliveryOfferPage(),
         ),
 
-        // Active delivery (protected, outside bottom nav — PHASE 2.6 Inc 2)
+        // Active delivery (protected, outside bottom nav — PHASE 2.6)
         GoRoute(
           path: AppRoutes.deliveryActive,
           builder: (context, state) => const ActiveDeliveryPage(),
@@ -191,6 +200,23 @@ class AppRouter {
         GoRoute(
           path: AppRoutes.deliveryIssue,
           builder: (context, state) => const DeliveryIssuePage(),
+        ),
+
+        // History / earnings / notification details (no bottom nav)
+        GoRoute(
+          path: '/deliveries/:id',
+          builder: (context, state) =>
+              DeliveryHistoryDetailScreen(id: state.pathParameters['id']!),
+        ),
+        GoRoute(
+          path: '/earnings/:id',
+          builder: (context, state) =>
+              EarningsDetailScreen(id: state.pathParameters['id']!),
+        ),
+        GoRoute(
+          path: '/notifications/:id',
+          builder: (context, state) =>
+              NotificationDetailScreen(id: state.pathParameters['id']!),
         ),
 
         // Settings / Support (protected, outside bottom nav — under Profile)
@@ -224,28 +250,15 @@ class AppRouter {
             ),
             GoRoute(
               path: AppRoutes.deliveries,
-              builder: (context, state) {
-                final l10n = AppLocalizations.of(context);
-                return ShellPlaceholderScreen(
-                  title: l10n.deliveriesScreenTitle,
-                );
-              },
+              builder: (context, state) => const DeliveriesHistoryScreen(),
             ),
             GoRoute(
               path: AppRoutes.earnings,
-              builder: (context, state) {
-                final l10n = AppLocalizations.of(context);
-                return ShellPlaceholderScreen(title: l10n.earningsScreenTitle);
-              },
+              builder: (context, state) => const EarningsScreen(),
             ),
             GoRoute(
               path: AppRoutes.notifications,
-              builder: (context, state) {
-                final l10n = AppLocalizations.of(context);
-                return ShellPlaceholderScreen(
-                  title: l10n.notificationsScreenTitle,
-                );
-              },
+              builder: (context, state) => const NotificationsScreen(),
             ),
             GoRoute(
               path: AppRoutes.profile,
@@ -261,17 +274,31 @@ class AppRouter {
   ///
   /// Settings / Support live under Profile (focus routes), not as root tabs.
   /// Use [GoRouter.go] on tab taps to avoid stacking duplicates.
+  /// Detail routes (`/deliveries/:id` etc.) live outside the shell — keep
+  /// bottom-nav highlight on the nearest root tab when path is nested.
   static Widget _buildBottomNav(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final colors = SaeqSemanticColors.of(context);
     final path = GoRouterState.of(context).uri.path;
-    final currentIndex = switch (path) {
-      AppRoutes.deliveries => 1,
-      AppRoutes.earnings => 2,
-      AppRoutes.notifications => 3,
-      AppRoutes.profile => 4,
-      _ => 0,
-    };
+    final currentIndex = () {
+      if (path == AppRoutes.deliveries ||
+          path.startsWith('${AppRoutes.deliveries}/')) {
+        return 1;
+      }
+      if (path == AppRoutes.earnings ||
+          path.startsWith('${AppRoutes.earnings}/')) {
+        return 2;
+      }
+      if (path == AppRoutes.notifications ||
+          path.startsWith('${AppRoutes.notifications}/')) {
+        return 3;
+      }
+      if (path == AppRoutes.profile ||
+          path.startsWith('${AppRoutes.profile}/')) {
+        return 4;
+      }
+      return 0;
+    }();
     return BottomNavigationBar(
       type: BottomNavigationBarType.fixed,
       currentIndex: currentIndex,

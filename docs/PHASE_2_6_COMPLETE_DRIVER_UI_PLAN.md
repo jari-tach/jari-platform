@@ -1,10 +1,10 @@
 ﻿# PHASE 2.6 â€” Complete Driver UI & Interaction Layer
 
-> **Status:** Architecture **Accepted** — Increment 1 committed (`271d170`); Increment 2 **implemented and pending commit** after isolation; **Design System Sprint 1 implemented** (temporary Forest Green pending brand approval); **Increment 3 remains separate/uncommitted** (not approved).
+> **Status:** Architecture **Accepted** — Increment 1 committed (`271d170`); Increment 2 committed (`6338ec4`); Design Sprint 1 committed (`faf7d0f`); Increment 3 Fake Alpha dirty awaiting commit (**not approved**)
 >
 > **Date:** 2026-07-26
 > **Baseline:** `7d90851` / `alpha-stable-v1.0`
-> **Constraint:** Fake-only interactive UI; preserve Clean Architecture; no production backend; no push until review
+> **Constraint:** Fake-only interactive UI; preserve Clean Architecture; no production backend; no commit/push until review
 > **Related:** [PHASE_2_FEATURE_DEVELOPMENT_ROADMAP.md](./PHASE_2_FEATURE_DEVELOPMENT_ROADMAP.md), [ADR-020â€¦028](./adr/), [testing/REAL_ANDROID_DEVICE_TEST_PLAN.md](./testing/REAL_ANDROID_DEVICE_TEST_PLAN.md)
 
 ---
@@ -22,7 +22,7 @@ Deliver a **complete, interactive Driver shell** (not static mockups): navigatio
 | Increment | Goal |
 |-----------|------|
 | **1** | Shared design kit + 5-tab shell + Home completion + offer polish + `/delivery/active` stub + sign-out confirm (OTP deferred) |
-| **2** | Active delivery stage machine + verify/issue sheets + JSON stage persistence |
+| **2** | Active delivery stage machine + verify/issue sheets + Drift stage persistence |
 | **3** | History / earnings / notifications list+detail+filter |
 | **4** | Profile extended + settings + support + OTP UI |
 | **5** | Responsive / a11y / E2E Fake matrix + docs closeout |
@@ -35,11 +35,9 @@ Deliver a **complete, interactive Driver shell** (not static mockups): navigatio
 
 **Under Profile (no bottom nav):** `/settings`, `/support`, `/support/safety`, `/profile/vehicle`, `/profile/documents`  
 
-**Focus (no bottom nav):** `/delivery/offer`, `/delivery/active`, `/delivery/verify`, `/delivery/issue`
+**Focus (no bottom nav):** `/delivery/offer`, `/delivery/active`, `/delivery/verify`, `/delivery/issue`, detail routes
 
 **Compat:** `/orders` redirects to `/deliveries`.
-
-Detail routes for History/Earnings/Notifications land in Increment 3.
 
 ---
 
@@ -66,6 +64,20 @@ busy binding (ADR-025).
    through the summary phase (`blocksNewOffers` alias). Not limited to physical
    transport.
 
+Increment 3 History/Earnings/Notifications draft content may exist in the
+working tree but is **not approved** by this Increment 2 fix set.
+
+### Increment 3 â€” Fake Alpha boundaries (unapproved until validation)
+
+| Surface | Truth |
+|---------|--------|
+| **History** | **Fake Alpha** seeded data only. **Not** derived from real completed assignments / Inc2 workflow. |
+| **Earnings** | **Fake Alpha** seeded periods only. **Not** settlement-grade. `double` amounts are display seeds; production money must later use **integer minor units** or an approved decimal type. |
+| **Notifications** | **Local Fake Alpha** in-memory list. **Push notifications are not implemented.** |
+| **Approval** | Increment 3 remains **draft / unapproved** until final architectural validation and a separate commit authorization. |
+
+Do **not** treat Fake History or Earnings as production or accounting data.
+
 ---
 
 ## 5. Fake & persistence (summary)
@@ -74,9 +86,9 @@ busy binding (ADR-025).
 |--------|-------|-------|
 | Auth / OTP | Secure storage + Fake | OTP UI in Inc 4; production gate unchanged |
 | Availability | SharedPreferences | Existing + DEV-ONLY Fake confirm |
-| Active assignment + stage | Drift JSON | Stage field in Inc 2 (no schema migration) |
+| Active assignment + stage | Drift JSON | Stage field in Inc 2 |
 | Home earnings/trips placeholders | In-memory Fake seed | Inc 1 â€” no new Drift schema |
-| History / earnings / notifications | Fake repos | Inc 3 (pending) |
+| History / earnings / notifications | Fake repos (Inc 3, Fake Alpha only) | Not linked to live completions; no push |
 
 ---
 
