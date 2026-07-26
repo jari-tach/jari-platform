@@ -100,7 +100,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ],
                 const SizedBox(height: 24),
                 SaeqPrimaryButton(
-                  label: isBusy ? '...' : l10n.signIn,
+                  label: isBusy ? l10n.loadingEllipsis : l10n.signIn,
                   icon: Icons.login,
                   // `null` disables the button while a sign-in request is
                   // already in flight, preventing duplicate submissions.

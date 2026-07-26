@@ -6,6 +6,7 @@ import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/driver/presentation/home_screen.dart';
 import '../../features/driver/presentation/welcome_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
+import '../localization/app_localizations.dart';
 
 /// App routes
 class AppRoutes {
@@ -57,14 +58,17 @@ class AppRouter {
       refreshListenable: refreshListenable,
 
       // Error page for unknown routes
-      errorBuilder: (context, state) => Scaffold(
-        body: Center(
-          child: Text(
-            'Page not found: ${state.uri}',
-            style: Theme.of(context).textTheme.headlineMedium,
+      errorBuilder: (context, state) {
+        final l10n = AppLocalizations.of(context);
+        return Scaffold(
+          body: Center(
+            child: Text(
+              l10n.pageNotFoundWithUri('${state.uri}'),
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
           ),
-        ),
-      ),
+        );
+      },
 
       // Authentication guard (PHASE 2.2).
       //
@@ -107,8 +111,13 @@ class AppRouter {
         // Back to return to the Welcome screen instead of exiting the app).
         GoRoute(
           path: AppRoutes.comingSoon,
-          builder: (context, state) =>
-              _buildPlaceholder(context, 'Explore Architecture'),
+          builder: (context, state) {
+            final l10n = AppLocalizations.of(context);
+            return _buildPlaceholder(
+              context,
+              l10n.exploreArchitectureScreenTitle,
+            );
+          },
         ),
 
         // Trial driver sign-in (public)
@@ -136,7 +145,10 @@ class AppRouter {
             // Orders
             GoRoute(
               path: AppRoutes.orders,
-              builder: (context, state) => _buildPlaceholder(context, 'Orders'),
+              builder: (context, state) {
+                final l10n = AppLocalizations.of(context);
+                return _buildPlaceholder(context, l10n.ordersScreenTitle);
+              },
             ),
 
             // Profile (PHASE 2.3)
@@ -148,8 +160,10 @@ class AppRouter {
             // Settings
             GoRoute(
               path: AppRoutes.settings,
-              builder: (context, state) =>
-                  _buildPlaceholder(context, 'Settings'),
+              builder: (context, state) {
+                final l10n = AppLocalizations.of(context);
+                return _buildPlaceholder(context, l10n.settingsScreenTitle);
+              },
             ),
           ],
         ),
@@ -159,13 +173,26 @@ class AppRouter {
 
   /// Build bottom navigation bar
   static Widget _buildBottomNav(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return BottomNavigationBar(
       type: BottomNavigationBarType.fixed,
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-        BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: 'Orders'),
-        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
+      items: [
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.home),
+          label: l10n.navHome,
+        ),
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.list_alt),
+          label: l10n.navOrders,
+        ),
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.person),
+          label: l10n.navProfile,
+        ),
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.settings),
+          label: l10n.navSettings,
+        ),
       ],
       onTap: (index) {
         switch (index) {
@@ -188,11 +215,12 @@ class AppRouter {
 
   /// Build placeholder screen
   static Widget _buildPlaceholder(BuildContext context, String title) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: Center(
         child: Text(
-          '$title screen - Coming soon',
+          l10n.screenComingSoon(title),
           style: Theme.of(context).textTheme.bodyLarge,
         ),
       ),
