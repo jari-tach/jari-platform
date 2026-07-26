@@ -190,6 +190,11 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
 
+      // Confirm destructive dialog (PHASE 2.6).
+      await tester.tap(find.byKey(const Key('saeqDestructiveDialogConfirm')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+
       expect(repository.currentSession, isNull);
     });
   });

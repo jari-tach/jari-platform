@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_theme.dart';
 
-/// Primary CTA with optional loading / disabled (48dp min height).
-class SaeqPrimaryButton extends StatelessWidget {
-  const SaeqPrimaryButton({
+/// Outlined secondary CTA (48dp min height).
+class SaeqSecondaryButton extends StatelessWidget {
+  const SaeqSecondaryButton({
     super.key,
     required this.label,
     this.onPressed,
@@ -21,12 +21,12 @@ class SaeqPrimaryButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final enabled = onPressed != null && !isLoading;
     final child = isLoading
-        ? const SizedBox(
+        ? SizedBox(
             width: 22,
             height: 22,
             child: CircularProgressIndicator(
               strokeWidth: 2.5,
-              color: Colors.white,
+              color: AppColors.primary,
             ),
           )
         : icon == null
@@ -42,13 +42,11 @@ class SaeqPrimaryButton extends StatelessWidget {
 
     return SizedBox(
       width: double.infinity,
-      child: FilledButton(
+      child: OutlinedButton(
         onPressed: enabled ? onPressed : null,
-        style: FilledButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.45),
-          disabledForegroundColor: Colors.white70,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          side: const BorderSide(color: AppColors.primary),
           minimumSize: const Size(0, 48),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),

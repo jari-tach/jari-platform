@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/routes/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../pages/active_delivery_page.dart';
 import '../pages/incoming_delivery_offer_page.dart';
 import '../providers/delivery_providers.dart';
 
@@ -46,7 +47,7 @@ class DeliveryOfferHomeBanner extends ConsumerWidget {
         child: InkWell(
           key: openKey,
           borderRadius: BorderRadius.circular(AppTheme.radiusXL),
-          onTap: () => _openOffer(context),
+          onTap: () => _openSurface(context, isAssignment: isAssignment),
           child: Container(
             width: double.infinity,
             padding: const EdgeInsets.all(AppTheme.spacingMD),
@@ -87,15 +88,20 @@ class DeliveryOfferHomeBanner extends ConsumerWidget {
     );
   }
 
-  void _openOffer(BuildContext context) {
+  void _openSurface(BuildContext context, {required bool isAssignment}) {
+    final route = isAssignment
+        ? AppRoutes.deliveryActive
+        : AppRoutes.deliveryOffer;
     final router = GoRouter.maybeOf(context);
     if (router != null) {
-      router.push(AppRoutes.deliveryOffer);
+      router.push(route);
       return;
     }
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => const IncomingDeliveryOfferPage(),
+        builder: (_) => isAssignment
+            ? const ActiveDeliveryPage()
+            : const IncomingDeliveryOfferPage(),
       ),
     );
   }

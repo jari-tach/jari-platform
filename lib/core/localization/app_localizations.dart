@@ -62,17 +62,38 @@ class AppLocalizations {
   String pageNotFoundWithUri(String uri) =>
       _t('Page not found: $uri', 'الصفحة غير موجودة: $uri');
   String get navHome => _t('Home', 'الرئيسية');
-  String get navOrders => _t('Orders', 'الطلبات');
+  String get navDeliveries => _t('Deliveries', 'التوصيلات');
+  String get navEarnings => _t('Earnings', 'الأرباح');
+  String get navNotifications => _t('Alerts', 'التنبيهات');
   String get navProfile => _t('Profile', 'الملف');
   String get navSettings => _t('Settings', 'الإعدادات');
+
+  /// Legacy alias — bottom nav now uses [navDeliveries].
+  String get navOrders => navDeliveries;
   String get exploreArchitectureScreenTitle =>
       _t('Explore Architecture', 'استكشف الهيكلة');
-  String get ordersScreenTitle => _t('Orders', 'الطلبات');
+  String get deliveriesScreenTitle => _t('Deliveries', 'التوصيلات');
+  String get earningsScreenTitle => _t('Earnings', 'الأرباح');
+  String get notificationsScreenTitle => _t('Notifications', 'الإشعارات');
+  String get ordersScreenTitle => deliveriesScreenTitle;
   String get settingsScreenTitle => _t('Settings', 'الإعدادات');
+  String get supportScreenTitle => _t('Support', 'الدعم');
+  String get activeDeliveryScreenTitle =>
+      _t('Active delivery', 'التوصيل النشط');
   String screenComingSoon(String title) =>
       _t('$title screen - Coming soon', 'شاشة $title — قريبًا');
+  String get shellPlaceholderMessage => _t(
+    'This section will be ready in a later increment.',
+    'هذا القسم سيكون جاهزًا في زيادة لاحقة.',
+  );
   String get loadingEllipsis => _t('...', '...');
   String get loading => _t('Loading', 'جارٍ التحميل');
+  String get cancelAction => _t('Cancel', 'إلغاء');
+  String get confirmAction => _t('Confirm', 'تأكيد');
+  String get offlineBannerMessage => _t(
+    'You are offline. Some actions may be unavailable.',
+    'أنت غير متصل. قد تكون بعض الإجراءات غير متاحة.',
+  );
 
   // —— Welcome ——
   String get welcomeTitle =>
@@ -102,6 +123,11 @@ class AppLocalizations {
   // —— Authentication ——
   String get signIn => _t('Sign In', 'تسجيل الدخول');
   String get signOut => _t('Sign Out', 'تسجيل الخروج');
+  String get signOutConfirmTitle => _t('Sign out?', 'تسجيل الخروج؟');
+  String get signOutConfirmMessage => _t(
+    'You will need to sign in again to receive delivery offers.',
+    'ستحتاج لتسجيل الدخول مجددًا لاستقبال عروض التوصيل.',
+  );
   String get loginTitle => _t('Driver Sign In', 'تسجيل دخول السائق');
   String get loginSubtitle => _t(
     'Enter your phone number to continue (trial mode)',
@@ -113,6 +139,21 @@ class AppLocalizations {
   String get phoneNumberHint => '05XXXXXXXX';
   String get homeWelcomeTitle =>
       _t('Signed in successfully', 'تم تسجيل الدخول بنجاح');
+  String get homeTodayEarningsLabel => _t("Today's earnings", 'أرباح اليوم');
+  String get homeTripsTodayLabel => _t('Trips today', 'رحلات اليوم');
+  String get homeAcceptanceRateLabel => _t('Acceptance rate', 'نسبة القبول');
+  String homeEarningsValue(String amount) => _t('SAR $amount', '$amount ر.س');
+  String homeTripsValue(int count) => _t('$count trips', '$count رحلة');
+  String homeAcceptanceValue(int percent) => _t('$percent%', '$percent%');
+  String get homeQuickActionsTitle => _t('Quick actions', 'إجراءات سريعة');
+  String get homeQuickActionDeliveries =>
+      _t('View deliveries', 'عرض التوصيلات');
+  String get homeQuickActionEarnings => _t('View earnings', 'عرض الأرباح');
+  String get homeQuickActionNotifications => _t('Notifications', 'الإشعارات');
+  String get homeOpenNotificationsTooltip =>
+      _t('Open notifications', 'فتح الإشعارات');
+  String get homeFakeSummaryHint =>
+      _t('Trial summary (Fake data)', 'ملخص تجريبي (بيانات وهمية)');
   String get invalidPhoneNumberMessage => _t(
     'Please enter a valid phone number (05XXXXXXXX).',
     'يرجى إدخال رقم جوال صالح (05XXXXXXXX).',
@@ -138,6 +179,8 @@ class AppLocalizations {
 
   // —— Profile ——
   String get profileTitle => _t('Profile', 'ملف السائق');
+  String get profileOpenSettings => _t('Settings', 'الإعدادات');
+  String get profileOpenSupport => _t('Support', 'الدعم');
   String get profileRetry => _t('Retry', 'إعادة المحاولة');
   String get profileEmptyTitle => _t('No profile yet', 'لا يوجد ملف بعد');
   String get profileEmptyMessage => _t(

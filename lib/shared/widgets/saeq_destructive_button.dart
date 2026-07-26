@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_theme.dart';
 
-/// Primary CTA with optional loading / disabled (48dp min height).
-class SaeqPrimaryButton extends StatelessWidget {
-  const SaeqPrimaryButton({
+/// Danger / destructive CTA (48dp min height).
+class SaeqDestructiveButton extends StatelessWidget {
+  const SaeqDestructiveButton({
     super.key,
     required this.label,
     this.onPressed,
@@ -45,9 +45,9 @@ class SaeqPrimaryButton extends StatelessWidget {
       child: FilledButton(
         onPressed: enabled ? onPressed : null,
         style: FilledButton.styleFrom(
-          backgroundColor: AppColors.primary,
+          backgroundColor: AppColors.error,
           foregroundColor: Colors.white,
-          disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.45),
+          disabledBackgroundColor: AppColors.error.withValues(alpha: 0.45),
           disabledForegroundColor: Colors.white70,
           minimumSize: const Size(0, 48),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/routes/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../shared/widgets/saeq_primary_button.dart';
+import '../../../../shared/widgets/saeq_secondary_button.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../domain/entities/driver_status.dart';
 import '../../domain/entities/profile_error.dart';
@@ -96,6 +99,18 @@ class ProfileScreen extends ConsumerWidget {
                 value: profile.vehicleType!,
               ),
             const SizedBox(height: 24),
+            SaeqSecondaryButton(
+              label: l10n.profileOpenSettings,
+              icon: Icons.settings_outlined,
+              onPressed: () => context.push(AppRoutes.settings),
+            ),
+            const SizedBox(height: 8),
+            SaeqSecondaryButton(
+              label: l10n.profileOpenSupport,
+              icon: Icons.support_agent_outlined,
+              onPressed: () => context.push(AppRoutes.support),
+            ),
+            const SizedBox(height: 16),
             SaeqPrimaryButton(
               label: l10n.profileRetry,
               icon: Icons.refresh,

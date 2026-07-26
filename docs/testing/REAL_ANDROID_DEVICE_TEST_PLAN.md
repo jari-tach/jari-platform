@@ -283,3 +283,27 @@ Script: `device_test_artifacts/verify_race_fast.ps1`
 
 Earlier slow UI automation (many `uiautomator dump`s) could exceed the 8s Fake Timer and look like “refresh re-issued”; the fast script avoids that. **Unlock the device** and re-run `verify_race_fast.ps1` to close the matrix (one stream / one assignment / one busy / no dup offers / no orphan).
 
+---
+
+## 8. PHASE 2.6 Increment 1 — device checklist
+
+**Baseline:** `7d90851` / `alpha-stable-v1.0`
+
+**Device:** VKP NX9 (`AP4EVB6423004646`)
+
+**Constraint:** Fake UI only; do not regress offer generation / 8s reject cooldown / assignment suppression.
+
+| ID | Scenario | Pass criteria |
+|----|----------|---------------|
+| I1-A | Bottom nav 5 tabs | Home, Deliveries, Earnings, Notifications, Profile visible; Settings **not** a root tab |
+| I1-B | `/orders` compat | Opening `/orders` lands on Deliveries |
+| I1-C | Home strip | Fake today earnings + trips (or acceptance placeholder) visible when signed in |
+| I1-D | Offline banner | Airplane mode shows offline banner on Home; restore hides it |
+| I1-E | Quick actions | Can open Deliveries / Notifications / Earnings from Home actions |
+| I1-F | Offer path | Available → offer → Accept still works; banner → `/delivery/active` stub shows assignment summary |
+| I1-G | Reject cooldown | Reject → empty → wait ≥8s → new offer (unchanged Alpha behavior) |
+| I1-H | Sign-out confirm | Sign Out opens confirm dialog; Cancel keeps session; Confirm signs out |
+| I1-I | Restart busy | Accept → force-stop → relaunch → busy + assignment still restored |
+
+**Do not run on Inc 1:** OTP entry, stage advances past accepted, real maps/camera/payments.
+

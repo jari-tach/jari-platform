@@ -373,25 +373,27 @@
 19. **Backend فعلي مطلوب؟** لا لإغلاق المرحلة، **نعم** لأي اختبار حمل حقيقي (Concurrency الحقيقي بين سائقين).
 20. **التقدير:** **XL**.
 
-### PHASE 2.6 — Active Delivery Flow
-1. **الهدف:** تنفيذ دورة التوصيل الكاملة من الاستلام حتى التسليم.
-2. **النطاق:** شاشات: تفاصيل الرحلة النشطة، تأكيد الاستلام، تأكيد التسليم، ملخص الطلب؛ فتح تطبيق خرائط خارجي (Deep Link) للتنقل.
-3. **الملفات المتوقعة:** توسيع `lib/features/delivery/presentation/*`.
-4. **الاعتماديات:** 2.5.
-5. **الخدمات:** `DriverDatabase` (تحديث حالة الطلب النشط في كل خطوة)، `SyncManager`.
-6. **Backend contracts:** `POST /driver/delivery/{id}/confirm-pickup`, `POST /driver/delivery/{id}/confirm-delivery` (راجع §15).
-7. **Security requirements:** توثيق كل انتقال حالة (Audit Trail من جهة الخادم).
-8. **اختبارات Unit:** انتقالات حالة الطلب (State Machine: Accepted → PickedUp → Delivered).
-9. **اختبارات Widget:** كل شاشة من الدورة.
-10. **اختبارات Integration:** **إلزامي** — دورة كاملة Accepted → PickedUp → Delivered مع محاكاة انقطاع اتصال في منتصف الدورة.
-11. **Runtime checks:** لا فقدان حالة عند تدوير الشاشة/الخلفية-الاستئناف في منتصف الرحلة.
-12. **Acceptance Criteria:** إكمال رحلة توصيل كاملة من القبول حتى التسليم، مع نجاح استرجاع الحالة بعد إغلاق التطبيق في أي خطوة.
-13. **Definition of Done:** معايير القبول + Integration Test + 0 Regression.
-14. **المخاطر:** **عالية** — أطول تدفق حالة في التطبيق، أكبر سطح لأخطاء الحالة.
-15. **ما يمنع البدء:** عدم إغلاق 2.5.
-16. **ما يمنع الإغلاق:** فقدان حالة الرحلة في أي نقطة انقطاع.
+### PHASE 2.6 — Complete Driver UI & Interaction Layer
+> **توسعة معتمدة (2026-07-26):** أوسع من عنوان «Active Delivery Flow» القديم. تشمل الهيكل الكامل للسائق (shell، سجل، أرباح، إشعارات، إعدادات، دعم) + دورة التوصيل النشط، عبر Increments 1–5. التفاصيل: [`docs/PHASE_2_6_COMPLETE_DRIVER_UI_PLAN.md`](./PHASE_2_6_COMPLETE_DRIVER_UI_PLAN.md).
+
+1. **الهدف:** واجهات سائق تفاعلية كاملة (Fake) — تنقل، حالات، نوافذ، دورة توصيل نشط — دون Backend إنتاج.
+2. **النطاق:** مكوّنات مشتركة؛ shell بخمسة تبويبات؛ إكمال Home؛ Offer polish؛ Active delivery stages؛ History/Earnings/Notifications؛ Profile/Settings/Support/OTP؛ تحقق جهاز.
+3. **الملفات المتوقعة:** `lib/shared/widgets/*`، `lib/core/routes/app_router.dart`، `lib/features/driver|delivery|profile|…/presentation/*`، docs المرحلية.
+4. **الاعتماديات:** 2.5 (مغلق) + Alpha Stable `7d90851`.
+5. **الخدمات:** Drift assignment (+ stage في Inc 2)، NetworkMonitor للـ offline UI، Fake repos؛ `SyncManager` عند الحاجة لاحقًا.
+6. **Backend contracts:** عقود Fake محلية؛ الإنتاج مؤجّل. لاحقًا: `confirm-pickup` / `confirm-delivery` (راجع §15).
+7. **Security requirements:** بوابات Fake/Release (ADR-027)؛ لا تسريب OTP/Fake إلى production؛ Audit من جهة الخادم عند الربط الحقيقي.
+8. **اختبارات Unit:** انتقالات الحالة؛ مكوّنات مشتركة؛ عدم رجوع lifecycle العرض (`_generation` / cooldown).
+9. **اختبارات Widget:** كل شاشة رئيسية + AR/RTL + dialogs.
+10. **اختبارات Integration:** **إلزامي** — مسارات A–H في خطة 2.6 (قبول→مراحل→تسليم؛ restart؛ offline UI؛ history/earnings/notif/settings).
+11. **Runtime checks:** جهاز فعلي `AP4EVB6423004646`؛ لا فقدان حالة بعد restart في المراحل الرئيسية.
+12. **Acceptance Criteria:** هيكل سائق قابل للاستخدام بالكامل على Fake؛ دورة توصيل كاملة في Inc 2+؛ 0 regression على عرض Alpha.
+13. **Definition of Done:** Inc 1–5 مغلقة + analyze/test/APK + device plan + 0 Regression.
+14. **المخاطر:** **عالية** — سطح UI واسع؛ خطر كسر lifecycle العرض إن لم تُحترم قواعد الجيل/الإخماد.
+15. **ما يمنع البدء:** عدم إغلاق 2.5 / عدم موافقة توسعة النطاق — **مُغلقان**.
+16. **ما يمنع الإغلاق:** فقدان حالة الرحلة؛ أو ضعف Fake gates؛ أو regression على accept/reject/watch.
 17. **تعتمد عليها:** 2.7، 2.9.
-18. **Mock ممكن؟** ✅ نعم.
+18. **Mock ممكن؟** ✅ نعم — إلزامي لهذه المرحلة.
 19. **Backend فعلي مطلوب؟** لا لإغلاق المرحلة.
 20. **التقدير:** **XL**.
 
@@ -909,10 +911,11 @@ Stage H — Platform Expansion
 
 **PHASE 2.5 deferred (explicitly not complete):**
 - Production remote Backend adapter for delivery offers
-- Map / active-delivery journey UI (PHASE 2.6)
 - Push notifications
 - Real estimated-earnings field on domain order (product decision)
 
+**PHASE 2.6 — Complete Driver UI & Interaction Layer:** **Authorized** (2026-07-26) on baseline `7d90851` / `alpha-stable-v1.0`. Expanded beyond legacy “Active Delivery Flow” to full Driver shell. Hub: [`docs/PHASE_2_6_COMPLETE_DRIVER_UI_PLAN.md`](./PHASE_2_6_COMPLETE_DRIVER_UI_PLAN.md).
+
 > **ملاحظة مواءمة AC التاريخية لـ 2.4:** معيار «صفّ تبديل التوفر أثناء offline ثم مزامنة» **مُلغى لاتجاه → available** بموجب ADR-017 (يُسمح بنية unavailable فقط).
 
-**Next phase:** Do **not** start PHASE 2.6 until explicitly authorized after PHASE 2.5 commit review.
+**Next phase:** PHASE 2.6 Increments 1→5 (Fake UI). Do **not** start production remote delivery adapter until explicitly authorized after 2.6 review.
