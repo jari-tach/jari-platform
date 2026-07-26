@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/saeq_semantic_colors.dart';
 
 /// Primary CTA with optional loading / disabled (48dp min height).
 class SaeqPrimaryButton extends StatelessWidget {
@@ -19,6 +20,7 @@ class SaeqPrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = SaeqSemanticColors.of(context);
     final enabled = onPressed != null && !isLoading;
     final child = isLoading
         ? const SizedBox(
@@ -30,13 +32,19 @@ class SaeqPrimaryButton extends StatelessWidget {
             ),
           )
         : icon == null
-        ? Text(label, textAlign: TextAlign.center)
+        ? Text(label, textAlign: TextAlign.center, style: AppTextStyles.button)
         : Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(icon),
               const SizedBox(width: 8),
-              Flexible(child: Text(label, textAlign: TextAlign.center)),
+              Flexible(
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.button,
+                ),
+              ),
             ],
           );
 
@@ -45,12 +53,15 @@ class SaeqPrimaryButton extends StatelessWidget {
       child: FilledButton(
         onPressed: enabled ? onPressed : null,
         style: FilledButton.styleFrom(
-          backgroundColor: AppColors.primary,
+          backgroundColor: colors.primary,
           foregroundColor: Colors.white,
-          disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.45),
+          disabledBackgroundColor: colors.primary.withValues(alpha: 0.45),
           disabledForegroundColor: Colors.white70,
-          minimumSize: const Size(0, 48),
+          minimumSize: const Size(0, AppTheme.minTouchTarget),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+          ),
         ),
         child: child,
       ),

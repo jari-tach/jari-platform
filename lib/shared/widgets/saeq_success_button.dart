@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/saeq_semantic_colors.dart';
 
-/// Danger / destructive CTA (48dp min height) using semantic tokens.
-class SaeqDestructiveButton extends StatelessWidget {
-  const SaeqDestructiveButton({
+/// Success / positive confirmation CTA (full width, 48dp min).
+class SaeqSuccessButton extends StatelessWidget {
+  const SaeqSuccessButton({
     super.key,
     required this.label,
     this.onPressed,
@@ -53,9 +53,9 @@ class SaeqDestructiveButton extends StatelessWidget {
       child: FilledButton(
         onPressed: enabled ? onPressed : null,
         style: FilledButton.styleFrom(
-          backgroundColor: colors.error,
+          backgroundColor: colors.success,
           foregroundColor: Colors.white,
-          disabledBackgroundColor: colors.error.withValues(alpha: 0.45),
+          disabledBackgroundColor: colors.success.withValues(alpha: 0.45),
           disabledForegroundColor: Colors.white70,
           minimumSize: const Size(0, AppTheme.minTouchTarget),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

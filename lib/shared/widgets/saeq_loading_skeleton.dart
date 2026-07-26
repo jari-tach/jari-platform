@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/saeq_semantic_colors.dart';
 
 /// Centered loading body with optional title/message.
 class SaeqLoadingSkeleton extends StatelessWidget {
@@ -19,6 +20,8 @@ class SaeqLoadingSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = SaeqSemanticColors.of(context);
+
     return Center(
       key: progressKey,
       child: Semantics(
@@ -26,16 +29,23 @@ class SaeqLoadingSkeleton extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const CircularProgressIndicator(),
+            CircularProgressIndicator(color: colors.primary),
             if (title != null) ...[
               const SizedBox(height: AppTheme.spacingMD),
-              Text(title!, style: AppTextStyles.titleMedium),
+              Text(
+                title!,
+                style: AppTextStyles.titleMedium.copyWith(
+                  color: colors.textPrimary,
+                ),
+              ),
             ],
             if (message != null) ...[
               const SizedBox(height: AppTheme.spacingSM),
               Text(
                 message!,
-                style: AppTextStyles.bodyMedium,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: colors.textSecondary,
+                ),
                 textAlign: TextAlign.center,
               ),
             ],

@@ -12,6 +12,7 @@ import '../../features/driver/presentation/shell_placeholder_screen.dart';
 import '../../features/driver/presentation/welcome_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../localization/app_localizations.dart';
+import '../theme/saeq_semantic_colors.dart';
 
 /// App routes
 class AppRoutes {
@@ -262,6 +263,7 @@ class AppRouter {
   /// Use [GoRouter.go] on tab taps to avoid stacking duplicates.
   static Widget _buildBottomNav(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final colors = SaeqSemanticColors.of(context);
     final path = GoRouterState.of(context).uri.path;
     final currentIndex = switch (path) {
       AppRoutes.deliveries => 1,
@@ -273,6 +275,8 @@ class AppRouter {
     return BottomNavigationBar(
       type: BottomNavigationBarType.fixed,
       currentIndex: currentIndex,
+      selectedItemColor: colors.primary,
+      unselectedItemColor: colors.textSecondary,
       // Narrow phones (320dp) + Arabic labels: avoid overflow paint errors.
       selectedFontSize: 11,
       unselectedFontSize: 10,

@@ -6,6 +6,7 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/routes/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/saeq_semantic_colors.dart';
 import '../../../../shared/widgets/saeq_bottom_sheet_scaffold.dart';
 import '../../../../shared/widgets/saeq_primary_button.dart';
 import '../../../../shared/widgets/saeq_secondary_button.dart';
@@ -30,6 +31,7 @@ class _DeliveryIssuePageState extends ConsumerState<DeliveryIssuePage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final colors = SaeqSemanticColors.of(context);
     final state = ref.watch(deliveryControllerProvider);
     final delivery = ref.read(deliveryControllerProvider.notifier);
     final processing = state.isProcessing;
@@ -52,29 +54,57 @@ class _DeliveryIssuePageState extends ConsumerState<DeliveryIssuePage> {
             children: [
               Text(
                 l10n.deliveryReportIssueAction,
-                style: AppTextStyles.titleMedium,
+                style: AppTextStyles.titleMedium.copyWith(
+                  color: colors.textPrimary,
+                ),
               ),
               const SizedBox(height: AppTheme.spacingMD),
               for (final category in categories)
-                ListTile(
-                  title: Text(category),
-                  leading: Icon(
-                    _category == category
-                        ? Icons.radio_button_checked
-                        : Icons.radio_button_unchecked,
-                    color: AppColors.primary,
+                Padding(
+                  padding: const EdgeInsets.only(bottom: AppTheme.spacingXS),
+                  child: Material(
+                    color: _category == category
+                        ? colors.primaryContainer
+                        : colors.surface,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+                      side: BorderSide(
+                        color: _category == category
+                            ? colors.primary
+                            : colors.border,
+                      ),
+                    ),
+                    child: ListTile(
+                      title: Text(
+                        category,
+                        style: AppTextStyles.bodyLarge.copyWith(
+                          color: _category == category
+                              ? colors.primary
+                              : colors.textPrimary,
+                          fontWeight: _category == category
+                              ? FontWeight.w600
+                              : FontWeight.w400,
+                        ),
+                      ),
+                      leading: Icon(
+                        _category == category
+                            ? Icons.radio_button_checked
+                            : Icons.radio_button_unchecked,
+                        color: _category == category
+                            ? colors.primary
+                            : colors.textSecondary,
+                      ),
+                      onTap: processing
+                          ? null
+                          : () => setState(() => _category = category),
+                    ),
                   ),
-                  onTap: processing
-                      ? null
-                      : () => setState(() => _category = category),
                 ),
               if (state.failure != null) ...[
                 const SizedBox(height: AppTheme.spacingMD),
                 Text(
                   deliveryFailureMessage(state.failure!, l10n),
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.error,
-                  ),
+                  style: AppTextStyles.bodyMedium.copyWith(color: colors.error),
                 ),
               ],
               const Spacer(),

@@ -6,13 +6,16 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/routes/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/saeq_semantic_colors.dart';
 import '../../../../shared/widgets/saeq_address_block.dart';
+import '../../../../shared/widgets/saeq_delivery_action_button.dart';
 import '../../../../shared/widgets/saeq_delivery_timeline.dart';
 import '../../../../shared/widgets/saeq_empty_state.dart';
 import '../../../../shared/widgets/saeq_offline_banner.dart';
 import '../../../../shared/widgets/saeq_primary_button.dart';
 import '../../../../shared/widgets/saeq_secondary_button.dart';
 import '../../../../shared/widgets/saeq_status_chip.dart';
+import '../../../../shared/widgets/saeq_success_button.dart';
 import '../../../../core/providers/home_ui_providers.dart';
 import '../../domain/entities/delivery_assignment.dart';
 import '../../domain/entities/driver_workflow_stage.dart';
@@ -86,6 +89,7 @@ class ActiveDeliveryPage extends ConsumerWidget {
     final stage = assignment.workflowStage;
     final processing = state.isProcessing;
     final failure = state.failure;
+    final colors = SaeqSemanticColors.of(context);
 
     return Column(
       children: [
@@ -140,7 +144,7 @@ class ActiveDeliveryPage extends ConsumerWidget {
                   Text(
                     deliveryFailureMessage(failure, l10n),
                     style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.error,
+                      color: colors.error,
                     ),
                   ),
                 ],
@@ -171,7 +175,7 @@ class ActiveDeliveryPage extends ConsumerWidget {
     final stage = assignment.workflowStage;
     if (stage == DriverWorkflowStage.issueOpen) {
       return [
-        SaeqPrimaryButton(
+        SaeqDeliveryActionButton(
           key: primaryActionKey,
           label: l10n.deliveryResumeIssueAction,
           isLoading: processing,
@@ -186,7 +190,7 @@ class ActiveDeliveryPage extends ConsumerWidget {
     }
     if (stage == DriverWorkflowStage.verifying) {
       return [
-        SaeqPrimaryButton(
+        SaeqDeliveryActionButton(
           key: primaryActionKey,
           label: l10n.deliveryActionStartVerify,
           onPressed: processing
@@ -198,7 +202,7 @@ class ActiveDeliveryPage extends ConsumerWidget {
     }
     if (stage == DriverWorkflowStage.summary) {
       return [
-        SaeqPrimaryButton(
+        SaeqSuccessButton(
           key: primaryActionKey,
           label: l10n.deliveryDismissSummary,
           isLoading: processing,
@@ -222,7 +226,7 @@ class ActiveDeliveryPage extends ConsumerWidget {
     }
     if (stage == DriverWorkflowStage.arrivedCustomer) {
       return [
-        SaeqPrimaryButton(
+        SaeqDeliveryActionButton(
           key: primaryActionKey,
           label: l10n.deliveryActionStartVerify,
           isLoading: processing,
@@ -253,7 +257,7 @@ class ActiveDeliveryPage extends ConsumerWidget {
     }
 
     return [
-      SaeqPrimaryButton(
+      SaeqDeliveryActionButton(
         key: primaryActionKey,
         label: deliveryPrimaryActionLabel(l10n, command),
         isLoading: processing,

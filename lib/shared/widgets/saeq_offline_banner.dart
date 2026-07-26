@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/saeq_semantic_colors.dart';
 
 /// Compact offline indicator for Home / shell surfaces.
 class SaeqOfflineBanner extends StatelessWidget {
@@ -19,6 +20,8 @@ class SaeqOfflineBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     if (!visible) return const SizedBox.shrink();
 
+    final colors = SaeqSemanticColors.of(context);
+
     return Semantics(
       liveRegion: true,
       label: message,
@@ -31,19 +34,19 @@ class SaeqOfflineBanner extends StatelessWidget {
           vertical: AppTheme.spacingSM,
         ),
         decoration: BoxDecoration(
-          color: const Color(0xFFFFF3E0),
+          color: colors.warningContainer,
           borderRadius: BorderRadius.circular(AppTheme.radiusMD),
-          border: Border.all(color: const Color(0xFFFFB74D)),
+          border: Border.all(color: colors.warning.withValues(alpha: 0.45)),
         ),
         child: Row(
           children: [
-            const Icon(Icons.wifi_off, color: Color(0xFFE65100)),
+            Icon(Icons.wifi_off, color: colors.warning),
             const SizedBox(width: AppTheme.spacingSM),
             Expanded(
               child: Text(
                 message,
                 style: AppTextStyles.bodyMedium.copyWith(
-                  color: const Color(0xFFE65100),
+                  color: colors.warning,
                   fontWeight: FontWeight.w600,
                 ),
               ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/saeq_semantic_colors.dart';
 
 /// Generic content card with optional title/subtitle.
 class SaeqInfoCard extends StatelessWidget {
@@ -23,13 +24,14 @@ class SaeqInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = SaeqSemanticColors.of(context);
     final content = Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppTheme.spacingMD),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(AppTheme.radiusXL),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: colors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -46,10 +48,20 @@ class SaeqInfoCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if (title != null)
-                        Text(title!, style: AppTextStyles.titleMedium),
+                        Text(
+                          title!,
+                          style: AppTextStyles.cardTitle.copyWith(
+                            color: colors.textPrimary,
+                          ),
+                        ),
                       if (subtitle != null) ...[
                         const SizedBox(height: AppTheme.spacingXS),
-                        Text(subtitle!, style: AppTextStyles.bodyMedium),
+                        Text(
+                          subtitle!,
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: colors.textSecondary,
+                          ),
+                        ),
                       ],
                     ],
                   ),

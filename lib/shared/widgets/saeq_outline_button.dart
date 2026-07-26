@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/saeq_semantic_colors.dart';
 
-/// Danger / destructive CTA (48dp min height) using semantic tokens.
-class SaeqDestructiveButton extends StatelessWidget {
-  const SaeqDestructiveButton({
+/// Outline CTA (alias of secondary visual language for explicit variant API).
+class SaeqOutlineButton extends StatelessWidget {
+  const SaeqOutlineButton({
     super.key,
     required this.label,
     this.onPressed,
@@ -23,12 +23,12 @@ class SaeqDestructiveButton extends StatelessWidget {
     final colors = SaeqSemanticColors.of(context);
     final enabled = onPressed != null && !isLoading;
     final child = isLoading
-        ? const SizedBox(
+        ? SizedBox(
             width: 22,
             height: 22,
             child: CircularProgressIndicator(
               strokeWidth: 2.5,
-              color: Colors.white,
+              color: colors.primary,
             ),
           )
         : icon == null
@@ -50,13 +50,12 @@ class SaeqDestructiveButton extends StatelessWidget {
 
     return SizedBox(
       width: double.infinity,
-      child: FilledButton(
+      child: OutlinedButton(
         onPressed: enabled ? onPressed : null,
-        style: FilledButton.styleFrom(
-          backgroundColor: colors.error,
-          foregroundColor: Colors.white,
-          disabledBackgroundColor: colors.error.withValues(alpha: 0.45),
-          disabledForegroundColor: Colors.white70,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: colors.textPrimary,
+          side: BorderSide(color: colors.border),
+          disabledForegroundColor: colors.disabled,
           minimumSize: const Size(0, AppTheme.minTouchTarget),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           shape: RoundedRectangleBorder(

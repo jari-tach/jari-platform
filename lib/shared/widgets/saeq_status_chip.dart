@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/saeq_semantic_colors.dart';
 
 /// Compact status chip (availability, delivery stage, document status).
+///
+/// Uses icon + text + container tone — never color alone for meaning.
 class SaeqStatusChip extends StatelessWidget {
   const SaeqStatusChip({
     super.key,
@@ -17,7 +20,8 @@ class SaeqStatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = _colorsFor(tone);
+    final colors = _colorsFor(context, tone);
+    final resolvedIcon = icon ?? _defaultIcon(tone);
     return Semantics(
       label: label,
       child: Container(
@@ -30,15 +34,12 @@ class SaeqStatusChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (icon != null) ...[
-              Icon(icon, size: 14, color: colors.foreground),
-              const SizedBox(width: 4),
-            ],
-            Text(
-              label,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: colors.foreground,
-                fontWeight: FontWeight.w600,
+            Icon(resolvedIcon, size: 14, color: colors.foreground),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                label,
+                style: AppTextStyles.status.copyWith(color: colors.foreground),
               ),
             ),
           ],
@@ -47,32 +48,49 @@ class SaeqStatusChip extends StatelessWidget {
     );
   }
 
+  static IconData _defaultIcon(SaeqStatusTone tone) {
+    return switch (tone) {
+      SaeqStatusTone.success => Icons.check_circle_outline,
+      SaeqStatusTone.warning => Icons.warning_amber_outlined,
+      SaeqStatusTone.danger => Icons.error_outline,
+      SaeqStatusTone.neutral => Icons.info_outline,
+      SaeqStatusTone.busy => Icons.hourglass_top_outlined,
+    };
+  }
+
   static ({Color background, Color border, Color foreground}) _colorsFor(
+    BuildContext context,
     SaeqStatusTone tone,
   ) {
+    final t = SaeqSemanticColors.of(context);
     return switch (tone) {
       SaeqStatusTone.success => (
-        background: const Color(0xFFE8F5E9),
-        border: AppColors.primary.withValues(alpha: 0.35),
-        foreground: AppColors.primary,
+        background: t.successContainer,
+        border: t.success.withValues(alpha: 0.35),
+        foreground: t.success,
       ),
       SaeqStatusTone.warning => (
-        background: const Color(0xFFFFF8E1),
-        border: const Color(0xFFFFB300),
-        foreground: const Color(0xFFF57C00),
+        background: t.warningContainer,
+        border: t.warning.withValues(alpha: 0.45),
+        foreground: t.warning,
       ),
       SaeqStatusTone.danger => (
-        background: const Color(0xFFFFEBEE),
-        border: AppColors.error.withValues(alpha: 0.4),
-        foreground: AppColors.error,
+        background: t.errorContainer,
+        border: t.error.withValues(alpha: 0.4),
+        foreground: t.error,
+      ),
+      SaeqStatusTone.busy => (
+        background: t.busyContainer,
+        border: t.busy.withValues(alpha: 0.45),
+        foreground: t.busy,
       ),
       SaeqStatusTone.neutral => (
-        background: AppColors.surfaceVariant,
-        border: AppColors.border,
-        foreground: AppColors.secondary,
+        background: t.elevatedSurface,
+        border: t.border,
+        foreground: t.textSecondary,
       ),
     };
   }
 }
 
-enum SaeqStatusTone { neutral, success, warning, danger }
+enum SaeqStatusTone { neutral, success, warning, danger, busy }

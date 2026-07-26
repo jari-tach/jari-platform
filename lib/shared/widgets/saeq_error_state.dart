@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/saeq_semantic_colors.dart';
 import 'saeq_primary_button.dart';
 
 /// Shared error-state body with retry.
@@ -25,6 +26,8 @@ class SaeqErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = SaeqSemanticColors.of(context);
+
     return Center(
       key: errorKey,
       child: Semantics(
@@ -33,13 +36,18 @@ class SaeqErrorState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, color: AppColors.error, size: 48),
+            Icon(Icons.error_outline, color: colors.error, size: 48),
             const SizedBox(height: AppTheme.spacingMD),
-            Text(title, style: AppTextStyles.headlineLarge),
+            Text(
+              title,
+              style: AppTextStyles.headlineLarge.copyWith(
+                color: colors.textPrimary,
+              ),
+            ),
             const SizedBox(height: AppTheme.spacingSM),
             Text(
               message,
-              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.error),
+              style: AppTextStyles.bodyMedium.copyWith(color: colors.error),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppTheme.spacingLG),

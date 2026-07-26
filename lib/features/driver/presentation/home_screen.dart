@@ -7,7 +7,9 @@ import '../../../core/localization/app_localizations.dart';
 import '../../../core/providers/home_ui_providers.dart';
 import '../../../core/routes/app_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/saeq_semantic_colors.dart';
 import '../../../shared/widgets/saeq_destructive_dialog.dart';
+import '../../../shared/widgets/saeq_icon_button.dart';
 import '../../../shared/widgets/saeq_info_card.dart';
 import '../../../shared/widgets/saeq_offline_banner.dart';
 import '../../../shared/widgets/saeq_primary_button.dart';
@@ -27,6 +29,7 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final colors = SaeqSemanticColors.of(context);
     final state = ref.watch(authControllerProvider);
     final session = state.session;
     final isBusy = state.isBusy;
@@ -37,10 +40,10 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(l10n.navHome),
         actions: [
-          IconButton(
+          SaeqIconButton(
             key: notificationsActionKey,
+            icon: Icons.notifications_outlined,
             tooltip: l10n.homeOpenNotificationsTooltip,
-            icon: const Icon(Icons.notifications_outlined),
             onPressed: () => context.go(AppRoutes.notifications),
           ),
         ],
@@ -60,28 +63,35 @@ class HomeScreen extends ConsumerWidget {
                         message: l10n.offlineBannerMessage,
                         visible: offline,
                       ),
+                      const DriverAvailabilityCard(),
+                      const SizedBox(height: AppTheme.spacingMD),
+                      const DeliveryOfferHomeBanner(),
+                      const SizedBox(height: AppTheme.spacingLG),
                       Text(
                         l10n.homeWelcomeTitle,
-                        style: AppTextStyles.headlineLarge,
+                        style: AppTextStyles.titleMedium.copyWith(
+                          color: colors.textSecondary,
+                        ),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: AppTheme.spacingXS),
                       if (session != null)
                         Text(
                           session.maskedPhoneNumber,
-                          style: AppTextStyles.bodyLarge,
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: colors.textSecondary,
+                          ),
                         ),
                       if (summary != null) ...[
                         const SizedBox(height: AppTheme.spacingMD),
                         _HomeSummaryStrip(summary: summary),
                       ],
                       const SizedBox(height: AppTheme.spacingLG),
-                      const DriverAvailabilityCard(),
-                      const SizedBox(height: AppTheme.spacingMD),
-                      const DeliveryOfferHomeBanner(),
-                      const SizedBox(height: AppTheme.spacingLG),
                       Text(
                         l10n.homeQuickActionsTitle,
-                        style: AppTextStyles.titleMedium,
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: colors.textSecondary,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                       const SizedBox(height: AppTheme.spacingSM),
                       SaeqSecondaryButton(
@@ -101,10 +111,13 @@ class HomeScreen extends ConsumerWidget {
                         icon: Icons.notifications_outlined,
                         onPressed: () => context.go(AppRoutes.notifications),
                       ),
+                      // Clearance so fixed sign-out does not cover quick actions.
+                      const SizedBox(height: AppTheme.spacingLG),
                     ],
                   ),
                 ),
               ),
+              const SizedBox(height: AppTheme.spacingSM),
               SaeqPrimaryButton(
                 key: signOutKey,
                 label: l10n.signOut,
@@ -188,14 +201,26 @@ class _Metric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = SaeqSemanticColors.of(context);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: AppTextStyles.bodyMedium),
-          const SizedBox(height: 4),
-          Text(value, style: AppTextStyles.titleMedium),
+          Text(
+            label,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: colors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: AppTheme.spacingXS),
+          Text(
+            value,
+            style: AppTextStyles.titleMedium.copyWith(
+              color: colors.textPrimary,
+            ),
+          ),
         ],
       ),
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/saeq_semantic_colors.dart';
 import 'saeq_secondary_button.dart';
 
 /// Address block for pickup / dropoff.
@@ -17,12 +18,21 @@ class SaeqAddressBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = SaeqSemanticColors.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: AppTextStyles.titleMedium),
+        Text(
+          title,
+          style: AppTextStyles.titleMedium.copyWith(
+            color: colors.textSecondary,
+          ),
+        ),
         const SizedBox(height: AppTheme.spacingXS),
-        Text(address, style: AppTextStyles.bodyLarge),
+        Text(
+          address,
+          style: AppTextStyles.bodyLarge.copyWith(color: colors.textPrimary),
+        ),
       ],
     );
   }

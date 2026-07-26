@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/saeq_semantic_colors.dart';
 
 /// Outlined secondary CTA (48dp min height).
 class SaeqSecondaryButton extends StatelessWidget {
@@ -19,6 +20,7 @@ class SaeqSecondaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = SaeqSemanticColors.of(context);
     final enabled = onPressed != null && !isLoading;
     final child = isLoading
         ? SizedBox(
@@ -26,17 +28,23 @@ class SaeqSecondaryButton extends StatelessWidget {
             height: 22,
             child: CircularProgressIndicator(
               strokeWidth: 2.5,
-              color: AppColors.primary,
+              color: colors.primary,
             ),
           )
         : icon == null
-        ? Text(label, textAlign: TextAlign.center)
+        ? Text(label, textAlign: TextAlign.center, style: AppTextStyles.button)
         : Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(icon),
               const SizedBox(width: 8),
-              Flexible(child: Text(label, textAlign: TextAlign.center)),
+              Flexible(
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.button,
+                ),
+              ),
             ],
           );
 
@@ -45,10 +53,14 @@ class SaeqSecondaryButton extends StatelessWidget {
       child: OutlinedButton(
         onPressed: enabled ? onPressed : null,
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.primary,
-          side: const BorderSide(color: AppColors.primary),
-          minimumSize: const Size(0, 48),
+          foregroundColor: colors.primary,
+          side: BorderSide(color: colors.primary),
+          disabledForegroundColor: colors.disabled,
+          minimumSize: const Size(0, AppTheme.minTouchTarget),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+          ),
         ),
         child: child,
       ),

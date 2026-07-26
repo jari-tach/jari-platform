@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/routes/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/saeq_semantic_colors.dart';
 import '../pages/active_delivery_page.dart';
 import '../pages/incoming_delivery_offer_page.dart';
 import '../providers/delivery_providers.dart';
@@ -35,6 +36,7 @@ class DeliveryOfferHomeBanner extends ConsumerWidget {
     final action = isAssignment
         ? l10n.deliveryHomeAssignmentBannerAction
         : l10n.deliveryHomeOfferBannerAction;
+    final colors = SaeqSemanticColors.of(context);
 
     return Semantics(
       container: true,
@@ -42,7 +44,7 @@ class DeliveryOfferHomeBanner extends ConsumerWidget {
       label: title,
       child: Material(
         key: bannerKey,
-        color: AppColors.surface,
+        color: isAssignment ? colors.primaryContainer : colors.surface,
         borderRadius: BorderRadius.circular(AppTheme.radiusXL),
         child: InkWell(
           key: openKey,
@@ -53,7 +55,11 @@ class DeliveryOfferHomeBanner extends ConsumerWidget {
             padding: const EdgeInsets.all(AppTheme.spacingMD),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(AppTheme.radiusXL),
-              border: Border.all(color: AppColors.border),
+              border: Border.all(
+                color: isAssignment
+                    ? colors.primary.withValues(alpha: 0.35)
+                    : colors.border,
+              ),
             ),
             child: Row(
               children: [
@@ -61,16 +67,26 @@ class DeliveryOfferHomeBanner extends ConsumerWidget {
                   isAssignment
                       ? Icons.local_shipping_outlined
                       : Icons.notifications_active_outlined,
-                  color: AppColors.primary,
+                  color: colors.primary,
                 ),
                 const SizedBox(width: AppTheme.spacingSM),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: AppTextStyles.titleMedium),
+                      Text(
+                        title,
+                        style: AppTextStyles.titleMedium.copyWith(
+                          color: colors.textPrimary,
+                        ),
+                      ),
                       const SizedBox(height: AppTheme.spacingXS),
-                      Text(action, style: AppTextStyles.bodyMedium),
+                      Text(
+                        action,
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: colors.textSecondary,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -78,7 +94,7 @@ class DeliveryOfferHomeBanner extends ConsumerWidget {
                   Directionality.of(context) == TextDirection.rtl
                       ? Icons.chevron_left
                       : Icons.chevron_right,
-                  color: AppColors.secondary,
+                  color: colors.primary,
                 ),
               ],
             ),

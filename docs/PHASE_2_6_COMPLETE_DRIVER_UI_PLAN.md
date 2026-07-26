@@ -1,19 +1,19 @@
-# PHASE 2.6 — Complete Driver UI & Interaction Layer
+﻿# PHASE 2.6 â€” Complete Driver UI & Interaction Layer
 
-> **Status:** Architecture **Accepted** — Increment 1 committed (`271d170`); Increment 2 **implemented and pending commit** after isolation; Increment 3 draft may exist separately and is **not approved**
+> **Status:** Architecture **Accepted** — Increment 1 committed (`271d170`); Increment 2 **implemented and pending commit** after isolation; **Design System Sprint 1 implemented** (temporary Forest Green pending brand approval); **Increment 3 remains separate/uncommitted** (not approved).
 >
 > **Date:** 2026-07-26
 > **Baseline:** `7d90851` / `alpha-stable-v1.0`
 > **Constraint:** Fake-only interactive UI; preserve Clean Architecture; no production backend; no push until review
-> **Related:** [PHASE_2_FEATURE_DEVELOPMENT_ROADMAP.md](./PHASE_2_FEATURE_DEVELOPMENT_ROADMAP.md), [ADR-020…028](./adr/), [testing/REAL_ANDROID_DEVICE_TEST_PLAN.md](./testing/REAL_ANDROID_DEVICE_TEST_PLAN.md)
+> **Related:** [PHASE_2_FEATURE_DEVELOPMENT_ROADMAP.md](./PHASE_2_FEATURE_DEVELOPMENT_ROADMAP.md), [ADR-020â€¦028](./adr/), [testing/REAL_ANDROID_DEVICE_TEST_PLAN.md](./testing/REAL_ANDROID_DEVICE_TEST_PLAN.md)
 
 ---
 
 ## 1. Purpose
 
-Deliver a **complete, interactive Driver shell** (not static mockups): navigation, buttons, dialogs/sheets, loading/empty/error states, Fake-driven flows, Arabic/RTL, and device validation — while keeping production gates (ADR-027) and Alpha offer lifecycle (`_generation`, reject cooldown, assignment suppression) intact.
+Deliver a **complete, interactive Driver shell** (not static mockups): navigation, buttons, dialogs/sheets, loading/empty/error states, Fake-driven flows, Arabic/RTL, and device validation â€” while keeping production gates (ADR-027) and Alpha offer lifecycle (`_generation`, reject cooldown, assignment suppression) intact.
 
-**Scope expansion (approved):** this phase is broader than the older roadmap title “Active Delivery Flow”. It includes history, earnings, notifications, settings, and support under one Driver UI program, delivered in increments.
+**Scope expansion (approved):** this phase is broader than the older roadmap title â€œActive Delivery Flowâ€‌. It includes history, earnings, notifications, settings, and support under one Driver UI program, delivered in increments.
 
 ---
 
@@ -31,7 +31,7 @@ Deliver a **complete, interactive Driver shell** (not static mockups): navigatio
 
 ## 3. Route map (locked)
 
-**Bottom nav (5):** `/home` · `/deliveries` · `/earnings` · `/notifications` · `/profile`  
+**Bottom nav (5):** `/home` آ· `/deliveries` آ· `/earnings` آ· `/notifications` آ· `/profile`  
 
 **Under Profile (no bottom nav):** `/settings`, `/support`, `/support/safety`, `/profile/vehicle`, `/profile/documents`  
 
@@ -53,12 +53,12 @@ busy binding (ADR-025).
 
 ### Completion / release (minimum fixes)
 
-1. **Ordering:** apply authoritative availability → `unavailable`
+1. **Ordering:** apply authoritative availability â†’ `unavailable`
    (`delivery.complete`) **before** clearing the active assignment. The summary
    row remains persisted until availability succeeds.
 2. **Idempotency:** a second complete when the assignment is already absent and
    availability is already post-completion returns success (no user-facing error).
-3. **Navigation:** Active summary “Finish” and Issue submit navigate only after
+3. **Navigation:** Active summary â€œFinishâ€‌ and Issue submit navigate only after
    confirmed controller success.
 4. **Failure re-sync:** `completeDeliverySummary` re-reads the active assignment
    after a failed completion so memory matches repository truth.
@@ -75,7 +75,7 @@ busy binding (ADR-025).
 | Auth / OTP | Secure storage + Fake | OTP UI in Inc 4; production gate unchanged |
 | Availability | SharedPreferences | Existing + DEV-ONLY Fake confirm |
 | Active assignment + stage | Drift JSON | Stage field in Inc 2 (no schema migration) |
-| Home earnings/trips placeholders | In-memory Fake seed | Inc 1 — no new Drift schema |
+| Home earnings/trips placeholders | In-memory Fake seed | Inc 1 â€” no new Drift schema |
 | History / earnings / notifications | Fake repos | Inc 3 (pending) |
 
 ---
@@ -87,7 +87,7 @@ busy binding (ADR-025).
 - Home shows Fake earnings/trips strip, quick actions, offline banner, notification entry; availability + offer/assignment banners unchanged in behavior.
 - Assignment banner / Continue open `/delivery/active` stub (summary only).
 - Sign-out requires confirmation dialog.
-- `dart format` (scoped) → `flutter analyze` → `flutter test` → `flutter build apk --debug` → `git diff --check`; device plan updated.
+- `dart format` (scoped) â†’ `flutter analyze` â†’ `flutter test` â†’ `flutter build apk --debug` â†’ `git diff --check`; device plan updated.
 - **No** OTP UI in Inc 1; **no** stage machine; **no** production backend; **no** commit until review.
 
 ---
@@ -97,4 +97,4 @@ busy binding (ADR-025).
 - Customer / Merchant / Admin apps or shared-package extraction  
 - Production remote delivery adapter  
 - Real camera / payments / auto-dial  
-- Weakening ADR-015…028 or Fake release gates  
+- Weakening ADR-015â€¦028 or Fake release gates  
