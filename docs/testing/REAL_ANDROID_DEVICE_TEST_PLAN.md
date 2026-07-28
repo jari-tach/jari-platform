@@ -415,3 +415,37 @@ Earlier slow UI automation (many `uiautomator dump`s) could exceed the 8s Fake T
 | DS2-A … DS2-J | **Untested** |
 | Quality Gate | analyze 0/0/1 · test 637/0/0 · build OK |
 
+---
+
+## 13. PHASE 2.6 Increment 5 — device checklist
+
+**Baseline:** after Inc 4 merge on `main` (`dad8cb2` parent chain includes `9ad0ee9` + `fbb2ef7`)
+
+**Scope:** Responsive / a11y validation + E2E Fake matrix (flows A–H) + docs closeout.
+
+**Device:** VKP NX9 (`AP4EVB6423004646`) when available.
+
+| ID | Flow | Scenario | Pass criteria |
+|----|------|----------|---------------|
+| I5-A | A | Sign in → available → offer → reject → reissue | Reject clears offer; cooldown respected; later offer appears |
+| I5-B | B | Accept → full stage path → deliver | Stage machine completes; summary Finish returns Home |
+| I5-C | C | Restart at major stages | Assignment + stage restored; busy reconciled |
+| I5-D | D | Offline during active delivery | Offline UI visible; no silent accept |
+| I5-E | E | History list → detail | Detail opens; sovereign Fake data only |
+| I5-F | F | Earnings filter | Filter chips switch seeded periods |
+| I5-G | G | Notifications mark-read | Detail mark-read persists unread state |
+| I5-H | H | Profile → Settings theme/locale | Theme + locale switch; RTL/LTR updates |
+| I5-I | — | Text scale ~1.3× | Inc 3+4 primary screens without hard overflow |
+| I5-J | — | Narrow width 320dp | Chips scroll; nav captions ellipsis |
+| I5-K | — | Offer regression | Reject cooldown + accept unchanged after Inc 5 polish |
+
+**Widget-level E2E (Fake):** `test/integration/fake_e2e_flow_h_settings_theme_locale_test.dart` covers flow H.
+
+### Execution log
+
+| Field | Value |
+|-------|--------|
+| Device | **Pending** |
+| Scenarios I5-A … I5-K | **Not run on device yet** |
+| Widget E2E flow H | **PASS** (local, Increment 5 branch) |
+
