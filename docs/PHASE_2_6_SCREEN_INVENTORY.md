@@ -223,6 +223,10 @@ Phase 2.6 is **not** complete until:
 
 ## 10. Next authorized step
 
-**PR 1 (this document):** `feature/phase-2.6-ui-first-screen-inventory` → PR to `main`.
+**PR 1 (this document):** `feature/phase-2.6-ui-first-screen-inventory` → PR [#7](https://github.com/jari-tach/jari-platform/pull/7).
 
-**Do not start PR 2 implementation** until inventory PR is reviewed and authorized.
+**Extended UI-First docs (same program):**
+- `docs/PHASE_2_6_UI_FIGMA_FLUTTER_MAPPING.md` — 62-screen master table
+- `docs/PHASE_2_6_UI_FIGMA_REAL_DEVICE_REPORT.md` — comprehensive tracking report
+
+**Do not start PR 2 (Figma + Flutter implementation)** until inventory PR is merged and authorized.
