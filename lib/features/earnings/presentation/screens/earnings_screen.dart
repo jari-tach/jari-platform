@@ -6,9 +6,11 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/routes/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/saeq_semantic_colors.dart';
 import '../../../../shared/widgets/saeq_earnings_row.dart';
 import '../../../../shared/widgets/saeq_empty_state.dart';
 import '../../../../shared/widgets/saeq_error_state.dart';
+import '../../../../shared/widgets/saeq_filter_chip_bar.dart';
 import '../../../../shared/widgets/saeq_loading_skeleton.dart';
 import '../../../../shared/widgets/saeq_primary_button.dart';
 import '../../domain/entities/earnings_period.dart';
@@ -20,6 +22,7 @@ class EarningsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final colors = SaeqSemanticColors.of(context);
     final state = ref.watch(earningsControllerProvider);
     final controller = ref.read(earningsControllerProvider.notifier);
 
@@ -29,32 +32,36 @@ class EarningsScreen extends ConsumerWidget {
         child: Padding(
           padding: const EdgeInsets.all(AppConstants.contentPadding),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Wrap(
-                spacing: 8,
-                children: [
-                  FilterChip(
-                    label: Text(l10n.earningsFilterAll),
+              Text(
+                l10n.fakeAlphaDataHint,
+                style: AppTextStyles.supporting.copyWith(
+                  color: colors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: AppTheme.spacingSM),
+              SaeqFilterChipBar(
+                chips: [
+                  SaeqFilterChip(
+                    label: l10n.earningsFilterAll,
                     selected: state.filter == EarningsFilter.all,
-                    onSelected: (_) => controller.setFilter(EarningsFilter.all),
+                    onTap: () => controller.setFilter(EarningsFilter.all),
                   ),
-                  FilterChip(
-                    label: Text(l10n.earningsFilterToday),
+                  SaeqFilterChip(
+                    label: l10n.earningsFilterToday,
                     selected: state.filter == EarningsFilter.today,
-                    onSelected: (_) =>
-                        controller.setFilter(EarningsFilter.today),
+                    onTap: () => controller.setFilter(EarningsFilter.today),
                   ),
-                  FilterChip(
-                    label: Text(l10n.earningsFilterWeek),
+                  SaeqFilterChip(
+                    label: l10n.earningsFilterWeek,
                     selected: state.filter == EarningsFilter.week,
-                    onSelected: (_) =>
-                        controller.setFilter(EarningsFilter.week),
+                    onTap: () => controller.setFilter(EarningsFilter.week),
                   ),
-                  FilterChip(
-                    label: Text(l10n.earningsFilterMonth),
+                  SaeqFilterChip(
+                    label: l10n.earningsFilterMonth,
                     selected: state.filter == EarningsFilter.month,
-                    onSelected: (_) =>
-                        controller.setFilter(EarningsFilter.month),
+                    onTap: () => controller.setFilter(EarningsFilter.month),
                   ),
                 ],
               ),
@@ -124,6 +131,7 @@ class EarningsDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final colors = SaeqSemanticColors.of(context);
     final async = ref.watch(earningsDetailProvider(id));
 
     return Scaffold(
@@ -150,12 +158,16 @@ class EarningsDetailScreen extends ConsumerWidget {
                 children: [
                   Text(
                     l10n.homeEarningsValue(item.amountSar.toStringAsFixed(1)),
-                    style: AppTextStyles.headlineLarge,
+                    style: AppTextStyles.monetary.copyWith(
+                      color: colors.primary,
+                    ),
                   ),
                   const SizedBox(height: AppTheme.spacingMD),
                   Text(
                     l10n.homeTripsValue(item.tripsCount),
-                    style: AppTextStyles.titleMedium,
+                    style: AppTextStyles.titleMedium.copyWith(
+                      color: colors.textSecondary,
+                    ),
                   ),
                   const SizedBox(height: AppTheme.spacingLG),
                   SaeqPrimaryButton(

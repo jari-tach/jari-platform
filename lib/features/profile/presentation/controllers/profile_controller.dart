@@ -15,6 +15,7 @@ class ProfileController extends Notifier<ProfileControllerState> {
   static DriverProfileRepository? _defaultReader(Ref ref) => null;
 
   bool _loadStarted = false;
+  bool _updateInProgress = false;
 
   DriverProfileRepository? get _repository => _repositoryReader(ref);
 
@@ -53,4 +54,38 @@ class ProfileController extends Notifier<ProfileControllerState> {
   }
 
   Future<void> retry() => load();
+
+  /// Updates client-editable profile fields. Preserves the prior profile on
+  /// failure and ignores duplicate concurrent calls.
+  Future<bool> updateProfile(DriverProfileUpdate update) async {
+    if (_updateInProgress || !update.hasChanges) {
+      return !update.hasChanges;
+    }
+
+    final priorProfile = state.profile;
+    if (priorProfile == null) return false;
+
+    final repository = _repository;
+    if (repository == null) return false;
+
+    _updateInProgress = true;
+    state = state.copyWith(isUpdating: true);
+
+    try {
+      final updated = await repository.updateCurrentProfile(update);
+      state = ProfileControllerState.success(updated);
+      return true;
+    } on ProfileError {
+      state = ProfileControllerState.success(priorProfile);
+      return false;
+    } catch (_) {
+      state = ProfileControllerState.success(priorProfile);
+      return false;
+    } finally {
+      _updateInProgress = false;
+      if (state.isUpdating) {
+        state = state.copyWith(isUpdating: false);
+      }
+    }
+  }
 }

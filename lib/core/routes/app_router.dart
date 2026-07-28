@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/auth/domain/entities/authentication_status.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
+import '../../features/auth/presentation/screens/otp_verification_screen.dart';
 import '../../features/delivery/presentation/pages/active_delivery_page.dart';
 import '../../features/delivery/presentation/pages/delivery_issue_page.dart';
 import '../../features/delivery/presentation/pages/delivery_verify_page.dart';
@@ -13,7 +14,11 @@ import '../../features/driver/presentation/welcome_screen.dart';
 import '../../features/earnings/presentation/screens/earnings_screen.dart';
 import '../../features/history/presentation/screens/deliveries_history_screen.dart';
 import '../../features/notifications/presentation/screens/notifications_screen.dart';
+import '../../features/profile/presentation/screens/profile_edit_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
+import '../../features/settings/presentation/screens/settings_screen.dart';
+import '../../features/support/presentation/screens/support_safety_screen.dart';
+import '../../features/support/presentation/screens/support_screen.dart';
 import '../localization/app_localizations.dart';
 import '../theme/saeq_semantic_colors.dart';
 
@@ -23,13 +28,16 @@ class AppRoutes {
   static const String welcome = '/';
   static const String comingSoon = '/coming-soon';
   static const String login = '/login';
+  static const String loginOtp = '/login/otp';
   static const String home = '/home';
   static const String deliveries = '/deliveries';
   static const String earnings = '/earnings';
   static const String notifications = '/notifications';
   static const String profile = '/profile';
+  static const String profileEdit = '/profile/edit';
   static const String settings = '/settings';
   static const String support = '/support';
+  static const String supportSafety = '/support/safety';
 
   /// Legacy alias — redirects to [deliveries].
   static const String orders = '/orders';
@@ -128,7 +136,8 @@ class AppRouter {
       redirect: (context, state) {
         final status = authStatus();
         final path = state.uri.path;
-        final isLoginRoute = path == AppRoutes.login;
+        final isLoginRoute =
+            path == AppRoutes.login || path == AppRoutes.loginOtp;
 
         // Compat: old Orders tab → Deliveries.
         if (path == AppRoutes.orders) {
@@ -182,6 +191,15 @@ class AppRouter {
           builder: (context, state) => const LoginScreen(),
         ),
 
+        // OTP verification (public, unauthenticated OTP flow)
+        GoRoute(
+          path: AppRoutes.loginOtp,
+          builder: (context, state) {
+            final phone = state.uri.queryParameters['phone'] ?? '';
+            return OtpVerificationScreen(phoneNumber: phone);
+          },
+        ),
+
         // Full-screen delivery offer (protected, outside bottom nav — ADR-026)
         GoRoute(
           path: AppRoutes.deliveryOffer,
@@ -222,17 +240,19 @@ class AppRouter {
         // Settings / Support (protected, outside bottom nav — under Profile)
         GoRoute(
           path: AppRoutes.settings,
-          builder: (context, state) {
-            final l10n = AppLocalizations.of(context);
-            return ShellPlaceholderScreen(title: l10n.settingsScreenTitle);
-          },
+          builder: (context, state) => const SettingsScreen(),
         ),
         GoRoute(
           path: AppRoutes.support,
-          builder: (context, state) {
-            final l10n = AppLocalizations.of(context);
-            return ShellPlaceholderScreen(title: l10n.supportScreenTitle);
-          },
+          builder: (context, state) => const SupportScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.supportSafety,
+          builder: (context, state) => const SupportSafetyScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.profileEdit,
+          builder: (context, state) => const ProfileEditScreen(),
         ),
 
         // Shell route for main app (with bottom nav) — protected

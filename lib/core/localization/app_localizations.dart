@@ -57,7 +57,10 @@ class AppLocalizations {
   /// Brand display name — Latin in English, Arabic short name in Arabic
   /// (aligned with [AppConstants.appName] = `سائق`).
   String get appName => _t('Saeq Driver', 'سائق');
-  String get appTagline => _t('Delivery Made Simple', 'التوصيل صار أبسط');
+  String get appTagline => _t(
+    'Professional delivery for drivers',
+    'منصة التوصيل الاحترافية للسائقين',
+  );
   String get pageNotFound => _t('Page not found', 'الصفحة غير موجودة');
   String pageNotFoundWithUri(String uri) =>
       _t('Page not found: $uri', 'الصفحة غير موجودة: $uri');
@@ -214,11 +217,17 @@ class AppLocalizations {
     'أبقِ التطبيق محدّثًا لأفضل تجربة.',
   );
 
-  // —— Welcome ——
-  String get welcomeTitle =>
-      _t('Welcome to Saeq Driver', 'مرحبًا بك في سائق صَعِق');
-  String get welcomeSubtitle =>
-      _t('Your reliable delivery partner', 'شريكك الموثوق للتوصيل');
+  // —— Welcome / First Launch (Figma Final/Auth/First Launch) ——
+  String get firstLaunchTitle => _t('Saeq Driver', 'سائق سايق');
+  String get firstLaunchSubtitle => _t(
+    'Professional delivery platform for drivers',
+    'منصة التوصيل الاحترافية للسائقين',
+  );
+  String get firstLaunchStartAction => _t('Start', 'ابدأ');
+  String get firstLaunchSwitchToEnglish => _t('English', 'English');
+  String get firstLaunchSwitchToArabic => _t('العربية', 'العربية');
+  String get welcomeTitle => firstLaunchTitle;
+  String get welcomeSubtitle => firstLaunchSubtitle;
   String get exploreArchitecture =>
       _t('Explore Architecture', 'استكشف الهيكلة');
   String get architectureTitle => _t('Clean Architecture', 'هيكلة نظيفة');
@@ -247,15 +256,13 @@ class AppLocalizations {
     'You will need to sign in again to receive delivery offers.',
     'ستحتاج لتسجيل الدخول مجددًا لاستقبال عروض التوصيل.',
   );
-  String get loginTitle => _t('Driver Sign In', 'تسجيل دخول السائق');
-  String get loginSubtitle => _t(
-    'Enter your phone number to continue (trial mode)',
-    'أدخل رقم جوالك للمتابعة (وضع تجريبي)',
-  );
-  String get phoneNumberLabel => _t('Phone number', 'رقم الجوال');
+  String get loginTitle => _t('Sign in', 'تسجيل الدخول');
+  String get loginSubtitle =>
+      _t('Enter your Saudi mobile number', 'أدخل رقم الجوال السعودي');
+  String get phoneNumberLabel => _t('Mobile number', 'رقم الجوال');
 
   /// Format hint — same pattern in both languages (Saudi mobile format).
-  String get phoneNumberHint => '05XXXXXXXX';
+  String get phoneNumberHint => '05xxxxxxxx';
   String get homeWelcomeTitle =>
       _t('Signed in successfully', 'تم تسجيل الدخول بنجاح');
   String get homeTodayEarningsLabel => _t("Today's earnings", 'أرباح اليوم');
@@ -273,10 +280,10 @@ class AppLocalizations {
       _t('Open notifications', 'فتح الإشعارات');
   String get homeFakeSummaryHint =>
       _t('Trial summary (Fake data)', 'ملخص تجريبي (بيانات وهمية)');
-  String get invalidPhoneNumberMessage => _t(
-    'Please enter a valid phone number (05XXXXXXXX).',
-    'يرجى إدخال رقم جوال صالح (05XXXXXXXX).',
-  );
+  String get fakeAlphaDataHint =>
+      _t('Trial data for preview only', 'بيانات تجريبية للعرض فقط');
+  String get invalidPhoneNumberMessage =>
+      _t('Invalid mobile number', 'رقم الجوال غير صالح');
   String get authenticationRejectedMessage => _t(
     'Sign-in was rejected. Please try again.',
     'تم رفض تسجيل الدخول. حاول مجددًا.',
@@ -289,12 +296,56 @@ class AppLocalizations {
     'Your saved session could not be read. Please sign in again.',
     'تعذر قراءة الجلسة المحفوظة. سجّل الدخول مجددًا.',
   );
+  String get secureStorageFailureTitle => _t('Could not save', 'تعذر الحفظ');
   String get secureStorageFailureMessage => _t(
-    'Could not access secure storage. Please try again.',
-    'تعذر الوصول إلى التخزين الآمن. حاول مجددًا.',
+    'Could not save the session on this device',
+    'تعذر حفظ الجلسة على الجهاز',
   );
+  String get networkFailureTitle => _t('Connection failed', 'تعذر الاتصال');
+  String get networkFailureMessage => _t(
+    'Check your network, then try again',
+    'تحقق من الشبكة ثم أعد المحاولة',
+  );
+  String get rateLimitTitle => _t('Limit exceeded', 'تم تجاوز الحد');
+  String get otpRateLimitedMessage => _t(
+    'Too many send attempts. Try again later.',
+    'تم تجاوز عدد محاولات الإرسال. حاول لاحقاً.',
+  );
+  String get authRetryAction => _t('Try again', 'إعادة المحاولة');
   String get unexpectedAuthErrorMessage =>
       _t('Something went wrong. Please try again.', 'حدث خطأ. حاول مجددًا.');
+
+  String get otpTitle => _t('Enter verification code', 'أدخل رمز التحقق');
+  String get otpSubtitle => _t(
+    'Enter the 6-digit code sent to your phone.',
+    'أدخل الرمز المكوّن من 6 أرقام المرسل إلى جوالك.',
+  );
+  String otpSentToMasked(String maskedPhone) =>
+      _t('We sent a code to $maskedPhone', 'أرسلنا رمزاً إلى $maskedPhone');
+  String get otpCodeLabel => _t('Verification code', 'رمز التحقق');
+  String get otpCodeHint => _t('6-digit code', 'رمز من 6 أرقام');
+  String get otpVerifyAction => _t('Verify', 'تحقق');
+  String get otpResendAction => _t('Resend', 'إعادة الإرسال');
+  String otpResendCooldown(int seconds) =>
+      otpResendCountdown(_formatSecondsAsMmSs(seconds));
+  String otpResendCountdown(String mmSs) =>
+      _t('Resend in $mmSs', 'إعادة الإرسال خلال $mmSs');
+  String get otpResendReadyMessage =>
+      _t('You can resend now', 'يمكنك إعادة الإرسال الآن');
+  String _formatSecondsAsMmSs(int seconds) {
+    final safe = seconds < 0 ? 0 : seconds;
+    final m = (safe ~/ 60).toString().padLeft(2, '0');
+    final s = (safe % 60).toString().padLeft(2, '0');
+    return '$m:$s';
+  }
+
+  String get invalidOtpMessage => _t('Incorrect code', 'رمز غير صحيح');
+  String get expiredOtpMessage => _t('Code expired', 'انتهت صلاحية الرمز');
+  String get incompleteOtpMessage => _t(
+    'Enter the full 6-digit code.',
+    'أدخل الرمز المكوّن من 6 أرقام كاملًا.',
+  );
+  String get otpRequestAction => _t('Send code', 'إرسال رمز التحقق');
 
   // —— Profile ——
   String get profileTitle => _t('Profile', 'ملف السائق');
@@ -342,6 +393,102 @@ class AppLocalizations {
   String get profileUnexpectedMessage => _t(
     'Something went wrong while loading your profile.',
     'حدث خطأ أثناء تحميل ملفك.',
+  );
+  String get profileEditAction => _t('Edit profile', 'تعديل الملف');
+  String get profileEditTitle => _t('Edit profile', 'تعديل الملف');
+  String get profileEditFullNameLabel => _t('Full name', 'الاسم الكامل');
+  String get profileEditFullNameRequired =>
+      _t('Full name is required.', 'الاسم الكامل مطلوب.');
+  String get profileEditEmailLabel =>
+      _t('Email (optional)', 'البريد (اختياري)');
+  String get profileEditEmailHint => _t('name@example.com', 'name@example.com');
+  String get profileEditEmailInvalid =>
+      _t('Enter a valid email address.', 'أدخل بريداً إلكترونياً صالحاً.');
+  String get profileEditSaveAction => _t('Save changes', 'حفظ التغييرات');
+  String get profileEditSuccessMessage =>
+      _t('Profile updated.', 'تم تحديث الملف.');
+  String get profileEditFailureMessage => _t(
+    'Could not update profile. Please try again.',
+    'تعذر تحديث الملف. حاول مجددًا.',
+  );
+  String get profileEditHint => _t(
+    'Phone number and account status cannot be changed here.',
+    'لا يمكن تغيير رقم الجوال وحالة الحساب من هنا.',
+  );
+
+  // —— Settings (PHASE 2.6 Inc 4) ——
+  String get settingsAppearanceSectionTitle => _t('Appearance', 'المظهر');
+  String get settingsAppearanceSectionSubtitle => _t(
+    'Choose how SAEQ Driver looks on this device.',
+    'اختر مظهر تطبيق سائق على هذا الجهاز.',
+  );
+  String get settingsThemeSystem => _t('System', 'النظام');
+  String get settingsThemeLight => _t('Light', 'فاتح');
+  String get settingsThemeDark => _t('Dark', 'داكن');
+  String get settingsLanguageSectionTitle => _t('Language', 'اللغة');
+  String get settingsLanguageSectionSubtitle => _t(
+    'Switch between Arabic and English.',
+    'التبديل بين العربية والإنجليزية.',
+  );
+  String get settingsLanguageArabic => _t('Arabic', 'العربية');
+  String get settingsLanguageEnglish => _t('English', 'English');
+  String get settingsAboutSectionTitle => _t('About', 'حول التطبيق');
+  String get settingsAboutSectionSubtitle =>
+      _t('Application information.', 'معلومات التطبيق.');
+  String settingsAppVersionLabel(String version) =>
+      _t('Version $version', 'الإصدار $version');
+  String get settingsAccountSectionTitle => _t('Account', 'الحساب');
+  String get settingsAccountSectionSubtitle =>
+      _t('Sign out of this device.', 'تسجيل الخروج من هذا الجهاز.');
+
+  // —— Support (PHASE 2.6 Inc 4) ——
+  String get supportFaqSectionTitle =>
+      _t('Frequently asked questions', 'الأسئلة الشائعة');
+  String get supportFaq1Question =>
+      _t('How do I receive delivery offers?', 'كيف أستقبل عروض التوصيل؟');
+  String get supportFaq1Answer => _t(
+    'Turn on availability from Home and stay signed in while online.',
+    'فعّل التوفر من الرئيسية وابقَ مسجّل الدخول أثناء الاتصال.',
+  );
+  String get supportFaq2Question =>
+      _t('Why can I not go available?', 'لماذا لا أستطيع التحول إلى متاح؟');
+  String get supportFaq2Answer => _t(
+    'Check your profile status, connectivity, and that you are not busy on an active delivery.',
+    'تحقق من حالة ملفك والاتصال وأنك لست مشغولًا بتوصيل نشط.',
+  );
+  String get supportFaq3Question =>
+      _t('Who can I contact for help?', 'من أتواصل معه للمساعدة؟');
+  String get supportFaq3Answer => _t(
+    'Support channels appear here when configured by the platform. Until then, use in-app guidance and your fleet coordinator.',
+    'تظهر قنوات الدعم هنا عند تهيئتها من المنصة. حتى ذلك الحين، استخدم الإرشادات داخل التطبيق أو منسّق الأسطول.',
+  );
+  String get supportContactSectionTitle =>
+      _t('Contact support', 'التواصل مع الدعم');
+  String get supportContactUnavailableTitle =>
+      _t('Support unavailable', 'الدعم غير متاح');
+  String get supportContactUnavailableMessage => _t(
+    'Contact channels are not configured yet. Check back after platform setup.',
+    'قنوات التواصل غير مهيّأة بعد. عد لاحقًا بعد إعداد المنصة.',
+  );
+  String get supportContactPhoneLabel => _t('Phone', 'الهاتف');
+  String get supportContactEmailLabel => _t('Email', 'البريد');
+  String get supportContactHelpUrlLabel => _t('Help center', 'مركز المساعدة');
+  String get supportAboutSectionTitle => _t('About SAEQ Driver', 'حول سائق');
+  String get supportSafetyTipsAction => _t('Safety tips', 'نصائح السلامة');
+  String get supportSafetyScreenTitle => _t('Safety tips', 'نصائح السلامة');
+  String get supportSafetyIntro =>
+      _t('Stay safe while delivering.', 'ابقَ آمنًا أثناء التوصيل.');
+  String get supportSafetyTip1 => _t(
+    'Follow traffic rules and wear required safety gear.',
+    'التزم بقواعد المرور وارتدِ معدات السلامة المطلوبة.',
+  );
+  String get supportSafetyTip2 => _t(
+    'Verify the customer and delivery code before handing over the order.',
+    'تحقق من العميل ورمز التسليم قبل تسليم الطلب.',
+  );
+  String get supportSafetyTip3 => _t(
+    'Report issues from the active delivery screen instead of bypassing workflow steps.',
+    'أبلغ عن المشاكل من شاشة التوصيل النشط بدلًا من تجاوز خطوات سير العمل.',
   );
 
   // —— Availability (PHASE 2.4 / 2.4.1) ——

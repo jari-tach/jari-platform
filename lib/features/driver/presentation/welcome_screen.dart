@@ -2,144 +2,82 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/constants/app_constants.dart';
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/providers/app_providers.dart';
 import '../../../core/routes/app_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/saeq_semantic_colors.dart';
 import '../../../shared/widgets/saeq_primary_button.dart';
-import '../../../shared/widgets/saeq_section_card.dart';
 
+/// Figma `Final/Auth/First Launch` (node 40:4).
 class WelcomeScreen extends ConsumerWidget {
   const WelcomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final localizations = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context);
+    final colors = SaeqSemanticColors.of(context);
+    final isArabic = l10n.isArabic;
 
     return Scaffold(
+      backgroundColor: colors.background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppConstants.contentPadding),
+        child: Padding(
+          padding: const EdgeInsets.all(AppTheme.spacingMD),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceVariant,
-                  borderRadius: BorderRadius.circular(AppConstants.cardRadius),
-                ),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 28,
-                      backgroundColor: AppColors.primary,
-                      child: Text(
-                        AppConstants.appName.substring(0, 1),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            localizations.appName,
-                            style: AppTextStyles.titleLarge,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            localizations.appTagline,
-                            style: AppTextStyles.bodyMedium,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+              Text(
+                l10n.firstLaunchTitle,
+                style: AppTextStyles.headlineLarge.copyWith(
+                  color: colors.textPrimary,
+                  fontSize: AppTheme.fontSizeXXL,
+                  fontWeight: AppTheme.fontWeightBold,
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppTheme.spacing12),
               Text(
-                localizations.welcomeTitle,
-                style: AppTextStyles.headlineLarge,
+                l10n.firstLaunchSubtitle,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: colors.textSecondary,
+                  fontSize: AppTheme.fontSizeSM,
+                ),
               ),
-              const SizedBox(height: 10),
-              Text(
-                localizations.welcomeSubtitle,
-                style: AppTextStyles.bodyLarge,
-              ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppTheme.spacingLG),
               SaeqPrimaryButton(
-                label: localizations.exploreArchitecture,
-                icon: Icons.auto_awesome,
-                onPressed: () => context.push(AppRoutes.comingSoon),
+                label: l10n.firstLaunchStartAction,
+                onPressed: () => context.go(AppRoutes.login),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppTheme.spacing12),
               SizedBox(
+                height: AppTheme.minTouchTarget,
                 width: double.infinity,
-                child: OutlinedButton.icon(
-                  // `go` (not `push`): login is an entry point, not a
-                  // sub-screen of Welcome. Keeps the back stack clean after
-                  // a successful sign-in redirects to /home.
-                  onPressed: () => context.go(AppRoutes.login),
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(0, 48),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
+                child: TextButton(
+                  onPressed: () {
+                    ref
+                        .read(appLocaleProvider.notifier)
+                        .setLocale(
+                          isArabic ? const Locale('en') : const Locale('ar'),
+                        );
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: colors.primary,
+                    textStyle: AppTextStyles.button.copyWith(
+                      fontWeight: AppTheme.fontWeightBold,
+                      fontSize: AppTheme.fontSizeMD,
                     ),
                   ),
-                  icon: const Icon(Icons.login),
-                  label: Text(localizations.signIn),
+                  child: Text(
+                    isArabic
+                        ? l10n.firstLaunchSwitchToEnglish
+                        : l10n.firstLaunchSwitchToArabic,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 24),
-              SaeqSectionCard(
-                title: localizations.architectureTitle,
-                subtitle: localizations.architectureSubtitle,
-                child: Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: [
-                    _Chip(label: localizations.readyForGrowth),
-                    _Chip(label: localizations.sharedDesignSystem),
-                    _Chip(label: localizations.servicesLayer),
-                    _Chip(label: localizations.apiReady),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              SaeqSectionCard(
-                title: localizations.nextStepsTitle,
-                subtitle: localizations.nextStepsSubtitle,
-                child: Text(localizations.nextStepsFocusMessage),
               ),
             ],
           ),
         ),
       ),
-    );
-  }
-}
-
-class _Chip extends StatelessWidget {
-  const _Chip({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceVariant,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(label, style: AppTextStyles.bodyMedium),
     );
   }
 }

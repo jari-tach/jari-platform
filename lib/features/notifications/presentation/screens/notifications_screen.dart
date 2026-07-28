@@ -6,10 +6,11 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/routes/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/saeq_semantic_colors.dart';
 import '../../../../shared/widgets/saeq_empty_state.dart';
 import '../../../../shared/widgets/saeq_error_state.dart';
-import '../../../../shared/widgets/saeq_info_card.dart';
 import '../../../../shared/widgets/saeq_loading_skeleton.dart';
+import '../../../../shared/widgets/saeq_notification_row.dart';
 import '../../../../shared/widgets/saeq_primary_button.dart';
 import '../../../../shared/widgets/saeq_status_chip.dart';
 import '../providers/notifications_providers.dart';
@@ -20,6 +21,7 @@ class NotificationsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final colors = SaeqSemanticColors.of(context);
     final state = ref.watch(notificationsControllerProvider);
     final controller = ref.read(notificationsControllerProvider.notifier);
 
@@ -28,7 +30,19 @@ class NotificationsScreen extends ConsumerWidget {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(AppConstants.contentPadding),
-          child: _body(context, l10n, state, controller),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                l10n.fakeAlphaDataHint,
+                style: AppTextStyles.supporting.copyWith(
+                  color: colors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: AppTheme.spacingSM),
+              Expanded(child: _body(context, l10n, state, controller)),
+            ],
+          ),
         ),
       ),
     );
@@ -61,15 +75,12 @@ class NotificationsScreen extends ConsumerWidget {
       separatorBuilder: (_, _) => const SizedBox(height: AppTheme.spacingSM),
       itemBuilder: (context, index) {
         final item = state.items[index];
-        return SaeqInfoCard(
+        return SaeqNotificationRow(
           title: _title(l10n, item.titleKey),
-          subtitle: _bodyText(l10n, item.bodyKey),
-          trailing: SaeqStatusChip(
-            label: item.isRead
-                ? l10n.notificationRead
-                : l10n.notificationUnread,
-            tone: item.isRead ? SaeqStatusTone.neutral : SaeqStatusTone.warning,
-          ),
+          body: _bodyText(l10n, item.bodyKey),
+          isRead: item.isRead,
+          readLabel: l10n.notificationRead,
+          unreadLabel: l10n.notificationUnread,
           onTap: () => context.push(AppRoutes.notificationDetail(item.id)),
         );
       },
@@ -103,6 +114,7 @@ class NotificationDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final colors = SaeqSemanticColors.of(context);
     final async = ref.watch(notificationDetailProvider(id));
     final controller = ref.read(notificationsControllerProvider.notifier);
 
@@ -129,14 +141,35 @@ class NotificationDetailScreen extends ConsumerWidget {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    _title(l10n, item.titleKey),
-                    style: AppTextStyles.headlineLarge,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _title(l10n, item.titleKey),
+                          style: AppTextStyles.headlineLarge.copyWith(
+                            color: colors.textPrimary,
+                          ),
+                        ),
+                      ),
+                      SaeqStatusChip(
+                        label: item.isRead
+                            ? l10n.notificationRead
+                            : l10n.notificationUnread,
+                        tone: item.isRead
+                            ? SaeqStatusTone.neutral
+                            : SaeqStatusTone.warning,
+                        icon: item.isRead
+                            ? Icons.mark_email_read_outlined
+                            : Icons.mark_email_unread_outlined,
+                      ),
+                    ],
                   ),
                   const SizedBox(height: AppTheme.spacingMD),
                   Text(
                     _bodyText(l10n, item.bodyKey),
-                    style: AppTextStyles.bodyLarge,
+                    style: AppTextStyles.bodyLarge.copyWith(
+                      color: colors.textSecondary,
+                    ),
                   ),
                   const Spacer(),
                   if (!item.isRead)

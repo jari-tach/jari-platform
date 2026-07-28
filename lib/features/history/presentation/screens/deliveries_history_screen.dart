@@ -6,8 +6,10 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/routes/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/saeq_semantic_colors.dart';
 import '../../../../shared/widgets/saeq_empty_state.dart';
 import '../../../../shared/widgets/saeq_error_state.dart';
+import '../../../../shared/widgets/saeq_filter_chip_bar.dart';
 import '../../../../shared/widgets/saeq_info_card.dart';
 import '../../../../shared/widgets/saeq_loading_skeleton.dart';
 import '../../../../shared/widgets/saeq_primary_button.dart';
@@ -21,6 +23,7 @@ class DeliveriesHistoryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final colors = SaeqSemanticColors.of(context);
     final state = ref.watch(historyControllerProvider);
     final controller = ref.read(historyControllerProvider.notifier);
 
@@ -30,23 +33,30 @@ class DeliveriesHistoryScreen extends ConsumerWidget {
         child: Padding(
           padding: const EdgeInsets.all(AppConstants.contentPadding),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Wrap(
-                spacing: 8,
-                children: [
-                  _FilterChip(
+              Text(
+                l10n.fakeAlphaDataHint,
+                style: AppTextStyles.supporting.copyWith(
+                  color: colors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: AppTheme.spacingSM),
+              SaeqFilterChipBar(
+                chips: [
+                  SaeqFilterChip(
                     label: l10n.historyFilterAll,
                     selected: state.filter == DeliveryHistoryFilter.all,
                     onTap: () =>
                         controller.setFilter(DeliveryHistoryFilter.all),
                   ),
-                  _FilterChip(
+                  SaeqFilterChip(
                     label: l10n.historyFilterDelivered,
                     selected: state.filter == DeliveryHistoryFilter.delivered,
                     onTap: () =>
                         controller.setFilter(DeliveryHistoryFilter.delivered),
                   ),
-                  _FilterChip(
+                  SaeqFilterChip(
                     label: l10n.historyFilterCancelled,
                     selected: state.filter == DeliveryHistoryFilter.cancelled,
                     onTap: () =>
@@ -92,21 +102,34 @@ class DeliveriesHistoryScreen extends ConsumerWidget {
         icon: Icons.history,
       );
     }
+    final colors = SaeqSemanticColors.of(context);
     return ListView.separated(
       itemCount: state.items.length,
       separatorBuilder: (_, _) => const SizedBox(height: AppTheme.spacingSM),
       itemBuilder: (context, index) {
         final item = state.items[index];
+        final isCancelled = item.statusLabelKey == 'cancelled';
         return SaeqInfoCard(
           title: item.storeName,
           subtitle: '${item.pickupLabel} → ${item.dropoffLabel}',
-          trailing: SaeqStatusChip(
-            label: item.statusLabelKey == 'cancelled'
-                ? l10n.historyStatusCancelled
-                : l10n.historyStatusDelivered,
-            tone: item.statusLabelKey == 'cancelled'
-                ? SaeqStatusTone.danger
-                : SaeqStatusTone.success,
+          trailing: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SaeqStatusChip(
+                label: isCancelled
+                    ? l10n.historyStatusCancelled
+                    : l10n.historyStatusDelivered,
+                tone: isCancelled
+                    ? SaeqStatusTone.danger
+                    : SaeqStatusTone.success,
+              ),
+              const SizedBox(height: AppTheme.spacingXS),
+              Text(
+                l10n.homeEarningsValue(item.earningsSar.toStringAsFixed(1)),
+                style: AppTextStyles.monetary.copyWith(color: colors.primary),
+              ),
+            ],
           ),
           onTap: () => context.push(AppRoutes.deliveryHistoryDetail(item.id)),
         );
@@ -123,6 +146,7 @@ class DeliveryHistoryDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final colors = SaeqSemanticColors.of(context);
     final async = ref.watch(historyDetailProvider(id));
 
     return Scaffold(
@@ -145,23 +169,44 @@ class DeliveryHistoryDetailScreen extends ConsumerWidget {
                   message: l10n.historyEmptyMessage,
                 );
               }
+              final isCancelled = item.statusLabelKey == 'cancelled';
               return ListView(
                 children: [
-                  Text(item.storeName, style: AppTextStyles.headlineLarge),
+                  Text(
+                    item.storeName,
+                    style: AppTextStyles.headlineLarge.copyWith(
+                      color: colors.textPrimary,
+                    ),
+                  ),
                   const SizedBox(height: AppTheme.spacingMD),
                   Text(
                     '${l10n.deliveryOfferPickupLabel}: ${item.pickupLabel}',
-                    style: AppTextStyles.bodyLarge,
+                    style: AppTextStyles.bodyLarge.copyWith(
+                      color: colors.textPrimary,
+                    ),
                   ),
                   const SizedBox(height: AppTheme.spacingSM),
                   Text(
                     '${l10n.deliveryOfferDropoffLabel}: ${item.dropoffLabel}',
-                    style: AppTextStyles.bodyLarge,
+                    style: AppTextStyles.bodyLarge.copyWith(
+                      color: colors.textPrimary,
+                    ),
                   ),
                   const SizedBox(height: AppTheme.spacingSM),
+                  SaeqStatusChip(
+                    label: isCancelled
+                        ? l10n.historyStatusCancelled
+                        : l10n.historyStatusDelivered,
+                    tone: isCancelled
+                        ? SaeqStatusTone.danger
+                        : SaeqStatusTone.success,
+                  ),
+                  const SizedBox(height: AppTheme.spacingMD),
                   Text(
                     l10n.homeEarningsValue(item.earningsSar.toStringAsFixed(1)),
-                    style: AppTextStyles.titleMedium,
+                    style: AppTextStyles.monetary.copyWith(
+                      color: colors.primary,
+                    ),
                   ),
                   const SizedBox(height: AppTheme.spacingLG),
                   SaeqPrimaryButton(
@@ -174,27 +219,6 @@ class DeliveryHistoryDetailScreen extends ConsumerWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _FilterChip extends StatelessWidget {
-  const _FilterChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return FilterChip(
-      label: Text(label),
-      selected: selected,
-      onSelected: (_) => onTap(),
     );
   }
 }

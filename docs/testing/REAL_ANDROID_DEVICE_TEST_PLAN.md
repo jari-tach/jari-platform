@@ -343,3 +343,75 @@ Earlier slow UI automation (many `uiautomator dump`s) could exceed the 8s Fake T
 
 **Do not run on Inc 3:** OTP, Settings language/theme (Inc 4).
 
+---
+
+## 11. PHASE 2.6 Increment 4 — device checklist
+
+**Baseline:** after Inc 3 commit `2aef3a0` (+ Inc 4 working tree changes)
+
+**Device:** VKP NX9 (`AP4EVB6423004646`)
+
+**Constraint:** Fake Alpha only; OTP trial code is in-memory Fake repo only — do **not** document or log OTP as production behavior.
+
+| ID | Scenario | Pass criteria |
+|----|----------|---------------|
+| I4-A | OTP login | Sign out → Login with trial phone → OTP screen → valid Fake trial code → Home |
+| I4-B | OTP resend | Resend disabled during cooldown; enabled after cooldown |
+| I4-C | OTP invalid | Wrong code shows error; session not created |
+| I4-D | Profile view | Sovereign fields read-only; masked phone display |
+| I4-E | Profile edit | Edit fullName + email; save persists; sovereign fields unchanged |
+| I4-F | Settings theme | Switch light → dark → system; survives restart |
+| I4-G | Settings locale | Switch ar ↔ en when navigable; RTL/LTR updates |
+| I4-H | Support unavailable | Support shows unavailable state; no invented contacts |
+| I4-I | Support safety | Safety route opens; informational only |
+| I4-J | Session storage | Tokens not in SharedPreferences (`AppPreferences` theme/locale only) |
+| I4-K | Offer regression | Reject cooldown + accept still work after OTP re-login |
+
+**Do not run on Inc 4:** production SMS, certificate pinning validation, real support dial/email.
+
+### Execution log (2026-07-27 — final validation)
+
+| Field | Value |
+|-------|--------|
+| Device | VKP NX9 (`AP4EVB6423004646`) |
+| `adb devices` | **Empty — device not connected** |
+| Debug APK | **Built** — `build/app/outputs/flutter-apk/app-debug.apk` |
+| APK install | **Not performed** |
+| Scenarios I4-A … I4-K | **Untested** |
+| Quality Gate | analyze 0/0/1 · test 637/0/0 · build OK |
+
+---
+
+## 12. Design Sprint 2 — device checklist
+
+**Baseline:** Inc 3 + Inc 4 working tree with temporary **Forest Green** `SaeqSemanticColors`
+
+**Status:** **Implemented in working tree — awaiting device QA** (not approved, not committed). Widget/unit tests must pass in Quality Gate; device validation deferred when device unavailable.
+
+| ID | Scenario | Pass criteria |
+|----|----------|---------------|
+| DS2-A | Home (light, AR) | Forest Green tokens; RTL; no overflow |
+| DS2-B | Settings dark | Theme switch applies semantic colors |
+| DS2-C | Settings EN | English locale when navigable |
+| DS2-D | Profile + edit | Header, cards, buttons match sprint palette |
+| DS2-E | Support | Unavailable + safety screens styled consistently |
+| DS2-F | Deliveries / History | Filter chips + list rows use sprint widgets |
+| DS2-G | Earnings | Earnings row + detail styling |
+| DS2-H | Notifications | Notification row + unread styling |
+| DS2-I | Login + OTP | OTP input + resend timer styling |
+| DS2-J | Large text | Primary Inc 3+4 screens at ~1.3× text scale without hard overflow |
+
+**Screenshot path (when run):** `.backup/device-qa-inc4-ds2-YYYYMMDD/` (non-committed)
+
+### Execution log (2026-07-27 — final validation)
+
+| Field | Value |
+|-------|--------|
+| Device | VKP NX9 (`AP4EVB6423004646`) |
+| `adb devices` | **Empty — device not connected** |
+| Debug APK | **Built** — not installed |
+| Result | **Deferred — device not connected** |
+| Screenshots | **None** — `.backup/device-qa-inc4-ds2-20260727/` not created |
+| DS2-A … DS2-J | **Untested** |
+| Quality Gate | analyze 0/0/1 · test 637/0/0 · build OK |
+

@@ -22,14 +22,12 @@ class AuthController extends Notifier<AuthControllerState> {
 
   bool _isBusy = false;
   bool _restoreStarted = false;
+  Future<void>? _refreshInFlight;
 
   AuthenticationRepository? get _repository => _repositoryReader(ref);
 
   @override
   AuthControllerState build() {
-    // Restoration must run exactly once per controller lifetime (Phase 7):
-    // guard against build() being re-invoked by an unrelated dependency
-    // change.
     if (!_restoreStarted) {
       _restoreStarted = true;
       Future.microtask(_restoreSession);
@@ -42,9 +40,6 @@ class AuthController extends Notifier<AuthControllerState> {
 
     final repository = _repository;
     if (repository == null) {
-      // AuthenticationRepository failed to initialize (see
-      // AppServiceRegistry). Fail safe: treat as unauthenticated, never
-      // crash, never get stuck in restoring.
       state = const AuthControllerState.unauthenticated();
       return;
     }
@@ -55,15 +50,12 @@ class AuthController extends Notifier<AuthControllerState> {
           ? AuthControllerState.authenticated(session)
           : const AuthControllerState.unauthenticated();
     } catch (_) {
-      // AuthenticationRepository.restoreSession() is contractually not
-      // supposed to throw for normal cases; this is defense-in-depth so a
-      // misbehaving implementation still can't block app startup.
       state = const AuthControllerState.unauthenticated();
     }
   }
 
   Future<void> signIn(String phoneNumber) async {
-    if (_isBusy) return; // Prevent duplicate/concurrent sign-in requests.
+    if (_isBusy) return;
 
     final repository = _repository;
     if (repository == null) {
@@ -77,11 +69,7 @@ class AuthController extends Notifier<AuthControllerState> {
       final session = await repository.signIn(phoneNumber);
       state = AuthControllerState.authenticated(session);
     } on AuthError catch (error) {
-      if (error is SessionExpiredError) {
-        state = AuthControllerState.expired(error);
-      } else {
-        state = AuthControllerState.failure(error);
-      }
+      state = _stateForAuthError(error);
     } catch (_) {
       state = const AuthControllerState.failure(UnexpectedAuthError());
     } finally {
@@ -89,31 +77,243 @@ class AuthController extends Notifier<AuthControllerState> {
     }
   }
 
+  Future<void> requestOtp(String phoneNumber) async {
+    if (_isBusy) return;
+
+    final repository = _repository;
+    if (repository == null) {
+      state = const AuthControllerState.failure(UnexpectedAuthError());
+      return;
+    }
+
+    _isBusy = true;
+    state = const AuthControllerState.requestingOtp();
+    try {
+      await repository.requestOtp(phoneNumber);
+      state = AuthControllerState.otpRequested(
+        pendingPhone: phoneNumber,
+        resendAvailableAt:
+            repository.otpResendAvailableAt ??
+            DateTime.now().add(const Duration(seconds: 30)),
+      );
+    } on AuthError catch (error) {
+      state = _stateForAuthError(error);
+    } catch (_) {
+      state = const AuthControllerState.failure(UnexpectedAuthError());
+    } finally {
+      _isBusy = false;
+    }
+  }
+
+  Future<void> verifyOtp(String otpCode) async {
+    if (_isBusy) return;
+
+    final pendingPhone = state.pendingPhone;
+    if (pendingPhone == null) {
+      state = const AuthControllerState.failure(UnexpectedAuthError());
+      return;
+    }
+
+    final repository = _repository;
+    if (repository == null) {
+      state = const AuthControllerState.failure(UnexpectedAuthError());
+      return;
+    }
+
+    final resendAvailableAt =
+        state.resendAvailableAt ??
+        repository.otpResendAvailableAt ??
+        DateTime.now();
+
+    _isBusy = true;
+    state = AuthControllerState.verifyingOtp(
+      pendingPhone: pendingPhone,
+      resendAvailableAt: resendAvailableAt,
+    );
+    try {
+      final session = await repository.verifyOtp(
+        phoneNumber: pendingPhone,
+        otpCode: otpCode.trim(),
+      );
+      state = AuthControllerState.authenticated(session);
+    } on AuthError catch (error) {
+      if (error is SessionExpiredError) {
+        state = AuthControllerState.expired(error);
+      } else {
+        state = AuthControllerState.otpRequested(
+          pendingPhone: pendingPhone,
+          resendAvailableAt: resendAvailableAt,
+          error: error,
+        );
+      }
+    } catch (_) {
+      state = AuthControllerState.otpRequested(
+        pendingPhone: pendingPhone,
+        resendAvailableAt: resendAvailableAt,
+        error: const UnexpectedAuthError(),
+      );
+    } finally {
+      _isBusy = false;
+    }
+  }
+
+  Future<void> resendOtp() async {
+    final pendingPhone = state.pendingPhone;
+    if (pendingPhone == null || _isBusy) return;
+
+    final repository = _repository;
+    if (repository == null) {
+      state = AuthControllerState.otpRequested(
+        pendingPhone: pendingPhone,
+        resendAvailableAt: state.resendAvailableAt ?? DateTime.now(),
+        error: const UnexpectedAuthError(),
+      );
+      return;
+    }
+
+    final resendAvailableAt = state.resendAvailableAt;
+    if (resendAvailableAt != null &&
+        DateTime.now().isBefore(resendAvailableAt)) {
+      state = AuthControllerState.otpRequested(
+        pendingPhone: pendingPhone,
+        resendAvailableAt: resendAvailableAt,
+        error: const OtpRateLimitedError(),
+      );
+      return;
+    }
+
+    _isBusy = true;
+    final previousResendAt = resendAvailableAt ?? DateTime.now();
+    state = const AuthControllerState.requestingOtp();
+    try {
+      await repository.requestOtp(pendingPhone);
+      state = AuthControllerState.otpRequested(
+        pendingPhone: pendingPhone,
+        resendAvailableAt:
+            repository.otpResendAvailableAt ??
+            DateTime.now().add(const Duration(seconds: 30)),
+      );
+    } on AuthError catch (error) {
+      state = AuthControllerState.otpRequested(
+        pendingPhone: pendingPhone,
+        resendAvailableAt: previousResendAt,
+        error: error,
+      );
+    } catch (_) {
+      state = AuthControllerState.otpRequested(
+        pendingPhone: pendingPhone,
+        resendAvailableAt: previousResendAt,
+        error: const UnexpectedAuthError(),
+      );
+    } finally {
+      _isBusy = false;
+    }
+  }
+
+  void clearOtpFlow() {
+    _repository?.clearOtpChallenge();
+    if (state.status == AuthControllerStatus.failure ||
+        state.status == AuthControllerStatus.otpRequested ||
+        state.status == AuthControllerStatus.requestingOtp ||
+        state.status == AuthControllerStatus.verifyingOtp) {
+      state = const AuthControllerState.unauthenticated();
+    }
+  }
+
   Future<void> signOut() async {
-    // Idempotent: a repeated sign-out while one is already in flight (or
-    // once already signed out) must never throw or double-fire storage
-    // clears.
     if (state.status == AuthControllerStatus.signingOut) return;
     if (state.status == AuthControllerStatus.unauthenticated) return;
 
+    final previousSession = state.session;
     state = const AuthControllerState.signingOut();
     final repository = _repository;
-    if (repository != null) {
-      try {
-        await repository.signOut();
-      } catch (_) {
-        // signOut() must never crash the app; fall through to
-        // unauthenticated regardless of the underlying failure.
+    if (repository == null) {
+      state = const AuthControllerState.unauthenticated();
+      return;
+    }
+
+    try {
+      await repository.signOut();
+      repository.clearOtpChallenge();
+      state = const AuthControllerState.unauthenticated();
+    } on SecureStorageFailureError catch (error) {
+      if (previousSession != null) {
+        state = AuthControllerState.failure(error, session: previousSession);
+      } else {
+        state = AuthControllerState.failure(error);
+      }
+    } catch (_) {
+      if (previousSession != null) {
+        state = AuthControllerState.authenticated(previousSession);
+      } else {
+        state = const AuthControllerState.unauthenticated();
       }
     }
-    state = const AuthControllerState.unauthenticated();
   }
 
-  /// Clears a [AuthControllerStatus.failure] state so the Login screen can
-  /// show a clean form again on retry, without re-running restoration.
-  void clearError() {
-    if (state.status == AuthControllerStatus.failure) {
+  Future<void> refreshSession() async {
+    if (_refreshInFlight != null) {
+      return _refreshInFlight!;
+    }
+
+    if (_isBusy) return;
+
+    final repository = _repository;
+    if (repository == null) return;
+    if (state.status != AuthControllerStatus.authenticated) return;
+
+    _refreshInFlight = _refreshSessionBody();
+    try {
+      await _refreshInFlight!;
+    } finally {
+      _refreshInFlight = null;
+    }
+  }
+
+  Future<void> _refreshSessionBody() async {
+    final repository = _repository;
+    if (repository == null) return;
+
+    try {
+      final session = await repository.refreshSession();
+      if (session != null) {
+        state = AuthControllerState.authenticated(session);
+      } else {
+        state = const AuthControllerState.unauthenticated();
+      }
+    } catch (_) {
       state = const AuthControllerState.unauthenticated();
     }
+  }
+
+  void clearError() {
+    if (state.status == AuthControllerStatus.failure) {
+      final pendingPhone = state.pendingPhone;
+      final resendAvailableAt = state.resendAvailableAt;
+      if (pendingPhone != null && resendAvailableAt != null) {
+        state = AuthControllerState.otpRequested(
+          pendingPhone: pendingPhone,
+          resendAvailableAt: resendAvailableAt,
+        );
+      } else {
+        state = const AuthControllerState.unauthenticated();
+      }
+      return;
+    }
+
+    if (state.status == AuthControllerStatus.otpRequested &&
+        state.error != null) {
+      state = AuthControllerState.otpRequested(
+        pendingPhone: state.pendingPhone!,
+        resendAvailableAt: state.resendAvailableAt!,
+      );
+    }
+  }
+
+  AuthControllerState _stateForAuthError(AuthError error) {
+    if (error is SessionExpiredError) {
+      return AuthControllerState.expired(error);
+    }
+    return AuthControllerState.failure(error);
   }
 }

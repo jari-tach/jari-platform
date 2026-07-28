@@ -14,7 +14,10 @@ import '../../../shared/widgets/saeq_info_card.dart';
 import '../../../shared/widgets/saeq_offline_banner.dart';
 import '../../../shared/widgets/saeq_primary_button.dart';
 import '../../../shared/widgets/saeq_secondary_button.dart';
+import '../../auth/domain/entities/auth_error.dart';
+import '../../auth/presentation/controllers/auth_controller_state.dart';
 import '../../auth/presentation/providers/auth_providers.dart';
+import '../../availability/presentation/providers/availability_providers.dart';
 import '../../availability/presentation/widgets/driver_availability_card.dart';
 import '../../delivery/presentation/widgets/delivery_offer_home_banner.dart';
 
@@ -146,7 +149,18 @@ class HomeScreen extends ConsumerWidget {
       cancelLabel: l10n.cancelAction,
     );
     if (confirmed == true) {
+      await ref
+          .read(availabilityControllerProvider.notifier)
+          .prepareForLogout();
       await ref.read(authControllerProvider.notifier).signOut();
+      if (!context.mounted) return;
+      final authState = ref.read(authControllerProvider);
+      if (authState.status == AuthControllerStatus.failure &&
+          authState.error is SecureStorageFailureError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.secureStorageFailureMessage)),
+        );
+      }
     }
   }
 }

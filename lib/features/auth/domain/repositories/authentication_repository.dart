@@ -18,10 +18,48 @@ abstract class AuthenticationRepository {
 
   /// Trial sign-in. Throws an [AuthError] (never a raw platform exception)
   /// on failure.
+  ///
+  /// Kept for backward compatibility with existing callers/tests. New UI
+  /// should prefer [requestOtp] + [verifyOtp].
   Future<DriverSession> signIn(String phoneNumber);
 
-  /// Clears the current session. Must be safe to call even when already
-  /// signed out, and must never throw.
+  /// Sends an OTP challenge to [phoneNumber].
+  ///
+  /// Fake Alpha: validates local phone format, stores a short-lived in-memory
+  /// challenge only (never persisted, never logged). Production will call a
+  /// remote auth API behind the same contract; certificate pinning remains a
+  /// production gate (not implemented in Fake Alpha).
+  Future<void> requestOtp(String phoneNumber);
+
+  /// Verifies the OTP [otpCode] for [phoneNumber] and returns a session on
+  /// success.
+  ///
+  /// Fake Alpha: compares against a deterministic trial code in memory only.
+  /// OTP values must never be logged or written to secure storage.
+  Future<DriverSession> verifyOtp({
+    required String phoneNumber,
+    required String otpCode,
+  });
+
+  /// Refreshes the current session when supported.
+  ///
+  /// Fake Alpha: returns [currentSession] when still valid, otherwise `null`.
+  /// May throw [SessionExpiredError] when a refresh is attempted on an
+  /// expired session (Fake returns `null` instead).
+  Future<DriverSession?> refreshSession();
+
+  /// Clears any in-flight OTP challenge without affecting an authenticated
+  /// session.
+  void clearOtpChallenge();
+
+  /// Earliest time a new OTP may be requested for the current challenge.
+  /// `null` when no challenge is pending.
+  DateTime? get otpResendAvailableAt;
+
+  /// Clears the current session. Safe to call when already signed out.
+  ///
+  /// Throws [SecureStorageFailureError] when secure storage cannot be cleared
+  /// during an intentional logout (tokens may remain).
   Future<void> signOut();
 
   /// The last known session, kept in memory after [restoreSession] or

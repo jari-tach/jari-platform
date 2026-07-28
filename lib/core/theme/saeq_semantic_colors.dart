@@ -62,24 +62,24 @@ class SaeqSemanticColors extends ThemeExtension<SaeqSemanticColors> {
   final Color busy;
   final Color busyContainer;
 
-  /// Temporary brand palette A — Forest Green (Sprint 1 default).
+  /// Final Auth palette from Figma `Final/Auth/*` (file MNJldEpkMxVjIavCPaPBFh).
   static const SaeqSemanticColors light = SaeqSemanticColors(
-    primary: Color(0xFF1B5E20),
+    primary: Color(0xFF0D4F3C),
     primaryContainer: Color(0xFFE8F5E9),
     secondary: Color(0xFF2E7D32),
     accent: Color(0xFF00838F),
-    background: Color(0xFFF7F8F7),
+    background: Color(0xFFF6F8F7),
     surface: Color(0xFFFFFFFF),
     elevatedSurface: Color(0xFFF5F5F5),
-    border: Color(0xFFE0E0E0),
-    textPrimary: Color(0xFF212121),
-    textSecondary: Color(0xFF616161),
+    border: Color(0xFFC4CCC7),
+    textPrimary: Color(0xFF1A1C1A),
+    textSecondary: Color(0xFF5C615E),
     disabled: Color(0xFF9E9E9E),
     success: Color(0xFF2E7D32),
     successContainer: Color(0xFFE8F5E9),
     warning: Color(0xFFE65100),
     warningContainer: Color(0xFFFFF3E0),
-    error: Color(0xFFD32F2F),
+    error: Color(0xFFBA1A1A),
     errorContainer: Color(0xFFFFEBEE),
     information: Color(0xFF0277BD),
     informationContainer: Color(0xFFE1F5FE),
@@ -89,17 +89,18 @@ class SaeqSemanticColors extends ThemeExtension<SaeqSemanticColors> {
     busyContainer: Color(0xFFFFF3E0),
   );
 
+  /// Dark Auth frames keep CTA `#0D4F3C`; OTP cells force white in [SaeqOtpInput].
   static const SaeqSemanticColors dark = SaeqSemanticColors(
-    primary: Color(0xFF81C784),
+    primary: Color(0xFF0D4F3C),
     primaryContainer: Color(0xFF1B5E20),
-    secondary: Color(0xFFA5D6A7),
+    secondary: Color(0xFF4CAF7A),
     accent: Color(0xFF4DD0E1),
-    background: Color(0xFF121212),
-    surface: Color(0xFF1E1E1E),
-    elevatedSurface: Color(0xFF2A2A2A),
-    border: Color(0xFF424242),
-    textPrimary: Color(0xFFE0E0E0),
-    textSecondary: Color(0xFFBDBDBD),
+    background: Color(0xFF0F1412),
+    surface: Color(0xFF1A221E),
+    elevatedSurface: Color(0xFF243029),
+    border: Color(0xFF3D4A44),
+    textPrimary: Color(0xFFFFFFFF),
+    textSecondary: Color(0xFFB2BDB8),
     disabled: Color(0xFF757575),
     success: Color(0xFF81C784),
     successContainer: Color(0xFF1B5E20),
