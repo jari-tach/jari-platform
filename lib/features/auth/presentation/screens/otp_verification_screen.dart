@@ -199,6 +199,12 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                               .clearError();
                         },
                 ),
+                const SizedBox(height: AppTheme.spacing12),
+                TextButton(
+                  key: const Key('otpBlockingBack'),
+                  onPressed: isBusy ? null : _goBackToLogin,
+                  child: Text(l10n.changePhoneAction),
+                ),
               ],
             ),
           ),
@@ -227,6 +233,14 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: TextButton(
+                    key: const Key('otpChangePhone'),
+                    onPressed: isBusy ? null : _goBackToLogin,
+                    child: Text(l10n.changePhoneAction),
+                  ),
+                ),
                 Text(
                   l10n.otpTitle,
                   style: AppTextStyles.headlineLarge.copyWith(

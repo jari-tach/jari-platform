@@ -3,7 +3,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/auth/domain/entities/authentication_status.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
+import '../../features/auth/presentation/screens/onboarding_screen.dart';
 import '../../features/auth/presentation/screens/otp_verification_screen.dart';
+import '../../features/auth/presentation/screens/session_expired_screen.dart';
+import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/delivery/presentation/pages/active_delivery_page.dart';
 import '../../features/delivery/presentation/pages/delivery_issue_page.dart';
 import '../../features/delivery/presentation/pages/delivery_verify_page.dart';
@@ -25,10 +28,13 @@ import '../theme/saeq_semantic_colors.dart';
 /// App routes
 class AppRoutes {
   // Route paths
+  static const String splash = '/splash';
   static const String welcome = '/';
+  static const String onboarding = '/onboarding';
   static const String comingSoon = '/coming-soon';
   static const String login = '/login';
   static const String loginOtp = '/login/otp';
+  static const String sessionExpired = '/session-expired';
   static const String home = '/home';
   static const String deliveries = '/deliveries';
   static const String earnings = '/earnings';
@@ -60,6 +66,16 @@ class AppRoutes {
 
   static String notificationDetail(String id) => '/notifications/$id';
 
+  /// Public auth / entry routes that authenticated users should leave.
+  static const List<String> authEntryRoutes = [
+    splash,
+    welcome,
+    onboarding,
+    login,
+    loginOtp,
+    sessionExpired,
+  ];
+
   /// Protected path roots (exact or nested under these prefixes).
   static const List<String> protectedRoots = [
     home,
@@ -81,6 +97,8 @@ class AppRoutes {
     }
     return false;
   }
+
+  static bool isAuthEntry(String path) => authEntryRoutes.contains(path);
 
   // Prevent instantiation
   AppRoutes._();
@@ -109,7 +127,7 @@ class AppRouter {
     required AuthenticationStatus Function() authStatus,
   }) {
     return GoRouter(
-      initialLocation: AppRoutes.welcome,
+      initialLocation: AppRoutes.splash,
       refreshListenable: refreshListenable,
 
       // Error page for unknown routes
@@ -136,8 +154,7 @@ class AppRouter {
       redirect: (context, state) {
         final status = authStatus();
         final path = state.uri.path;
-        final isLoginRoute =
-            path == AppRoutes.login || path == AppRoutes.loginOtp;
+        final isAuthEntry = AppRoutes.isAuthEntry(path);
 
         // Compat: old Orders tab → Deliveries.
         if (path == AppRoutes.orders) {
@@ -152,7 +169,7 @@ class AppRouter {
           case AuthenticationStatus.authenticated:
             // Trial sessions restore on cold start; send drivers to Home so
             // Drift assignment + busy reconciliation are visible immediately.
-            if (isLoginRoute || path == AppRoutes.welcome) {
+            if (isAuthEntry) {
               return AppRoutes.home;
             }
             return null;
@@ -167,10 +184,25 @@ class AppRouter {
 
       // Routes
       routes: [
-        // Welcome screen (initial route, public)
+        GoRoute(
+          path: AppRoutes.splash,
+          builder: (context, state) => const SplashScreen(),
+        ),
+
+        // Welcome screen (public)
         GoRoute(
           path: AppRoutes.welcome,
           builder: (context, state) => const WelcomeScreen(),
+        ),
+
+        GoRoute(
+          path: AppRoutes.onboarding,
+          builder: (context, state) => const OnboardingScreen(),
+        ),
+
+        GoRoute(
+          path: AppRoutes.sessionExpired,
+          builder: (context, state) => const SessionExpiredScreen(),
         ),
 
         // Explore Architecture (sub-screen pushed from Welcome; must allow

@@ -45,14 +45,16 @@ class WelcomeScreen extends ConsumerWidget {
               ),
               const SizedBox(height: AppTheme.spacingLG),
               SaeqPrimaryButton(
+                key: const Key('welcomeStart'),
                 label: l10n.firstLaunchStartAction,
-                onPressed: () => context.go(AppRoutes.login),
+                onPressed: () => context.go(AppRoutes.onboarding),
               ),
               const SizedBox(height: AppTheme.spacing12),
               SizedBox(
                 height: AppTheme.minTouchTarget,
                 width: double.infinity,
                 child: TextButton(
+                  key: const Key('welcomeLocaleToggle'),
                   onPressed: () {
                     ref
                         .read(appLocaleProvider.notifier)
@@ -72,6 +74,37 @@ class WelcomeScreen extends ConsumerWidget {
                         ? l10n.firstLaunchSwitchToEnglish
                         : l10n.firstLaunchSwitchToArabic,
                   ),
+                ),
+              ),
+              SizedBox(
+                height: AppTheme.minTouchTarget,
+                width: double.infinity,
+                child: TextButton(
+                  key: const Key('welcomeThemeToggle'),
+                  onPressed: () {
+                    final isDark =
+                        ref.read(appThemeModeProvider) == ThemeMode.dark;
+                    ref
+                        .read(appThemeModeProvider.notifier)
+                        .setThemeMode(
+                          isDark ? ThemeMode.light : ThemeMode.dark,
+                        );
+                  },
+                  style: TextButton.styleFrom(foregroundColor: colors.primary),
+                  child: Text(
+                    ref.watch(appThemeModeProvider) == ThemeMode.dark
+                        ? l10n.settingsThemeLight
+                        : l10n.settingsThemeDark,
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: AppTheme.minTouchTarget,
+                width: double.infinity,
+                child: TextButton(
+                  key: const Key('welcomeSessionExpiredDemo'),
+                  onPressed: () => context.go(AppRoutes.sessionExpired),
+                  child: Text(l10n.simulateSessionExpiredAction),
                 ),
               ),
             ],
