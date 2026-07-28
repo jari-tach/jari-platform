@@ -7,7 +7,7 @@
 > **Inc 4 + DS2:** merged to `main` (`dad8cb2`) · **Increment 5:** `IN PROGRESS` on `feature/phase-2.6-increment-5`
 > **Constraint:** Fake-only interactive UI; preserve Clean Architecture; no production backend
 > **Inc 4 + DS2 report:** [PHASE_2_6_INCREMENT_4_DESIGN_SPRINT_2_REPORT.md](./PHASE_2_6_INCREMENT_4_DESIGN_SPRINT_2_REPORT.md)
-> **Related:** [PHASE_2_FEATURE_DEVELOPMENT_ROADMAP.md](./PHASE_2_FEATURE_DEVELOPMENT_ROADMAP.md), [ADR-020…028](./adr/), [testing/REAL_ANDROID_DEVICE_TEST_PLAN.md](./testing/REAL_ANDROID_DEVICE_TEST_PLAN.md), [PHASE_2_6_SCREEN_INVENTORY.md](./PHASE_2_6_SCREEN_INVENTORY.md)
+> **Related:** [PHASE_2_FEATURE_DEVELOPMENT_ROADMAP.md](./PHASE_2_FEATURE_DEVELOPMENT_ROADMAP.md), [ADR-020…028](./adr/), [testing/REAL_ANDROID_DEVICE_TEST_PLAN.md](./testing/REAL_ANDROID_DEVICE_TEST_PLAN.md), [PHASE_2_6_SCREEN_INVENTORY.md](./PHASE_2_6_SCREEN_INVENTORY.md), [PHASE_2_6_UI_FIGMA_FLUTTER_MAPPING.md](./PHASE_2_6_UI_FIGMA_FLUTTER_MAPPING.md), [PHASE_2_6_UI_FIGMA_REAL_DEVICE_REPORT.md](./PHASE_2_6_UI_FIGMA_REAL_DEVICE_REPORT.md)
 
 ---
 
@@ -38,6 +38,8 @@ Owner pivot: **all screens → full navigation → real device → design approv
 | PR #6 Fake E2E harness + Flow H | **Merged** (`9bbdcd6`) — scope closed |
 | E2E flows A–G | **PAUSED** after PR #6 |
 | Screen inventory | `docs/PHASE_2_6_SCREEN_INVENTORY.md` |
+| Figma ↔ Flutter mapping (62 screens) | `docs/PHASE_2_6_UI_FIGMA_FLUTTER_MAPPING.md` |
+| UI / Figma / device report | `docs/PHASE_2_6_UI_FIGMA_REAL_DEVICE_REPORT.md` |
 | Implementation PRs 2–7 | Per inventory — **not started** |
 
 ---
