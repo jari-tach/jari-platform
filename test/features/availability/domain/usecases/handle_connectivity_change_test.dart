@@ -56,27 +56,31 @@ void main() {
       fake.dispose();
     });
 
-    test('reconnect delegates reconcile without auto available', () async {
-      final fake = FakeDriverAvailabilityRepository(
-        seed: DriverAvailability(
-          driverId: 'drv-1',
-          status: AvailabilityStatus.offline,
-          source: AvailabilitySource.connectivityPolicy,
-          lastChangedAt: at,
-          revision: 3,
-        ),
-      );
-      final result = await HandleConnectivityChange(fake)(
-        AvailabilityConnectivityChange(
-          driverId: 'drv-1',
-          isOnline: true,
-          changedAt: at,
-        ),
-      );
-      expect(result.isSuccess, isTrue);
-      expect(fake.reconcileRequests, isNotEmpty);
-      expect(fake.changeRequests, isEmpty);
-      fake.dispose();
-    });
+    test(
+      'reconnect clears offline to unavailable without auto available',
+      () async {
+        final fake = FakeDriverAvailabilityRepository(
+          seed: DriverAvailability(
+            driverId: 'drv-1',
+            status: AvailabilityStatus.offline,
+            source: AvailabilitySource.connectivityPolicy,
+            lastChangedAt: at,
+            revision: 3,
+          ),
+        );
+        final result = await HandleConnectivityChange(fake)(
+          AvailabilityConnectivityChange(
+            driverId: 'drv-1',
+            isOnline: true,
+            changedAt: at,
+          ),
+        );
+        expect(result.isSuccess, isTrue);
+        expect(result.valueOrNull?.status, AvailabilityStatus.unavailable);
+        expect(fake.changeRequests, isNotEmpty);
+        expect(fake.reconcileRequests, isEmpty);
+        fake.dispose();
+      },
+    );
   });
 }

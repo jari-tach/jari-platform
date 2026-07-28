@@ -18,6 +18,7 @@ import '../../auth/domain/entities/auth_error.dart';
 import '../../auth/presentation/controllers/auth_controller_state.dart';
 import '../../auth/presentation/providers/auth_providers.dart';
 import '../../availability/presentation/providers/availability_providers.dart';
+import '../../availability/presentation/widgets/availability_connectivity_bridge.dart';
 import '../../availability/presentation/widgets/driver_availability_card.dart';
 import '../../delivery/presentation/widgets/delivery_offer_home_banner.dart';
 
@@ -57,6 +58,7 @@ class HomeScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const AvailabilityConnectivityBridge(),
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
