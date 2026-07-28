@@ -11,7 +11,7 @@ void main() {
       expect(l10n.signOut, 'Sign Out');
       expect(l10n.loginTitle, 'Sign in');
       expect(l10n.profileTitle, 'Profile');
-      expect(l10n.homeWelcomeTitle, 'Signed in successfully');
+      expect(l10n.homeWelcomeTitle, 'Welcome back');
       expect(l10n.navHome, 'Home');
       expect(l10n.availabilitySectionTitle, 'Availability');
       expect(l10n.nextStepsFocusMessage, contains('fundamentals'));
@@ -25,7 +25,7 @@ void main() {
       expect(l10n.signOut, 'تسجيل الخروج');
       expect(l10n.loginTitle, 'تسجيل الدخول');
       expect(l10n.profileTitle, 'ملف السائق');
-      expect(l10n.homeWelcomeTitle, 'تم تسجيل الدخول بنجاح');
+      expect(l10n.homeWelcomeTitle, 'مرحبًا بعودتك');
       expect(l10n.navHome, 'الرئيسية');
       expect(l10n.availabilitySectionTitle, 'التوفر');
       expect(l10n.nextStepsFocusMessage, contains('الأساسيات'));

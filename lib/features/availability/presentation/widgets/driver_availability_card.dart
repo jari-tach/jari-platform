@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/localization/app_localizations.dart';
+import '../../../../core/routes/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/saeq_semantic_colors.dart';
 import '../../../../shared/widgets/saeq_primary_button.dart';
+import '../../../../shared/widgets/saeq_secondary_button.dart';
 import '../../domain/entities/availability_status.dart';
 import '../../domain/entities/driver_availability.dart';
 import '../controllers/availability_controller.dart';
@@ -23,6 +26,7 @@ class DriverAvailabilityCard extends ConsumerWidget {
   static const statusDetailKey = Key('availabilityStatusDetail');
   static const statusChipKey = Key('availabilityStatusChip');
   static const primaryActionKey = Key('availabilityPrimaryAction');
+  static const openActiveDeliveryKey = Key('availabilityOpenActiveDelivery');
   static const failureBannerKey = Key('availabilityFailureBanner');
   static const dismissFailureKey = Key('availabilityDismissFailure');
   static const retryKey = Key('availabilityRetry');
@@ -42,9 +46,9 @@ class DriverAvailabilityCard extends ConsumerWidget {
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          color: colors.elevatedSurface,
+          color: presentation.cardBackground,
           borderRadius: BorderRadius.circular(AppTheme.radiusXL),
-          border: Border.all(color: colors.border),
+          border: Border.all(color: colors.border.withValues(alpha: 0.35)),
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(AppTheme.radiusXL),
@@ -131,10 +135,28 @@ class DriverAvailabilityCard extends ConsumerWidget {
                             onDismiss: () => controller.clearFailure(),
                             dismissLabel: l10n.availabilityActionDismissFailure,
                             dismissKey: dismissFailureKey,
+                            onRetry: presentation.actionsEnabled
+                                ? () => controller.initialize()
+                                : null,
+                            retryLabel: l10n.availabilityActionRetry,
+                            retryKey: retryKey,
                           ),
                         ],
                         const SizedBox(height: AppTheme.spacingMD),
-                        if (presentation.showRetry)
+                        if (presentation.showOpenActiveDelivery) ...[
+                          SaeqSecondaryButton(
+                            key: openActiveDeliveryKey,
+                            label: l10n.availabilityOpenActiveDeliveryAction,
+                            icon: Icons.local_shipping_outlined,
+                            onPressed: presentation.actionsEnabled
+                                ? () => GoRouter.of(
+                                    context,
+                                  ).push(AppRoutes.deliveryActive)
+                                : null,
+                          ),
+                          const SizedBox(height: AppTheme.spacingSM),
+                        ],
+                        if (presentation.showRetry && state.failure == null)
                           SaeqPrimaryButton(
                             key: retryKey,
                             label: l10n.availabilityActionRetry,
@@ -143,7 +165,8 @@ class DriverAvailabilityCard extends ConsumerWidget {
                                 ? () => controller.initialize()
                                 : null,
                           )
-                        else
+                        else if (!presentation.showRetry ||
+                            state.failure != null)
                           Semantics(
                             button: true,
                             enabled: presentation.primaryEnabled,
@@ -198,6 +221,7 @@ class _AvailabilityPresentation {
     required this.detail,
     required this.icon,
     required this.accent,
+    required this.cardBackground,
     required this.primaryLabel,
     required this.primaryIcon,
     required this.primaryAction,
@@ -205,6 +229,7 @@ class _AvailabilityPresentation {
     required this.actionsEnabled,
     required this.showProgress,
     required this.showRetry,
+    this.showOpenActiveDelivery = false,
     this.chipLabel,
     this.chipTone = _ChipTone.neutral,
   });
@@ -213,6 +238,7 @@ class _AvailabilityPresentation {
   final String detail;
   final IconData icon;
   final Color accent;
+  final Color cardBackground;
   final String primaryLabel;
   final IconData primaryIcon;
   final _PrimaryAction primaryAction;
@@ -220,6 +246,7 @@ class _AvailabilityPresentation {
   final bool actionsEnabled;
   final bool showProgress;
   final bool showRetry;
+  final bool showOpenActiveDelivery;
   final String? chipLabel;
   final _ChipTone chipTone;
 
@@ -239,6 +266,7 @@ class _AvailabilityPresentation {
         detail: l10n.availabilityStatusLoadingDetail,
         icon: Icons.hourglass_top,
         accent: colors.textSecondary,
+        cardBackground: colors.elevatedSurface,
         primaryLabel: l10n.availabilityActionGoAvailable,
         primaryIcon: Icons.play_arrow,
         primaryAction: _PrimaryAction.none,
@@ -257,6 +285,7 @@ class _AvailabilityPresentation {
         detail: l10n.availabilityStatusInitialDetail,
         icon: Icons.lock_outline,
         accent: colors.textSecondary,
+        cardBackground: colors.elevatedSurface,
         primaryLabel: l10n.availabilityActionGoAvailable,
         primaryIcon: Icons.play_arrow,
         primaryAction: _PrimaryAction.none,
@@ -271,6 +300,9 @@ class _AvailabilityPresentation {
     final restoredBusy = _isRestoredBusy(state, current);
 
     if (state.isBusy || restoredBusy) {
+      final hasAssignment =
+          current.activeAssignmentId != null &&
+          current.activeAssignmentId!.trim().isNotEmpty;
       return _AvailabilityPresentation(
         title: restoredBusy
             ? l10n.availabilityStatusRestoredBusy
@@ -278,15 +310,17 @@ class _AvailabilityPresentation {
         detail: restoredBusy
             ? l10n.availabilityStatusRestoredBusyDetail
             : l10n.availabilityStatusBusyDetail,
-        icon: Icons.local_shipping_outlined,
+        icon: Icons.stop_circle_outlined,
         accent: colors.busy,
+        cardBackground: colors.busyContainer,
         primaryLabel: l10n.availabilityActionGoUnavailable,
         primaryIcon: Icons.stop,
         primaryAction: _PrimaryAction.none,
         primaryEnabled: false,
-        actionsEnabled: false,
+        actionsEnabled: !showProgress,
         showProgress: showProgress,
         showRetry: false,
+        showOpenActiveDelivery: hasAssignment,
         chipLabel: restoredBusy
             ? l10n.availabilityChipRestored
             : l10n.availabilityChipBusy,
@@ -300,6 +334,7 @@ class _AvailabilityPresentation {
         detail: l10n.availabilityStatusOfflineDetail,
         icon: Icons.wifi_off,
         accent: colors.error,
+        cardBackground: colors.errorContainer,
         primaryLabel: l10n.availabilityActionGoAvailable,
         primaryIcon: Icons.play_arrow,
         primaryAction: _PrimaryAction.none,
@@ -318,6 +353,7 @@ class _AvailabilityPresentation {
         detail: l10n.availabilityStatusRestoredAvailableDetail,
         icon: Icons.restore,
         accent: colors.warning,
+        cardBackground: colors.warningContainer,
         primaryLabel: l10n.availabilityActionGoUnavailable,
         primaryIcon: Icons.stop,
         primaryAction: _PrimaryAction.goUnavailable,
@@ -336,6 +372,7 @@ class _AvailabilityPresentation {
         detail: l10n.availabilityStatusConfirmedAvailableDetail,
         icon: Icons.check_circle_outline,
         accent: colors.primary,
+        cardBackground: colors.primaryContainer,
         primaryLabel: l10n.availabilityActionGoUnavailable,
         primaryIcon: Icons.stop,
         primaryAction: _PrimaryAction.goUnavailable,
@@ -355,6 +392,7 @@ class _AvailabilityPresentation {
         detail: l10n.availabilityStatusPendingAvailableDetail,
         icon: Icons.pending_outlined,
         accent: colors.warning,
+        cardBackground: colors.warningContainer,
         primaryLabel: l10n.availabilityActionGoUnavailable,
         primaryIcon: Icons.stop,
         primaryAction: _PrimaryAction.goUnavailable,
@@ -376,6 +414,7 @@ class _AvailabilityPresentation {
       detail: l10n.availabilityStatusUnavailableDetail,
       icon: Icons.pause_circle_outline,
       accent: colors.textSecondary,
+      cardBackground: colors.surface,
       primaryLabel: l10n.availabilityActionGoAvailable,
       primaryIcon: Icons.play_arrow,
       primaryAction: _PrimaryAction.goAvailable,
@@ -446,6 +485,9 @@ class _FailureBanner extends StatelessWidget {
     required this.onDismiss,
     required this.dismissLabel,
     required this.dismissKey,
+    required this.retryLabel,
+    required this.retryKey,
+    this.onRetry,
   });
 
   final String message;
@@ -453,6 +495,9 @@ class _FailureBanner extends StatelessWidget {
   final VoidCallback onDismiss;
   final String dismissLabel;
   final Key dismissKey;
+  final VoidCallback? onRetry;
+  final String retryLabel;
+  final Key retryKey;
 
   @override
   Widget build(BuildContext context) {
@@ -490,13 +535,28 @@ class _FailureBanner extends StatelessWidget {
             ),
             Align(
               alignment: AlignmentDirectional.centerEnd,
-              child: TextButton(
-                key: dismissKey,
-                onPressed: onDismiss,
-                child: Text(
-                  dismissLabel,
-                  style: TextStyle(color: colors.error),
-                ),
+              child: Wrap(
+                alignment: WrapAlignment.end,
+                spacing: AppTheme.spacingXS,
+                children: [
+                  TextButton(
+                    key: dismissKey,
+                    onPressed: onDismiss,
+                    child: Text(
+                      dismissLabel,
+                      style: TextStyle(color: colors.error),
+                    ),
+                  ),
+                  if (onRetry != null)
+                    TextButton(
+                      key: retryKey,
+                      onPressed: onRetry,
+                      child: Text(
+                        retryLabel,
+                        style: TextStyle(color: colors.error),
+                      ),
+                    ),
+                ],
               ),
             ),
           ],

@@ -16,7 +16,6 @@ import 'package:saeq_driver/features/availability/presentation/providers/availab
 import 'package:saeq_driver/features/driver/presentation/home_screen.dart';
 import 'package:saeq_driver/features/driver/presentation/welcome_screen.dart';
 import 'package:saeq_driver/features/profile/domain/entities/driver_status.dart';
-import 'package:saeq_driver/shared/widgets/saeq_primary_button.dart';
 
 import '../../availability/helpers/fake_driver_availability_repository.dart';
 import '../../auth/test_doubles.dart';
@@ -131,13 +130,14 @@ Future<void> _pumpWelcome(WidgetTester tester, {required Locale locale}) async {
 
 void main() {
   group('HomeScreen localization', () {
-    testWidgets('Arabic greeting and sign-out are Arabic-only', (tester) async {
+    testWidgets('Arabic greeting is Arabic-only without Home logout', (
+      tester,
+    ) async {
       await _pumpHome(tester, locale: const Locale('ar'));
 
-      expect(find.text('تم تسجيل الدخول بنجاح'), findsWidgets);
-      expect(find.text('تسجيل الخروج'), findsOneWidget);
+      expect(find.text('مرحبًا بعودتك'), findsWidgets);
       expect(find.text('التوفر'), findsOneWidget);
-      expect(find.text('Signed in successfully'), findsNothing);
+      expect(find.text('Welcome back'), findsNothing);
       expect(find.text('Sign Out'), findsNothing);
       expect(find.text('Availability'), findsNothing);
     });
@@ -145,10 +145,9 @@ void main() {
     testWidgets('English home rendering regression', (tester) async {
       await _pumpHome(tester, locale: const Locale('en', 'US'));
 
-      expect(find.text('Signed in successfully'), findsWidgets);
-      expect(find.text('Sign Out'), findsOneWidget);
+      expect(find.text('Welcome back'), findsWidgets);
       expect(find.text('Availability'), findsOneWidget);
-      expect(find.text('تم تسجيل الدخول بنجاح'), findsNothing);
+      expect(find.text('مرحبًا بعودتك'), findsNothing);
       expect(find.text('تسجيل الخروج'), findsNothing);
     });
 
@@ -161,7 +160,7 @@ void main() {
         ),
       );
       expect(directionality.textDirection, TextDirection.rtl);
-      expect(find.byType(SaeqPrimaryButton), findsWidgets);
+      expect(find.byType(HomeScreen), findsOneWidget);
     });
 
     testWidgets('English locale drives LTR on home', (tester) async {

@@ -283,8 +283,7 @@ class AppLocalizations {
 
   /// Format hint — same pattern in both languages (Saudi mobile format).
   String get phoneNumberHint => '05xxxxxxxx';
-  String get homeWelcomeTitle =>
-      _t('Signed in successfully', 'تم تسجيل الدخول بنجاح');
+  String get homeWelcomeTitle => _t('Welcome back', 'مرحبًا بعودتك');
   String get homeTodayEarningsLabel => _t("Today's earnings", 'أرباح اليوم');
   String get homeTripsTodayLabel => _t('Trips today', 'رحلات اليوم');
   String get homeAcceptanceRateLabel => _t('Acceptance rate', 'نسبة القبول');
@@ -298,10 +297,18 @@ class AppLocalizations {
   String get homeQuickActionNotifications => _t('Notifications', 'الإشعارات');
   String get homeOpenNotificationsTooltip =>
       _t('Open notifications', 'فتح الإشعارات');
-  String get homeFakeSummaryHint =>
-      _t('Trial summary (Fake data)', 'ملخص تجريبي (بيانات وهمية)');
+  String get homeSummarySectionTitle => _t("Today's summary", 'ملخص اليوم');
+
+  /// Shown when Home has no offer/assignment banner (Final/Home/Available).
+  String get homeNoOfferMessage =>
+      _t('No offer right now', 'لا يوجد عرض حالياً');
+
+  /// Legacy key kept for older tests; prefer [homeSummarySectionTitle].
+  String get homeFakeSummaryHint => homeSummarySectionTitle;
   String get fakeAlphaDataHint =>
       _t('Trial data for preview only', 'بيانات تجريبية للعرض فقط');
+  String get availabilityOpenActiveDeliveryAction =>
+      _t('Open active delivery', 'فتح التوصيل النشط');
   String get invalidPhoneNumberMessage =>
       _t('Invalid mobile number', 'رقم الجوال غير صالح');
   String get authenticationRejectedMessage => _t(
@@ -516,14 +523,14 @@ class AppLocalizations {
   String get availabilityStatusUnavailable =>
       _t('Unavailable for new requests', 'غير متاح لاستقبال الطلبات');
   String get availabilityStatusUnavailableDetail => _t(
-    'You will not receive new delivery requests.',
-    'لن تستقبل طلبات توصيل جديدة.',
+    'Enable availability to receive orders.',
+    'فعّل التوفر لاستقبال الطلبات.',
   );
   String get availabilityStatusConfirmedAvailable =>
-      _t('Available for new requests', 'متاح لاستقبال الطلبات');
+      _t('Available for orders', 'متاح للطلبات');
   String get availabilityStatusConfirmedAvailableDetail => _t(
-    'Confirmed — you can receive delivery requests.',
-    'مؤكَّد — يمكنك استقبال طلبات التوصيل.',
+    'You can receive delivery offers now.',
+    'يمكنك استقبال عروض التوصيل الآن.',
   );
   String get availabilityStatusPendingAvailable =>
       _t('Confirming availability', 'جارٍ تأكيد حالة التوفر');
@@ -539,11 +546,10 @@ class AppLocalizations {
     'A previous available status was restored and is not confirmed.',
     'تمت استعادة حالة توفر سابقة وهي غير مؤكَّدة.',
   );
-  String get availabilityStatusBusy =>
-      _t('Busy with an active request', 'مشغول بطلب حالي');
+  String get availabilityStatusBusy => _t('Busy', 'مشغول');
   String get availabilityStatusBusyDetail => _t(
-    'Availability cannot be changed while a request is in progress.',
-    'لا يمكن تغيير الحالة أثناء تنفيذ طلب.',
+    'You will not receive new offers during delivery.',
+    'لن تستقبل عروض جديدة أثناء التوصيل.',
   );
   String get availabilityStatusRestoredBusy => _t(
     'Restored busy status — awaiting verification',
@@ -553,10 +559,10 @@ class AppLocalizations {
     'A previous busy status was restored and is not freshly confirmed.',
     'تمت استعادة حالة مشغول سابقة وليست مؤكَّدة حديثًا.',
   );
-  String get availabilityStatusOffline => _t('Offline', 'غير متصل');
+  String get availabilityStatusOffline => _t('Offline', 'بدون اتصال');
   String get availabilityStatusOfflineDetail => _t(
-    'Connect to the internet before going available.',
-    'اتصل بالإنترنت قبل تفعيل استقبال الطلبات.',
+    'Check the network then try again.',
+    'تحقق من الشبكة ثم أعد المحاولة.',
   );
   String get availabilityStatusLoading =>
       _t('Loading availability', 'جارٍ تحميل حالة التوفر');

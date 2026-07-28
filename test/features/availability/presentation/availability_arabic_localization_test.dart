@@ -207,7 +207,7 @@ void main() {
           );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 20));
-      expect(find.text('متاح لاستقبال الطلبات'), findsOneWidget);
+      expect(find.text('متاح للطلبات'), findsOneWidget);
       expect(find.text('مؤكَّد'), findsOneWidget);
       expect(find.text('بانتظار التأكيد'), findsNothing);
       expect(find.text('Confirmed'), findsNothing);
@@ -224,7 +224,7 @@ void main() {
       expect(find.text('جارٍ تأكيد حالة التوفر'), findsOneWidget);
       expect(find.text('بانتظار التأكيد'), findsOneWidget);
       expect(find.text('مؤكَّد'), findsNothing);
-      expect(find.text('Available for new requests'), findsNothing);
+      expect(find.text('Available for orders'), findsNothing);
     });
 
     testWidgets('Arabic restored available warning', (tester) async {
@@ -260,11 +260,8 @@ void main() {
         ),
       );
       await bootArabic(tester, fake);
-      expect(find.text('غير متصل'), findsWidgets);
-      expect(
-        find.text('اتصل بالإنترنت قبل تفعيل استقبال الطلبات.'),
-        findsOneWidget,
-      );
+      expect(find.text('بدون اتصال'), findsWidgets);
+      expect(find.text('تحقق من الشبكة ثم أعد المحاولة.'), findsOneWidget);
       expect(find.text('Start receiving requests'), findsNothing);
     });
 
