@@ -149,6 +149,11 @@ void main() {
       ),
     );
     expect(resolved, SaeqSemanticColors.dark.primary);
-    expect(resolved, isNot(equals(SaeqSemanticColors.light.primary)));
+    // Final Auth / DS2: CTA primary is shared across light and dark (#0D4F3C).
+    expect(resolved, equals(SaeqSemanticColors.light.primary));
+    expect(
+      SaeqSemanticColors.dark.background,
+      isNot(equals(SaeqSemanticColors.light.background)),
+    );
   });
 }
