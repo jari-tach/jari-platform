@@ -1,191 +1,116 @@
 # PHASE 2.6 — UI Figma + Real Device Report
 
-> **Program:** UI-First · Figma Interactive Prototype · Real Device Validation  
-> **Repository:** jari-tach/jari-platform  
-> **Status:** Flutter Auth Batch 2 — **PASS** (device-validated on HONOR VKP-NX9)  
-> **Last updated:** 2026-07-28  
-> **Main baseline:** `a00a328` (PR #8 merged)
+> **Program:** UI-First · Figma Interactive Prototype · Real Device Validation
+> **Repository:** jari-tach/jari-platform
+> **Main baseline:** `178c75d` (PR #9 Flutter Auth Batch 2 **MERGED**)
+> **Batch 2 status:** **PASS — MERGED TO MAIN**
+> **Batch 3 branch:** `feature/phase-2.6-flutter-home-availability-parity`
+> **Status:** Flutter Batch 3 Home + Availability — **QG PASS · M2 Unavailable PASS · Busy preserved PASS · Batch 3 IN PROGRESS** (not fully closed)
+> **Last updated:** 2026-07-29
+> **Figma file:** `MNJldEpkMxVjIavCPaPBFh` (Final/Home `41:160`…`44:2159`)
 
 ---
 
-## 1. Executive Summary
-
-Flutter Authentication UI parity implemented on `feature/phase-2.6-flutter-auth-parity`, Fake/Mock data only, debug APK installed and exercised on **HONOR VKP-NX9**.
-
-- **PR #7** inventory merged (`e41c580`).
-- **PR #8** mapping/report baseline merged (`a00a328`) — owner one-time exception for cancelled iOS on docs-only PR.
-- **Figma Present / screenshot comparison:** **DEFERRED BY OWNER** (does not block Flutter).
-- Splash, Welcome, Onboarding, Login, OTP, Session Expired + error/loading/resend states wired.
-- **NOT CONNECTED = 0** in Auth scope (device + widget suite).
-- Real Android APK validation on HONOR VKP-NX9: **PASS** (Main Flow + A1–A8).
-
----
-
-## 2. Figma references
-
-| Field | Value |
-|-------|--------|
-| **Figma file** | [SAEQ Driver — Design System & UX](https://www.figma.com/design/MNJldEpkMxVjIavCPaPBFh/SAEQ-Driver-%E2%80%94-Design-System---UX) |
-| **File key** | `MNJldEpkMxVjIavCPaPBFh` |
-| **Figma Present** | **DEFERRED BY OWNER** |
-| **Screenshot comparison** | **DEFERRED BY OWNER** |
-| **Approved Figma version** | PENDING owner stamp |
-
----
-
-## 3. Engineering references
-
-| Field | Value |
-|-------|--------|
-| **PR #7 merge** | `e41c580` |
-| **PR #8 merge** | `a00a328` |
-| **Auth branch** | `feature/phase-2.6-flutter-auth-parity` |
-| **Mapping** | `docs/PHASE_2_6_UI_FIGMA_FLUTTER_MAPPING.md` |
-| **This report** | `docs/PHASE_2_6_UI_FIGMA_REAL_DEVICE_REPORT.md` |
-| **QA artifacts (local only)** | `.backup/device-qa-ui-first-20260728/` |
-
----
-
-## 4. APK / build
-
-| Field | Value |
-|-------|--------|
-| **APK name** | `app-debug.apk` |
-| **APK path** | `build/app/outputs/flutter-apk/app-debug.apk` |
-| **Build type** | debug |
-| **Approximate size** | ~162.5 MB (170431349 bytes) |
-| **Build time (local)** | 2026-07-28 18:57 |
-| **Commit SHA at build** | uncommitted Batch 2 tree on top of `a00a328` (APK rebuilt from working tree) |
-| **Install result** | `adb install -r` **Success** on `AP4EVB6423004646` |
-| **Package** | `com.example.saeq_driver` `1.0.0` (versionCode 1) |
-
----
-
-## 5. Android device
-
-| Field | Value |
-|-------|--------|
-| **Manufacturer** | HONOR |
-| **Model** | VKP-NX9 |
-| **Serial** | `AP4EVB6423004646` |
-| **Android version** | 16 |
-| **Resolution** | 1264×2728 |
-| **Device language** | `ar-SA` |
-| **App version** | 1.0.0 |
-| **Test date** | 2026-07-28 |
-| **Real device APK test** | **PASS** |
-
----
-
-## 6. Deferred items (owner)
+## Deferred (owner)
 
 | Item | Status |
 |------|--------|
-| Figma Present on phone | **DEFERRED BY OWNER** |
-| Figma vs device screenshot comparison | **DEFERRED BY OWNER** |
-| iOS physical device test | **DEFERRED** — no physical iPhone currently available |
+| Figma Present | **DEFERRED BY OWNER** |
+| Screenshot comparison | **DEFERRED BY OWNER** |
+| Figma Proto encoded open | **CANCELLED BY OWNER** |
 
 ---
 
-## 7. Flutter Auth Batch 2 — screens
-
-| Screen | Route | Flutter status | Device |
-|--------|-------|----------------|--------|
-| Splash | `/splash` | Implemented | Captured (`17_splash_fresh.png`) |
-| Welcome | `/` | Updated | PASS AR/EN + theme |
-| Onboarding | `/onboarding` | Implemented | PASS Continue / Skip |
-| Login | `/login` | Updated | PASS validation + send |
-| OTP | `/login/otp` | Updated | PASS invalid / valid / resend timer |
-| Session Expired | `/session-expired` | Implemented | PASS → Login |
-| Home | `/home` | Existing | PASS after Fake OTP `246810` |
-
----
-
-## 8. Buttons (Auth scope)
-
-| Status | Count |
-|--------|-------|
-| CONNECTED | All Auth CTAs listed in directive (Start, Continue, Skip, Back, Send Code, Verify, Change Phone, Resend, Retry, Login Again, Locale, Theme, Confirm/demo Session) |
-| INTENTIONALLY DISABLED | Primary CTAs while loading; Resend while cooldown timer active |
-| NOT CONNECTED | **0** |
-
----
-
-## 9. Flows (device)
-
-| Flow | Widget tests | Device APK |
-|------|--------------|------------|
-| Main Splash→Welcome→Onboarding→Login→OTP→Home | PASS | **PASS** |
-| A1 Skip → Login | PASS | **PASS** |
-| A2 Validation → correct phone → Send | PASS | **PASS** |
-| A3 Change Phone → Login → OTP | PASS | **PASS** |
-| A4 Resend timer / UI present | Covered | **PASS** (timer state captured; 30s cooldown) |
-| A5 Invalid OTP → error | PASS | **PASS** |
-| A6 Session Expired → Login | PASS | **PASS** |
-| A7 AR↔EN | PASS | **PASS** |
-| A8 Light↔Dark | PASS | **PASS** |
-
-Fake OTP: `246810` · Fake phone example: `0512345678`
-
----
-
-## 10. Screenshots (local, not committed)
-
-Directory: `.backup/device-qa-ui-first-20260728/`
-
-| File | Coverage |
-|------|----------|
-| `03_welcome_ar_light.png` | Arabic + light |
-| `04_welcome_en.png` | English |
-| `05_welcome_theme.png` | Theme toggle |
-| `06_onboarding.png` | Onboarding |
-| `07_login.png` / `08_login_validation_error.png` | Login + validation |
-| `09_otp.png` / `11_invalid_otp.png` / `16_otp_resend_timer_state.png` | OTP states |
-| `10_change_phone_login.png` | A3 |
-| `12_home.png` | Home after auth |
-| `13_session_expired.png` / `14_session_to_login.png` | A6 |
-| `15_a1_skip_login.png` | A1 |
-
----
-
-## 11. Problems found / fixed
-
-| Issue | Resolution |
-|-------|------------|
-| Cold start expected `/` Welcome; Splash-first broke `widget_test` | Updated tests for `/splash` |
-| Device QA PowerShell script parse/encoding failures | Rewrote robust script; fixed int cast on tap coordinates |
-| OTP→Home missed in first automated pass (EditText after invalid) | Retested with clear + Fake OTP; Home confirmed |
-
-**Remaining issues:** none blocking Auth Batch 2. Pixel-perfect Figma screenshot comparison remains **DEFERRED BY OWNER**.
-
----
-
-## 12. Quality Gate (pre-commit)
-
-| Check | Result |
-|-------|--------|
-| `dart format` (scoped) | clean |
-| `git diff --check` | clean |
-| `flutter analyze` | No issues found |
-| `flutter test` | PASS (full suite) |
-
----
-
-## 13. Batch tracker
+## Batch status
 
 | Batch | Status |
 |-------|--------|
-| 1 Inventory (PR #7) | Merged |
-| 1b Mapping/Report (PR #8) | Merged `a00a328` |
-| 2 Flutter Auth parity | **PASS** (awaiting owner PR review; do not merge without approval) |
-| 3+ | NOT AUTHORIZED |
+| 1 Inventory / mapping | PASS (docs) |
+| 2 Auth Flutter | **PASS — MERGED** (`178c75d`) |
+| 3 Home + Availability | **IN PROGRESS** |
+| 4+ | NOT AUTHORIZED |
 
 ---
 
-## 14. Final decision
+## Batch 3 implementation summary
 
-**Flutter Batch 2: PASS**
+| Area | Change |
+|------|--------|
+| Home | Greeting first · summary without QA Trial label · removed fixed Sign Out · no-offer hint · notifications + quick actions wired |
+| Availability | Figma Final card fills (Available/Busy/Offline) · Failure Retry+Dismiss · Busy → Open active delivery CTA · purple busy tokens |
+| Connectivity | Level reconciliation + post-init replay (`AvailabilityConnectivityBridge`) |
+| Logout | Settings/Profile only + `prepareForLogout()` before `signOut()` |
 
-Evidence: widget suite + debug APK on HONOR VKP-NX9 (Main + A1–A8), NOT CONNECTED = 0.
+---
 
-*iOS Real Device Test: DEFERRED — no physical iPhone currently available*
+## Batch 3 — Connectivity / Availability init race (M2)
+
+| Field | Detail |
+|-------|--------|
+| **Issue** | Connectivity event arrived before Availability initialization completed. |
+| **Root cause** | The bridge latched Online before persisted offline restoration, then did not replay the latest state after initialization. |
+| **Fix** | Replay/reconcile the latest connectivity snapshot after Availability initialization; latest state wins (`_latestConnectivity` + force reconcile on `isInitialized`; controller `_connectivityEpoch` drops stale async). |
+| **Regression test** | `test/features/availability/presentation/connectivity_init_race_test.dart` — Persisted Offline + Online-before-init-complete (Tests 1–9) **PASS** |
+| **Domain reconnect** | Online clears connectivity-offline → **unavailable** (never auto-available); Busy preserved |
+| **Device result (VKP-NX9)** | **PASS (Unavailable path)** — USB ADB retest on HONOR VKP-NX9 (`AP4EVB6423004646`), transport_id:1 stable with Wi-Fi OFF. Package `com.example.saeq_driver`; APK `build\app\outputs\flutter-apk\app-debug.apk` install Success. Commit noted `178c75d` (dirty working tree). Persisted Offline → Online during init → Offline banner cleared, Availability → Unavailable, not auto-Available, no restart/navigation. Evidence: `.backup/device-qa-ui-first-20260728/batch3-m2/` (`m2-online-after-init.png`, `m2-seed-offline.png`, `results.json`, `qa_log.txt`) — not git-added. Prior wireless ADB FAIL retained as history only: `.backup/device-qa-connectivity-race-20260729/`. |
+| **Busy preserved** | **PASS** — HONOR VKP-NX9 USB ADB; Busy+Active assignment seed (Accept bind + relaunch); Offline→force-stop→cold start→Online during init; Busy remained Busy; Active banner visible; `/delivery/active` PASS. Evidence: `.backup/device-qa-ui-first-20260728/batch3-m2/m2-busy-preserved.png` (+ xml/results) — local only.
+| **M2 close rule** | Unavailable cold-start race **device-PASS** on VKP-NX9. Busy path **device PASS** on VKP-NX9. Batch 3 still **not fully closed** (remaining screen-matrix / flow device rows PENDING; owner close not authorized by Busy alone). |
+
+---
+
+## Buttons (Home / Availability)
+
+| Class | Items |
+|-------|-------|
+| CONNECTED | Home notif, quick×3, bottom nav×5, availability primary, retry, dismiss, open active delivery, offer/assignment banner |
+| INTENTIONALLY DISABLED | Availability CTA while processing / offline / busy |
+| NOT CONNECTED | **0** (target) |
+
+---
+
+## Flow results (widget suite)
+
+| Flow | Widget | Device (VKP-NX9) |
+|------|--------|------------------|
+| Flow B Unavailable↔Available | PASS | Prior session partial / re-verify |
+| M1 Offline CTA disabled | PASS | Prior session observed |
+| M2 Connection restore (init race) | PASS (unit/widget) | **PASS** — Unavailable + Busy preserved (USB ADB) |
+| M3 Failure Retry/Dismiss | PASS | PENDING |
+| M4/M5/M7 Busy + open active | PASS | **PASS** (Busy preserved + active route) |
+| M6 Restored Available | PASS | PENDING |
+| M8 Logout prepare in Settings | PASS | Prior session observed |
+
+**M2 Unavailable + Busy preserved: device PASS on HONOR VKP-NX9 (USB ADB).** Batch 3 not fully closed (matrix PENDING; Loading-offers after Accept is a separate defect).
+
+---
+
+## Screen matrix (Batch 3)
+
+| Screen | Flutter | Route | Figma | State | Locale | Theme | Buttons | Device |
+|--------|---------|-------|-------|-------|--------|-------|---------|--------|
+| Home Available | `home_screen.dart` | `/home` | `41:160` | Available | AR/EN | L/D | CONNECTED | PENDING |
+| Home Unavailable | same | `/home` | `41:273` | Unavailable | AR/EN | L/D | CONNECTED | PENDING |
+| Home Busy | same | `/home` | `41:211` | Busy | AR/EN | L/D | CTA disabled + open active | PENDING |
+| Home Offline | same | `/home` | `41:308` | Offline | AR/EN | L/D | CTA disabled | PENDING |
+| Home Updating | same | `/home` | `41:353` | Processing | AR/EN | L/D | CTA disabled | PENDING |
+| Home Failure | same | `/home` | `41:389` | Failure | AR/EN | L/D | Retry+Dismiss | PENDING |
+| Home Dark | same | `/home` | `41:643` / `44:2159` | — | AR/EN | Dark | CONNECTED | PENDING |
+| Home English | same | `/home` | `41:679` | — | EN | Light | CONNECTED | PENDING |
+| Availability card | `driver_availability_card.dart` | `/home` | `39:2`/`39:6`/`39:13` | all | AR/EN | L/D | via controller | PENDING |
+
+---
+
+## Quality Gate (post race fix · 2026-07-29)
+
+| Check | Result |
+|-------|--------|
+| `dart format` | PASS |
+| `flutter analyze` | **No issues found** |
+| `flutter test` | **697 passed** |
+| `git diff --check` | PASS |
+| `flutter build apk --debug` | PASS |
+| APK install VKP-NX9 | PASS (`AP4EVB6423004646`) — `app-debug.apk` install Success; USB ADB stable (transport_id:1, Wi-Fi OFF) |
+| M2 device race (Unavailable) | **PASS** — cold-start Offline→Online during init; banner cleared → Unavailable; no auto-Available; no restart/navigation |
+| Busy preserved (device) | **PASS** — Busy remained Busy after Offline cold-start race; Active banner + route PASS |
+| Prior wireless ADB attempt | **FAIL** historically (`ADB_NOT_CONNECTED`) — superseded by USB retest PASS for Unavailable path |
+| Crash/Freeze (automated) | 0 observed in widget suite |
