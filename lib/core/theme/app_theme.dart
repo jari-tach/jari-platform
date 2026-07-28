@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'saeq_semantic_colors.dart';
+
 /// App theme configuration
 ///
 /// Complete design system including:
@@ -11,7 +13,7 @@ import 'package:google_fonts/google_fonts.dart';
 /// - Elevation
 /// - Shadows
 /// - Colors (light and dark)
-/// - Extensions
+/// - Semantic [SaeqSemanticColors] extension (Design System Sprint 1)
 /// - Theme helpers
 class AppTheme {
   // Prevent instantiation
@@ -38,13 +40,18 @@ class AppTheme {
   static const FontWeight fontWeightBold = FontWeight.w700;
   static const FontWeight fontWeightExtraBold = FontWeight.w800;
 
-  // Spacing
+  // Spacing (4 / 8 / 12 / 16 / 20 / 24 / 32)
   static const double spacingXS = 4.0;
   static const double spacingSM = 8.0;
+  static const double spacing12 = 12.0;
   static const double spacingMD = 16.0;
+  static const double spacing20 = 20.0;
   static const double spacingLG = 24.0;
   static const double spacingXL = 32.0;
   static const double spacingXXL = 48.0;
+
+  /// Minimum interactive touch target (Material / a11y).
+  static const double minTouchTarget = 48.0;
 
   // Radius
   static const double radiusXS = 4.0;
@@ -108,6 +115,8 @@ class AppTheme {
       useMaterial3: true,
       colorScheme: colorScheme,
       fontFamily: fontFamily,
+      scaffoldBackgroundColor: SaeqSemanticColors.light.background,
+      extensions: const <ThemeExtension<dynamic>>[SaeqSemanticColors.light],
 
       // App Bar Theme
       appBarTheme: AppBarTheme(
@@ -253,10 +262,7 @@ class AppTheme {
       ),
 
       // Icon Theme
-      iconTheme: IconThemeData(
-        color: colorScheme.onSurface,
-        size: 24.0,
-      ),
+      iconTheme: IconThemeData(color: colorScheme.onSurface, size: 24.0),
 
       // Text Theme
       textTheme: TextTheme(
@@ -374,6 +380,8 @@ class AppTheme {
 
     return lightTheme.copyWith(
       colorScheme: colorScheme,
+      scaffoldBackgroundColor: SaeqSemanticColors.dark.background,
+      extensions: const <ThemeExtension<dynamic>>[SaeqSemanticColors.dark],
       appBarTheme: AppBarTheme(
         backgroundColor: colorScheme.surface,
         foregroundColor: colorScheme.onSurface,
@@ -386,50 +394,130 @@ class AppTheme {
       ),
     );
   }
-
-  // Theme extensions
-  static const lightThemeExtensions = {};
-  static const darkThemeExtensions = {};
 }
 
-/// App colors for direct usage
+/// App colors for direct usage.
+///
+/// Prefer [SaeqSemanticColors.of] in new widgets. These aliases keep Sprint 1
+/// compatible with existing Inc1/Inc2 call sites and map to the temporary
+/// Forest Green light palette.
 class AppColors {
   AppColors._();
 
-  static const Color surface = Colors.white;
+  static const Color surface = Color(0xFFFFFFFF);
   static const Color surfaceVariant = Color(0xFFF5F5F5);
+  static const Color elevatedSurface = Color(0xFFF5F5F5);
+  static const Color background = Color(0xFFF7F8F7);
   static const Color border = Color(0xFFE0E0E0);
   static const Color primary = Color(0xFF1B5E20);
+  static const Color primaryContainer = Color(0xFFE8F5E9);
   static const Color secondary = Color(0xFF2E7D32);
+  static const Color accent = Color(0xFF00838F);
+  static const Color textPrimary = Color(0xFF212121);
+  static const Color textSecondary = Color(0xFF616161);
+  static const Color disabled = Color(0xFF9E9E9E);
   static const Color error = Color(0xFFD32F2F);
+  static const Color success = Color(0xFF2E7D32);
+  static const Color warning = Color(0xFFE65100);
+  static const Color information = Color(0xFF0277BD);
+  static const Color busy = Color(0xFFEF6C00);
 }
 
-/// App text styles for direct usage
+/// App text styles for direct usage (Arabic-first metrics).
 class AppTextStyles {
   AppTextStyles._();
 
-  static const TextStyle titleLarge = TextStyle(
-    fontSize: 20.0,
-    fontWeight: FontWeight.w600,
+  static const TextStyle display = TextStyle(
+    fontSize: 32.0,
+    fontWeight: FontWeight.w700,
+    height: 1.25,
   );
 
-  static const TextStyle titleMedium = TextStyle(
-    fontSize: 16.0,
-    fontWeight: FontWeight.w500,
+  static const TextStyle pageTitle = TextStyle(
+    fontSize: 22.0,
+    fontWeight: FontWeight.w700,
+    height: 1.3,
   );
 
   static const TextStyle headlineLarge = TextStyle(
     fontSize: 24.0,
     fontWeight: FontWeight.w700,
+    height: 1.3,
+  );
+
+  static const TextStyle titleLarge = TextStyle(
+    fontSize: 20.0,
+    fontWeight: FontWeight.w600,
+    height: 1.35,
+  );
+
+  static const TextStyle sectionTitle = TextStyle(
+    fontSize: 18.0,
+    fontWeight: FontWeight.w600,
+    height: 1.35,
+  );
+
+  static const TextStyle titleMedium = TextStyle(
+    fontSize: 16.0,
+    fontWeight: FontWeight.w600,
+    height: 1.35,
+  );
+
+  static const TextStyle cardTitle = TextStyle(
+    fontSize: 16.0,
+    fontWeight: FontWeight.w600,
+    height: 1.35,
   );
 
   static const TextStyle bodyLarge = TextStyle(
     fontSize: 16.0,
     fontWeight: FontWeight.w400,
+    height: 1.45,
   );
 
   static const TextStyle bodyMedium = TextStyle(
     fontSize: 14.0,
     fontWeight: FontWeight.w400,
+    height: 1.45,
+  );
+
+  static const TextStyle supporting = TextStyle(
+    fontSize: 13.0,
+    fontWeight: FontWeight.w400,
+    height: 1.4,
+    color: AppColors.textSecondary,
+  );
+
+  static const TextStyle label = TextStyle(
+    fontSize: 12.0,
+    fontWeight: FontWeight.w600,
+    height: 1.3,
+  );
+
+  static const TextStyle button = TextStyle(
+    fontSize: 16.0,
+    fontWeight: FontWeight.w600,
+    height: 1.25,
+  );
+
+  static const TextStyle monetary = TextStyle(
+    fontSize: 20.0,
+    fontWeight: FontWeight.w700,
+    height: 1.2,
+    fontFeatures: [FontFeature.tabularFigures()],
+  );
+
+  static const TextStyle deliveryCode = TextStyle(
+    fontSize: 28.0,
+    fontWeight: FontWeight.w700,
+    letterSpacing: 4,
+    height: 1.2,
+    fontFeatures: [FontFeature.tabularFigures()],
+  );
+
+  static const TextStyle status = TextStyle(
+    fontSize: 13.0,
+    fontWeight: FontWeight.w600,
+    height: 1.3,
   );
 }

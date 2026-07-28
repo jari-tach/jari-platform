@@ -84,11 +84,11 @@ void main() {
       );
 
       await tester.enterText(find.byType(TextFormField), '123');
-      await tester.tap(find.widgetWithText(SaeqPrimaryButton, 'Sign In'));
+      await tester.tap(find.widgetWithText(SaeqPrimaryButton, 'Send code'));
       await tester.pump();
 
       expect(
-        find.text('Please enter a valid phone number (05XXXXXXXX).'),
+        find.text('Invalid mobile number'),
         findsOneWidget,
       );
     });
@@ -104,7 +104,7 @@ void main() {
         sessionStorage: sessionStorage,
         logger: logger,
         isProductionEnvironment: () => false,
-        signInDelay: const Duration(milliseconds: 200),
+        otpRequestDelay: const Duration(milliseconds: 200),
       );
       addTearDown(slowRepository.dispose);
 
@@ -115,7 +115,7 @@ void main() {
       );
 
       await tester.enterText(find.byType(TextFormField), '0501234567');
-      await tester.tap(find.widgetWithText(SaeqPrimaryButton, 'Sign In'));
+      await tester.tap(find.widgetWithText(SaeqPrimaryButton, 'Send code'));
       await tester.pump();
 
       final button = tester.widget<SaeqPrimaryButton>(
@@ -142,7 +142,7 @@ void main() {
       );
 
       await tester.enterText(find.byType(TextFormField), '0501234567');
-      await tester.tap(find.widgetWithText(SaeqPrimaryButton, 'Sign In'));
+      await tester.tap(find.widgetWithText(SaeqPrimaryButton, 'Send code'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
 
@@ -187,6 +187,11 @@ void main() {
       await tester.pump(const Duration(milliseconds: 50));
 
       await tester.tap(find.widgetWithText(SaeqPrimaryButton, 'Sign Out'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+
+      // Confirm destructive dialog (PHASE 2.6).
+      await tester.tap(find.byKey(const Key('saeqDestructiveDialogConfirm')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
 

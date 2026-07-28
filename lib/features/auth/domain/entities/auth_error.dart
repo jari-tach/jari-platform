@@ -51,6 +51,26 @@ final class SecureStorageFailureError extends AuthError {
   ]);
 }
 
+/// The OTP code did not match the pending challenge.
+final class InvalidOtpError extends AuthError {
+  const InvalidOtpError([super.message = 'Invalid OTP code.']);
+}
+
+/// The OTP challenge expired before verification.
+final class ExpiredOtpError extends AuthError {
+  const ExpiredOtpError([super.message = 'OTP code has expired.']);
+}
+
+/// OTP was requested again before the resend cooldown elapsed.
+final class OtpRateLimitedError extends AuthError {
+  const OtpRateLimitedError([super.message = 'OTP resend is rate limited.']);
+}
+
+/// The OTP input is incomplete (e.g. fewer than required digits).
+final class IncompleteOtpError extends AuthError {
+  const IncompleteOtpError([super.message = 'OTP code is incomplete.']);
+}
+
 /// Anything else. Never expose the underlying technical detail to the user.
 final class UnexpectedAuthError extends AuthError {
   const UnexpectedAuthError([

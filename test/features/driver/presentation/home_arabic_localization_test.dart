@@ -182,14 +182,13 @@ void main() {
     ) async {
       await _pumpWelcome(tester, locale: const Locale('ar'));
 
-      expect(find.textContaining('الأساسيات والهيكلية'), findsOneWidget);
-      expect(find.text('تسجيل الدخول'), findsOneWidget);
-      expect(find.text('الخطوات التالية'), findsOneWidget);
-      expect(find.textContaining('Focus now on fundamentals'), findsNothing);
-      expect(find.text('Sign In'), findsNothing);
-      expect(find.text('Next Steps'), findsNothing);
+      expect(find.text('سائق سايق'), findsOneWidget);
+      expect(find.text('منصة التوصيل الاحترافية للسائقين'), findsOneWidget);
+      expect(find.text('ابدأ'), findsOneWidget);
+      expect(find.text('English'), findsOneWidget);
       expect(find.text('Saeq Driver'), findsNothing);
-      expect(find.text('سائق'), findsOneWidget);
+      expect(find.text('Start'), findsNothing);
+      expect(find.textContaining('Focus now on fundamentals'), findsNothing);
     });
 
     testWidgets('English welcome has no Arabic app-owned sentences', (
@@ -197,12 +196,15 @@ void main() {
     ) async {
       await _pumpWelcome(tester, locale: const Locale('en'));
 
-      expect(find.textContaining('Focus now on fundamentals'), findsOneWidget);
-      expect(find.text('Sign In'), findsOneWidget);
-      expect(find.text('Next Steps'), findsOneWidget);
-      expect(find.textContaining('الأساسيات والهيكلية'), findsNothing);
-      expect(find.text('تسجيل الدخول'), findsNothing);
       expect(find.text('Saeq Driver'), findsOneWidget);
+      expect(
+        find.text('Professional delivery platform for drivers'),
+        findsOneWidget,
+      );
+      expect(find.text('Start'), findsOneWidget);
+      expect(find.text('العربية'), findsOneWidget);
+      expect(find.text('سائق سايق'), findsNothing);
+      expect(find.text('ابدأ'), findsNothing);
     });
   });
 }

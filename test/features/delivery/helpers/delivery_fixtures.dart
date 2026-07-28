@@ -3,6 +3,7 @@ import 'package:saeq_driver/features/delivery/domain/entities/delivery_offer.dar
 import 'package:saeq_driver/features/delivery/domain/entities/delivery_offer_status.dart';
 import 'package:saeq_driver/features/delivery/domain/entities/delivery_order.dart';
 import 'package:saeq_driver/features/delivery/domain/entities/delivery_status.dart';
+import 'package:saeq_driver/features/delivery/domain/entities/driver_workflow_stage.dart';
 
 /// Shared deterministic fixtures for PHASE 2.5 delivery tests.
 final deliveryIssuedAt = DateTime.utc(2026, 7, 26, 10);
@@ -55,6 +56,8 @@ DeliveryAssignment sampleAssignment({
   DeliveryOrder? order,
   DateTime? acceptedAt,
   String? serverRevision = 'srev-1',
+  DriverWorkflowStage workflowStage = DriverWorkflowStage.assigned,
+  DriverWorkflowStage? resumeAfterIssueStage,
 }) => DeliveryAssignment(
   assignmentId: assignmentId,
   offerId: offerId,
@@ -63,4 +66,6 @@ DeliveryAssignment sampleAssignment({
   order: order ?? sampleOrder(),
   acceptedAt: acceptedAt ?? deliveryAcceptedAt,
   serverRevision: serverRevision,
+  workflowStage: workflowStage,
+  resumeAfterIssueStage: resumeAfterIssueStage,
 );

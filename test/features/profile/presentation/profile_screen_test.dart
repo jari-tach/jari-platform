@@ -10,6 +10,7 @@ import 'package:saeq_driver/features/profile/domain/repositories/driver_profile_
 import 'package:saeq_driver/features/profile/presentation/controllers/profile_controller.dart';
 import 'package:saeq_driver/features/profile/presentation/providers/profile_providers.dart';
 import 'package:saeq_driver/features/profile/presentation/screens/profile_screen.dart';
+import 'package:saeq_driver/shared/widgets/saeq_profile_header.dart';
 
 class _Repo implements DriverProfileRepository {
   _Repo(this.profile);
@@ -67,7 +68,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 50));
 
     expect(find.text('Driver One'), findsOneWidget);
-    expect(find.text('0512345678'), findsOneWidget);
+    expect(find.text('********78'), findsOneWidget);
+    expect(find.text('0512345678'), findsNothing);
     expect(find.text('Not assigned yet'), findsWidgets);
   });
 
@@ -98,5 +100,49 @@ void main() {
 
     expect(find.text('No profile yet'), findsOneWidget);
     expect(find.text('Retry'), findsOneWidget);
+  });
+
+  testWidgets('ProfileScreen shows partial profile without email or scope', (
+    tester,
+  ) async {
+    final now = DateTime.utc(2026, 7, 25);
+    final profile = DriverProfile(
+      driverId: 'd2',
+      fullName: 'Partial Driver',
+      phoneNumber: '0598765432',
+      accountStatus: AccountStatus.pending,
+      employmentStatus: EmploymentStatus.active,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          profileControllerProvider.overrideWith(
+            () => ProfileController(repositoryReader: (_) => _Repo(profile)),
+          ),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en', 'US'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const ProfileScreen(),
+        ),
+      ),
+    );
+
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(find.text('Partial Driver'), findsOneWidget);
+    expect(find.text('********32'), findsOneWidget);
+    expect(find.text('Not assigned yet'), findsWidgets);
+    expect(find.byType(SaeqProfileHeader), findsOneWidget);
   });
 }

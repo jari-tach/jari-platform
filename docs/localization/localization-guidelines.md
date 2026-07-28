@@ -27,7 +27,7 @@ This default **pre-existed** PHASE 2.4.1 (present at base commit `05d1285`). Thi
 
 `MaterialApp.router` watches `appLocaleProvider`. Changing that provider rebuilds the app with the new `locale`. Do not hard-code `Directionality` around production widgets; Flutter applies RTL/LTR from the locale.
 
-**Not yet implemented:** an in-app language-switcher UI (settings control). Locale can be changed by updating `appLocaleProvider` in code/tests only.
+**Implemented:** Settings includes a language switcher (Arabic / English) wired through `AppLocaleNotifier` and persisted via `AppPreferences` (`app_locale_language_code_v1`). Theme mode is switched the same way via `AppThemeModeNotifier`.
 
 ## Mandatory rules
 
@@ -101,4 +101,4 @@ Do **not** flag: test descriptions, keys, route path constants, enum names, inte
 ## Deferred (not permanently rejected)
 
 - Migration to ARB / `flutter gen-l10n` — out of scope for PHASE 2.4.1; requires a separate decision later.
-- In-app language-switcher UI — not part of this phase.
+- In-app language-switcher UI — implemented in Settings (PHASE 2.6 Increment 4).

@@ -1,31 +1,56 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/providers/home_ui_providers.dart';
+import '../../../core/routes/app_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/saeq_semantic_colors.dart';
+import '../../../shared/widgets/saeq_destructive_dialog.dart';
+import '../../../shared/widgets/saeq_icon_button.dart';
+import '../../../shared/widgets/saeq_info_card.dart';
+import '../../../shared/widgets/saeq_offline_banner.dart';
 import '../../../shared/widgets/saeq_primary_button.dart';
+import '../../../shared/widgets/saeq_secondary_button.dart';
+import '../../auth/domain/entities/auth_error.dart';
+import '../../auth/presentation/controllers/auth_controller_state.dart';
 import '../../auth/presentation/providers/auth_providers.dart';
+import '../../availability/presentation/providers/availability_providers.dart';
 import '../../availability/presentation/widgets/driver_availability_card.dart';
 import '../../delivery/presentation/widgets/delivery_offer_home_banner.dart';
 
-/// Authenticated landing screen with availability control (PHASE 2.4).
-///
-/// Keeps the existing greeting and sign-out flow; availability is inserted
-/// as a high-visibility card without redesigning navigation or shell layout.
-/// Delivery offer entry is a non-blocking banner (ADR-026 full-screen route).
+/// Authenticated landing screen with availability control (PHASE 2.4)
+/// and Home completion strip (PHASE 2.6 Increment 1).
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
+
+  static const notificationsActionKey = Key('homeNotificationsAction');
+  static const signOutKey = Key('homeSignOut');
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final colors = SaeqSemanticColors.of(context);
     final state = ref.watch(authControllerProvider);
     final session = state.session;
     final isBusy = state.isBusy;
+    final offline = ref.watch(isOfflineProvider);
+    final summary = ref.watch(fakeHomeSummaryProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.navHome)),
+      appBar: AppBar(
+        title: Text(l10n.navHome),
+        actions: [
+          SaeqIconButton(
+            key: notificationsActionKey,
+            icon: Icons.notifications_outlined,
+            tooltip: l10n.homeOpenNotificationsTooltip,
+            onPressed: () => context.go(AppRoutes.notifications),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(AppConstants.contentPadding),
@@ -37,34 +62,180 @@ class HomeScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        l10n.homeWelcomeTitle,
-                        style: AppTextStyles.headlineLarge,
+                      SaeqOfflineBanner(
+                        message: l10n.offlineBannerMessage,
+                        visible: offline,
                       ),
-                      const SizedBox(height: 10),
-                      if (session != null)
-                        Text(
-                          session.maskedPhoneNumber,
-                          style: AppTextStyles.bodyLarge,
-                        ),
-                      const SizedBox(height: AppTheme.spacingLG),
                       const DriverAvailabilityCard(),
                       const SizedBox(height: AppTheme.spacingMD),
                       const DeliveryOfferHomeBanner(),
+                      const SizedBox(height: AppTheme.spacingLG),
+                      Text(
+                        l10n.homeWelcomeTitle,
+                        style: AppTextStyles.titleMedium.copyWith(
+                          color: colors.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: AppTheme.spacingXS),
+                      if (session != null)
+                        Text(
+                          session.maskedPhoneNumber,
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: colors.textSecondary,
+                          ),
+                        ),
+                      if (summary != null) ...[
+                        const SizedBox(height: AppTheme.spacingMD),
+                        _HomeSummaryStrip(summary: summary),
+                      ],
+                      const SizedBox(height: AppTheme.spacingLG),
+                      Text(
+                        l10n.homeQuickActionsTitle,
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: colors.textSecondary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: AppTheme.spacingSM),
+                      SaeqSecondaryButton(
+                        label: l10n.homeQuickActionDeliveries,
+                        icon: Icons.local_shipping_outlined,
+                        onPressed: () => context.go(AppRoutes.deliveries),
+                      ),
+                      const SizedBox(height: AppTheme.spacingSM),
+                      SaeqSecondaryButton(
+                        label: l10n.homeQuickActionEarnings,
+                        icon: Icons.payments_outlined,
+                        onPressed: () => context.go(AppRoutes.earnings),
+                      ),
+                      const SizedBox(height: AppTheme.spacingSM),
+                      SaeqSecondaryButton(
+                        label: l10n.homeQuickActionNotifications,
+                        icon: Icons.notifications_outlined,
+                        onPressed: () => context.go(AppRoutes.notifications),
+                      ),
+                      // Clearance so fixed sign-out does not cover quick actions.
+                      const SizedBox(height: AppTheme.spacingLG),
                     ],
                   ),
                 ),
               ),
+              const SizedBox(height: AppTheme.spacingSM),
               SaeqPrimaryButton(
+                key: signOutKey,
                 label: l10n.signOut,
                 icon: Icons.logout,
                 onPressed: isBusy
                     ? null
-                    : () => ref.read(authControllerProvider.notifier).signOut(),
+                    : () => _confirmSignOut(context, ref, l10n),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Future<void> _confirmSignOut(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+  ) async {
+    final confirmed = await SaeqDestructiveDialog.show(
+      context,
+      title: l10n.signOutConfirmTitle,
+      message: l10n.signOutConfirmMessage,
+      confirmLabel: l10n.signOut,
+      cancelLabel: l10n.cancelAction,
+    );
+    if (confirmed == true) {
+      await ref
+          .read(availabilityControllerProvider.notifier)
+          .prepareForLogout();
+      await ref.read(authControllerProvider.notifier).signOut();
+      if (!context.mounted) return;
+      final authState = ref.read(authControllerProvider);
+      if (authState.status == AuthControllerStatus.failure &&
+          authState.error is SecureStorageFailureError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.secureStorageFailureMessage)),
+        );
+      }
+    }
+  }
+}
+
+class _HomeSummaryStrip extends StatelessWidget {
+  const _HomeSummaryStrip({required this.summary});
+
+  final FakeHomeSummary summary;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final amount = summary.todayEarningsSar.toStringAsFixed(
+      summary.todayEarningsSar == summary.todayEarningsSar.roundToDouble()
+          ? 0
+          : 1,
+    );
+
+    return SaeqInfoCard(
+      title: l10n.homeFakeSummaryHint,
+      child: Row(
+        children: [
+          Expanded(
+            child: _Metric(
+              label: l10n.homeTodayEarningsLabel,
+              value: l10n.homeEarningsValue(amount),
+            ),
+          ),
+          Expanded(
+            child: _Metric(
+              label: l10n.homeTripsTodayLabel,
+              value: l10n.homeTripsValue(summary.completedTripsToday),
+            ),
+          ),
+          Expanded(
+            child: _Metric(
+              label: l10n.homeAcceptanceRateLabel,
+              value: l10n.homeAcceptanceValue(summary.acceptanceRatePercent),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Metric extends StatelessWidget {
+  const _Metric({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = SaeqSemanticColors.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: colors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: AppTheme.spacingXS),
+          Text(
+            value,
+            style: AppTextStyles.titleMedium.copyWith(
+              color: colors.textPrimary,
+            ),
+          ),
+        ],
       ),
     );
   }

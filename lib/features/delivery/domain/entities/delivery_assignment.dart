@@ -1,9 +1,11 @@
 import 'delivery_order.dart';
 import 'delivery_status.dart';
+import 'driver_workflow_stage.dart';
 
 /// Authoritative driver↔delivery binding after successful accept (ADR-020).
 ///
 /// Owns availability `busy` linkage via [assignmentId] (ADR-025 / ADR-018).
+/// [workflowStage] is the driver-facing PHASE 2.6 stage machine (ADR-028 JSON).
 class DeliveryAssignment {
   /// Creates an immutable delivery assignment.
   ///
@@ -16,6 +18,8 @@ class DeliveryAssignment {
     required this.order,
     required this.acceptedAt,
     this.serverRevision,
+    this.workflowStage = DriverWorkflowStage.assigned,
+    this.resumeAfterIssueStage,
   }) {
     final aid = assignmentId.trim();
     if (aid.isEmpty) {
@@ -51,7 +55,7 @@ class DeliveryAssignment {
   /// Must match the authenticated session driver id.
   final String driverId;
 
-  /// Operational status ([DeliveryStatus.accepted] in PHASE 2.5).
+  /// Coarse operational status.
   final DeliveryStatus status;
 
   /// Minimal persisted work snapshot for restart (ADR-028).
@@ -63,9 +67,28 @@ class DeliveryAssignment {
   /// Opaque Backend revision when provided.
   final String? serverRevision;
 
-  /// Whether this assignment is still the driver's active work in PHASE 2.5.
+  /// Driver-facing workflow stage (PHASE 2.6).
+  final DriverWorkflowStage workflowStage;
+
+  /// Stage to resume after [DriverWorkflowStage.issueOpen].
+  final DriverWorkflowStage? resumeAfterIssueStage;
+
+  /// Whether this assignment still owns the driver's active-delivery slot.
+  ///
+  /// Includes [DeliveryStatus.delivered] so the delivered/summary phase still:
+  /// - blocks accepting a new offer
+  /// - retains local assignment ownership until final successful release
+  /// - remains resumable after restart
+  ///
+  /// This is **not** limited to “physically transporting an order”. Prefer
+  /// [blocksNewOffers] when that intent should be explicit at a call site.
   bool get isActive =>
-      status == DeliveryStatus.accepted || status == DeliveryStatus.pickedUp;
+      status == DeliveryStatus.accepted ||
+      status == DeliveryStatus.pickedUp ||
+      status == DeliveryStatus.delivered;
+
+  /// Explicit alias for offer-blocking / active-slot ownership ([isActive]).
+  bool get blocksNewOffers => isActive;
 
   /// Returns a copy with selected fields replaced.
   ///
@@ -76,6 +99,9 @@ class DeliveryAssignment {
     DateTime? acceptedAt,
     String? serverRevision,
     bool clearServerRevision = false,
+    DriverWorkflowStage? workflowStage,
+    DriverWorkflowStage? resumeAfterIssueStage,
+    bool clearResumeAfterIssueStage = false,
   }) {
     return DeliveryAssignment(
       assignmentId: assignmentId,
@@ -87,6 +113,10 @@ class DeliveryAssignment {
       serverRevision: clearServerRevision
           ? null
           : (serverRevision ?? this.serverRevision),
+      workflowStage: workflowStage ?? this.workflowStage,
+      resumeAfterIssueStage: clearResumeAfterIssueStage
+          ? null
+          : (resumeAfterIssueStage ?? this.resumeAfterIssueStage),
     );
   }
 
@@ -100,7 +130,9 @@ class DeliveryAssignment {
           status == other.status &&
           order == other.order &&
           acceptedAt == other.acceptedAt &&
-          serverRevision == other.serverRevision;
+          serverRevision == other.serverRevision &&
+          workflowStage == other.workflowStage &&
+          resumeAfterIssueStage == other.resumeAfterIssueStage;
 
   @override
   int get hashCode => Object.hash(
@@ -111,10 +143,12 @@ class DeliveryAssignment {
     order,
     acceptedAt,
     serverRevision,
+    workflowStage,
+    resumeAfterIssueStage,
   );
 
   @override
   String toString() =>
       'DeliveryAssignment(assignmentId: $assignmentId, '
-      'driverId: $driverId, status: $status)';
+      'driverId: $driverId, status: $status, stage: $workflowStage)';
 }

@@ -97,13 +97,15 @@ void main() {
 
       expect(find.text('ملف السائق'), findsOneWidget);
       expect(find.text('أحمد السائق'), findsOneWidget);
-      expect(find.text('0512345678'), findsOneWidget);
+      // Phone is masked for display (last 2 digits only).
+      expect(find.text('********78'), findsOneWidget);
+      expect(find.text('0512345678'), findsNothing);
       expect(find.text('حالة الحساب'), findsOneWidget);
       expect(find.text('موثَّق'), findsOneWidget);
-      expect(find.text('حالة التوظيف'), findsOneWidget);
       expect(find.text('نشط'), findsOneWidget);
       expect(find.text('غير معيّن بعد'), findsWidgets);
-      expect(find.text('إعادة المحاولة'), findsOneWidget);
+      // Success state no longer shows a redundant retry action.
+      expect(find.text('إعادة المحاولة'), findsNothing);
       expect(find.text('Account status'), findsNothing);
       expect(find.text('Verified'), findsNothing);
       expect(find.text('Profile'), findsNothing);

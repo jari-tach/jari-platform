@@ -9,7 +9,7 @@ void main() {
       expect(l10n.isArabic, isFalse);
       expect(l10n.signIn, 'Sign In');
       expect(l10n.signOut, 'Sign Out');
-      expect(l10n.loginTitle, 'Driver Sign In');
+      expect(l10n.loginTitle, 'Sign in');
       expect(l10n.profileTitle, 'Profile');
       expect(l10n.homeWelcomeTitle, 'Signed in successfully');
       expect(l10n.navHome, 'Home');
@@ -23,7 +23,7 @@ void main() {
       expect(l10n.isArabic, isTrue);
       expect(l10n.signIn, 'تسجيل الدخول');
       expect(l10n.signOut, 'تسجيل الخروج');
-      expect(l10n.loginTitle, 'تسجيل دخول السائق');
+      expect(l10n.loginTitle, 'تسجيل الدخول');
       expect(l10n.profileTitle, 'ملف السائق');
       expect(l10n.homeWelcomeTitle, 'تم تسجيل الدخول بنجاح');
       expect(l10n.navHome, 'الرئيسية');
@@ -69,6 +69,12 @@ void main() {
         (l) => l.availabilityFailureUnknown,
         (l) => l.availabilitySemanticsStatus,
         (l) => l.navOrders,
+        (l) => l.navDeliveries,
+        (l) => l.navEarnings,
+        (l) => l.navNotifications,
+        (l) => l.offlineBannerMessage,
+        (l) => l.signOutConfirmTitle,
+        (l) => l.homeQuickActionsTitle,
         (l) => l.loading,
         (l) => l.nextStepsFocusMessage,
         (l) => l.deliveryOfferTitle,
@@ -90,11 +96,11 @@ void main() {
     test('phone format hint is shared (documented exception)', () {
       expect(
         AppLocalizations(const Locale('en')).phoneNumberHint,
-        '05XXXXXXXX',
+        '05xxxxxxxx',
       );
       expect(
         AppLocalizations(const Locale('ar')).phoneNumberHint,
-        '05XXXXXXXX',
+        '05xxxxxxxx',
       );
     });
   });

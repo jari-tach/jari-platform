@@ -9,7 +9,12 @@ class FakeSecureStorageService implements SecureStorageService {
   Exception? throwOnNextRead;
   Exception? throwOnNextDelete;
 
+  /// When set, [delete] awaits this future before proceeding (test hook).
+  Future<void>? deleteDelay;
+
   String? debugRawValue(String key) => _store[key];
+
+  Map<String, String> debugAllRawValues() => Map.unmodifiable(_store);
 
   void debugSeedRawValue(String key, String value) {
     _store[key] = value;
@@ -40,6 +45,9 @@ class FakeSecureStorageService implements SecureStorageService {
 
   @override
   Future<void> delete(String key) async {
+    if (deleteDelay != null) {
+      await deleteDelay;
+    }
     if (throwOnNextDelete != null) {
       final error = throwOnNextDelete!;
       throwOnNextDelete = null;

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/saeq_semantic_colors.dart';
 import '../../../../shared/widgets/saeq_primary_button.dart';
 import '../../domain/entities/availability_status.dart';
 import '../../domain/entities/driver_availability.dart';
@@ -30,114 +31,142 @@ class DriverAvailabilityCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final colors = SaeqSemanticColors.of(context);
     final state = ref.watch(availabilityControllerProvider);
     final controller = ref.read(availabilityControllerProvider.notifier);
-    final presentation = _AvailabilityPresentation.from(state, l10n);
+    final presentation = _AvailabilityPresentation.from(state, l10n, colors);
 
     return Semantics(
       container: true,
       label: l10n.availabilitySemanticsStatus,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(AppTheme.spacingMD),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: colors.elevatedSurface,
           borderRadius: BorderRadius.circular(AppTheme.radiusXL),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: colors.border),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.availabilitySectionTitle,
-              style: AppTextStyles.titleMedium,
-            ),
-            const SizedBox(height: AppTheme.spacingSM),
-            if (presentation.showProgress) ...[
-              Semantics(
-                label: l10n.availabilitySemanticsProgress,
-                child: const LinearProgressIndicator(
-                  key: progressKey,
-                  minHeight: 3,
-                ),
-              ),
-              const SizedBox(height: AppTheme.spacingSM),
-            ],
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppTheme.radiusXL),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Icon(
-                  presentation.icon,
-                  color: presentation.accent,
-                  semanticLabel: presentation.title,
-                ),
-                const SizedBox(width: AppTheme.spacingSM),
+                Container(width: 4, color: presentation.accent),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        presentation.title,
-                        key: statusLabelKey,
-                        style: AppTextStyles.titleMedium.copyWith(
-                          color: presentation.accent,
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppTheme.spacingMD),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.availabilitySectionTitle,
+                          style: AppTextStyles.titleMedium.copyWith(
+                            color: colors.textPrimary,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: AppTheme.spacingXS),
-                      Text(
-                        presentation.detail,
-                        key: statusDetailKey,
-                        style: AppTextStyles.bodyMedium,
-                      ),
-                    ],
+                        const SizedBox(height: AppTheme.spacingSM),
+                        if (presentation.showProgress) ...[
+                          Semantics(
+                            label: l10n.availabilitySemanticsProgress,
+                            child: LinearProgressIndicator(
+                              key: progressKey,
+                              minHeight: 3,
+                              color: colors.primary,
+                              backgroundColor: colors.primaryContainer,
+                            ),
+                          ),
+                          const SizedBox(height: AppTheme.spacingSM),
+                        ],
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              presentation.icon,
+                              color: presentation.accent,
+                              semanticLabel: presentation.title,
+                            ),
+                            const SizedBox(width: AppTheme.spacingSM),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    presentation.title,
+                                    key: statusLabelKey,
+                                    style: AppTextStyles.titleMedium.copyWith(
+                                      color: presentation.accent,
+                                    ),
+                                  ),
+                                  const SizedBox(height: AppTheme.spacingXS),
+                                  Text(
+                                    presentation.detail,
+                                    key: statusDetailKey,
+                                    style: AppTextStyles.bodyMedium.copyWith(
+                                      color: colors.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (presentation.chipLabel != null) ...[
+                          const SizedBox(height: AppTheme.spacingSM),
+                          _StatusChip(
+                            key: statusChipKey,
+                            label: presentation.chipLabel!,
+                            tone: presentation.chipTone,
+                          ),
+                        ],
+                        if (state.failure != null) ...[
+                          const SizedBox(height: AppTheme.spacingMD),
+                          _FailureBanner(
+                            key: failureBannerKey,
+                            message: availabilityFailureMessage(
+                              state.failure!,
+                              l10n,
+                            ),
+                            semanticsLabel: l10n.availabilitySemanticsFailure,
+                            onDismiss: () => controller.clearFailure(),
+                            dismissLabel: l10n.availabilityActionDismissFailure,
+                            dismissKey: dismissFailureKey,
+                          ),
+                        ],
+                        const SizedBox(height: AppTheme.spacingMD),
+                        if (presentation.showRetry)
+                          SaeqPrimaryButton(
+                            key: retryKey,
+                            label: l10n.availabilityActionRetry,
+                            icon: Icons.refresh,
+                            onPressed: presentation.actionsEnabled
+                                ? () => controller.initialize()
+                                : null,
+                          )
+                        else
+                          Semantics(
+                            button: true,
+                            enabled: presentation.primaryEnabled,
+                            label: l10n.availabilitySemanticsAction,
+                            child: SaeqPrimaryButton(
+                              key: primaryActionKey,
+                              label: presentation.primaryLabel,
+                              icon: presentation.primaryIcon,
+                              onPressed: presentation.primaryEnabled
+                                  ? () => _onPrimaryPressed(
+                                      controller,
+                                      presentation,
+                                    )
+                                  : null,
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               ],
             ),
-            if (presentation.chipLabel != null) ...[
-              const SizedBox(height: AppTheme.spacingSM),
-              _StatusChip(
-                key: statusChipKey,
-                label: presentation.chipLabel!,
-                tone: presentation.chipTone,
-              ),
-            ],
-            if (state.failure != null) ...[
-              const SizedBox(height: AppTheme.spacingMD),
-              _FailureBanner(
-                key: failureBannerKey,
-                message: availabilityFailureMessage(state.failure!, l10n),
-                semanticsLabel: l10n.availabilitySemanticsFailure,
-                onDismiss: () => controller.clearFailure(),
-                dismissLabel: l10n.availabilityActionDismissFailure,
-                dismissKey: dismissFailureKey,
-              ),
-            ],
-            const SizedBox(height: AppTheme.spacingMD),
-            if (presentation.showRetry)
-              SaeqPrimaryButton(
-                key: retryKey,
-                label: l10n.availabilityActionRetry,
-                icon: Icons.refresh,
-                onPressed: presentation.actionsEnabled
-                    ? () => controller.initialize()
-                    : null,
-              )
-            else
-              Semantics(
-                button: true,
-                enabled: presentation.primaryEnabled,
-                label: l10n.availabilitySemanticsAction,
-                child: SaeqPrimaryButton(
-                  key: primaryActionKey,
-                  label: presentation.primaryLabel,
-                  icon: presentation.primaryIcon,
-                  onPressed: presentation.primaryEnabled
-                      ? () => _onPrimaryPressed(controller, presentation)
-                      : null,
-                ),
-              ),
-          ],
+          ),
         ),
       ),
     );
@@ -197,6 +226,7 @@ class _AvailabilityPresentation {
   factory _AvailabilityPresentation.from(
     AvailabilityControllerState state,
     AppLocalizations l10n,
+    SaeqSemanticColors colors,
   ) {
     final showProgress =
         state.status == AvailabilityViewStatus.loading || state.isProcessing;
@@ -208,7 +238,7 @@ class _AvailabilityPresentation {
         title: l10n.availabilityStatusLoading,
         detail: l10n.availabilityStatusLoadingDetail,
         icon: Icons.hourglass_top,
-        accent: AppColors.secondary,
+        accent: colors.textSecondary,
         primaryLabel: l10n.availabilityActionGoAvailable,
         primaryIcon: Icons.play_arrow,
         primaryAction: _PrimaryAction.none,
@@ -226,7 +256,7 @@ class _AvailabilityPresentation {
         title: l10n.availabilityStatusInitial,
         detail: l10n.availabilityStatusInitialDetail,
         icon: Icons.lock_outline,
-        accent: AppColors.secondary,
+        accent: colors.textSecondary,
         primaryLabel: l10n.availabilityActionGoAvailable,
         primaryIcon: Icons.play_arrow,
         primaryAction: _PrimaryAction.none,
@@ -249,7 +279,7 @@ class _AvailabilityPresentation {
             ? l10n.availabilityStatusRestoredBusyDetail
             : l10n.availabilityStatusBusyDetail,
         icon: Icons.local_shipping_outlined,
-        accent: const Color(0xFFE65100),
+        accent: colors.busy,
         primaryLabel: l10n.availabilityActionGoUnavailable,
         primaryIcon: Icons.stop,
         primaryAction: _PrimaryAction.none,
@@ -269,7 +299,7 @@ class _AvailabilityPresentation {
         title: l10n.availabilityStatusOffline,
         detail: l10n.availabilityStatusOfflineDetail,
         icon: Icons.wifi_off,
-        accent: AppColors.error,
+        accent: colors.error,
         primaryLabel: l10n.availabilityActionGoAvailable,
         primaryIcon: Icons.play_arrow,
         primaryAction: _PrimaryAction.none,
@@ -287,7 +317,7 @@ class _AvailabilityPresentation {
         title: l10n.availabilityStatusRestoredAvailable,
         detail: l10n.availabilityStatusRestoredAvailableDetail,
         icon: Icons.restore,
-        accent: const Color(0xFFF9A825),
+        accent: colors.warning,
         primaryLabel: l10n.availabilityActionGoUnavailable,
         primaryIcon: Icons.stop,
         primaryAction: _PrimaryAction.goUnavailable,
@@ -305,7 +335,7 @@ class _AvailabilityPresentation {
         title: l10n.availabilityStatusConfirmedAvailable,
         detail: l10n.availabilityStatusConfirmedAvailableDetail,
         icon: Icons.check_circle_outline,
-        accent: AppColors.primary,
+        accent: colors.primary,
         primaryLabel: l10n.availabilityActionGoUnavailable,
         primaryIcon: Icons.stop,
         primaryAction: _PrimaryAction.goUnavailable,
@@ -324,7 +354,7 @@ class _AvailabilityPresentation {
         title: l10n.availabilityStatusPendingAvailable,
         detail: l10n.availabilityStatusPendingAvailableDetail,
         icon: Icons.pending_outlined,
-        accent: const Color(0xFFF9A825),
+        accent: colors.warning,
         primaryLabel: l10n.availabilityActionGoUnavailable,
         primaryIcon: Icons.stop,
         primaryAction: _PrimaryAction.goUnavailable,
@@ -345,7 +375,7 @@ class _AvailabilityPresentation {
       title: processingTitle,
       detail: l10n.availabilityStatusUnavailableDetail,
       icon: Icons.pause_circle_outline,
-      accent: AppColors.secondary,
+      accent: colors.textSecondary,
       primaryLabel: l10n.availabilityActionGoAvailable,
       primaryIcon: Icons.play_arrow,
       primaryAction: _PrimaryAction.goAvailable,
@@ -374,13 +404,14 @@ class _StatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = SaeqSemanticColors.of(context);
     final (Color bg, Color fg) = switch (tone) {
-      _ChipTone.confirmed => (const Color(0xFFE8F5E9), AppColors.primary),
-      _ChipTone.pending => (const Color(0xFFFFF8E1), const Color(0xFFF57F17)),
-      _ChipTone.restored => (const Color(0xFFFFF3E0), const Color(0xFFE65100)),
-      _ChipTone.busy => (const Color(0xFFFFF3E0), const Color(0xFFE65100)),
-      _ChipTone.offline => (const Color(0xFFFFEBEE), AppColors.error),
-      _ChipTone.neutral => (AppColors.surfaceVariant, AppColors.secondary),
+      _ChipTone.confirmed => (colors.successContainer, colors.success),
+      _ChipTone.pending => (colors.warningContainer, colors.warning),
+      _ChipTone.restored => (colors.busyContainer, colors.busy),
+      _ChipTone.busy => (colors.busyContainer, colors.busy),
+      _ChipTone.offline => (colors.errorContainer, colors.error),
+      _ChipTone.neutral => (colors.elevatedSurface, colors.textSecondary),
     };
 
     return Semantics(
@@ -425,6 +456,8 @@ class _FailureBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = SaeqSemanticColors.of(context);
+
     return Semantics(
       container: true,
       liveRegion: true,
@@ -433,9 +466,9 @@ class _FailureBanner extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(AppTheme.spacingSM),
         decoration: BoxDecoration(
-          color: const Color(0xFFFFEBEE),
+          color: colors.errorContainer,
           borderRadius: BorderRadius.circular(AppTheme.radiusSM),
-          border: Border.all(color: AppColors.error.withValues(alpha: 0.4)),
+          border: Border.all(color: colors.error.withValues(alpha: 0.4)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -443,13 +476,13 @@ class _FailureBanner extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.error_outline, color: AppColors.error),
+                Icon(Icons.error_outline, color: colors.error),
                 const SizedBox(width: AppTheme.spacingSM),
                 Expanded(
                   child: Text(
                     message,
                     style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.error,
+                      color: colors.error,
                     ),
                   ),
                 ),
@@ -460,7 +493,10 @@ class _FailureBanner extends StatelessWidget {
               child: TextButton(
                 key: dismissKey,
                 onPressed: onDismiss,
-                child: Text(dismissLabel),
+                child: Text(
+                  dismissLabel,
+                  style: TextStyle(color: colors.error),
+                ),
               ),
             ),
           ],

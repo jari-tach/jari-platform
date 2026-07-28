@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/saeq_semantic_colors.dart';
 import '../../../../shared/widgets/saeq_primary_button.dart';
+import '../../../../shared/widgets/saeq_secondary_button.dart';
 import '../../domain/entities/delivery_offer.dart';
 import '../controllers/delivery_controller.dart';
 import '../state/delivery_controller_state.dart';
@@ -34,6 +36,7 @@ class DeliveryOfferCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final colors = SaeqSemanticColors.of(context);
     final order = offer.order;
     final accepting =
         state.processingAction == DeliveryProcessingAction.accepting;
@@ -52,9 +55,9 @@ class DeliveryOfferCard extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(AppTheme.spacingMD),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: colors.surface,
           borderRadius: BorderRadius.circular(AppTheme.radiusXL),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: colors.border),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -71,7 +74,9 @@ class DeliveryOfferCard extends StatelessWidget {
             ],
             Text(
               DeliveryOfferFormatters.storeName(order, l10n),
-              style: AppTextStyles.headlineLarge,
+              style: AppTextStyles.headlineLarge.copyWith(
+                color: colors.textPrimary,
+              ),
               softWrap: true,
             ),
             const SizedBox(height: AppTheme.spacingMD),
@@ -102,37 +107,25 @@ class DeliveryOfferCard extends StatelessWidget {
                 key: acceptKey,
                 label: accepting ? l10n.deliveryAccepting : l10n.deliveryAccept,
                 icon: Icons.check_circle_outline,
+                isLoading: accepting,
                 onPressed: canAccept
                     ? () => controller.acceptCurrentOffer()
                     : null,
               ),
             ),
             const SizedBox(height: AppTheme.spacingSM),
-            SizedBox(
-              width: double.infinity,
-              child: Semantics(
-                button: true,
-                enabled: canReject,
-                label: l10n.deliverySemanticsReject,
-                child: OutlinedButton.icon(
-                  key: rejectKey,
-                  onPressed: canReject
-                      ? () => controller.rejectCurrentOffer()
-                      : null,
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(0, 48),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                  ),
-                  icon: const Icon(Icons.close),
-                  label: Text(
-                    rejecting ? l10n.deliveryRejecting : l10n.deliveryReject,
-                    softWrap: true,
-                    textAlign: TextAlign.center,
-                  ),
-                ),
+            Semantics(
+              button: true,
+              enabled: canReject,
+              label: l10n.deliverySemanticsReject,
+              child: SaeqSecondaryButton(
+                key: rejectKey,
+                label: rejecting ? l10n.deliveryRejecting : l10n.deliveryReject,
+                icon: Icons.close,
+                isLoading: rejecting,
+                onPressed: canReject
+                    ? () => controller.rejectCurrentOffer()
+                    : null,
               ),
             ),
           ],
@@ -150,6 +143,7 @@ class _LabeledValue extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = SaeqSemanticColors.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: AppTheme.spacingSM),
       child: Row(
@@ -157,11 +151,23 @@ class _LabeledValue extends StatelessWidget {
         children: [
           Expanded(
             flex: 2,
-            child: Text(label, style: AppTextStyles.bodyMedium, softWrap: true),
+            child: Text(
+              label,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: colors.textSecondary,
+              ),
+              softWrap: true,
+            ),
           ),
           Expanded(
             flex: 3,
-            child: Text(value, style: AppTextStyles.bodyLarge, softWrap: true),
+            child: Text(
+              value,
+              style: AppTextStyles.bodyLarge.copyWith(
+                color: colors.textPrimary,
+              ),
+              softWrap: true,
+            ),
           ),
         ],
       ),

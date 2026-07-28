@@ -15,6 +15,7 @@ class ProfileControllerState {
     required this.status,
     this.profile,
     this.error,
+    this.isUpdating = false,
   });
 
   const ProfileControllerState.initial()
@@ -40,6 +41,21 @@ class ProfileControllerState {
   final ProfileViewStatus status;
   final DriverProfile? profile;
   final ProfileError? error;
+  final bool isUpdating;
+
+  ProfileControllerState copyWith({
+    ProfileViewStatus? status,
+    DriverProfile? profile,
+    ProfileError? error,
+    bool? isUpdating,
+  }) {
+    return ProfileControllerState(
+      status: status ?? this.status,
+      profile: profile ?? this.profile,
+      error: error ?? this.error,
+      isUpdating: isUpdating ?? this.isUpdating,
+    );
+  }
 
   bool get canRetry =>
       status == ProfileViewStatus.error ||
@@ -52,8 +68,9 @@ class ProfileControllerState {
       other is ProfileControllerState &&
           status == other.status &&
           profile == other.profile &&
-          error == other.error;
+          error == other.error &&
+          isUpdating == other.isUpdating;
 
   @override
-  int get hashCode => Object.hash(status, profile, error);
+  int get hashCode => Object.hash(status, profile, error, isUpdating);
 }

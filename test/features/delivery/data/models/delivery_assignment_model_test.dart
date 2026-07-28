@@ -21,6 +21,15 @@ void main() {
       expect(decoded.toEntity(), sampleAssignment());
     });
 
+    test('legacy JSON without workflowStage defaults to assigned', () {
+      final json =
+          DeliveryAssignmentModel.fromEntity(sampleAssignment()).toJson()
+            ..remove('workflowStage')
+            ..remove('resumeAfterIssueStage');
+      final decoded = DeliveryAssignmentModel.fromJson(json).toEntity();
+      expect(decoded.workflowStage.name, 'assigned');
+    });
+
     test('invalid JSON enum value fails on toEntity', () {
       final json = DeliveryAssignmentModel.fromEntity(
         sampleAssignment(),

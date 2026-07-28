@@ -57,28 +57,177 @@ class AppLocalizations {
   /// Brand display name — Latin in English, Arabic short name in Arabic
   /// (aligned with [AppConstants.appName] = `سائق`).
   String get appName => _t('Saeq Driver', 'سائق');
-  String get appTagline => _t('Delivery Made Simple', 'التوصيل صار أبسط');
+  String get appTagline => _t(
+    'Professional delivery for drivers',
+    'منصة التوصيل الاحترافية للسائقين',
+  );
   String get pageNotFound => _t('Page not found', 'الصفحة غير موجودة');
   String pageNotFoundWithUri(String uri) =>
       _t('Page not found: $uri', 'الصفحة غير موجودة: $uri');
   String get navHome => _t('Home', 'الرئيسية');
-  String get navOrders => _t('Orders', 'الطلبات');
+  String get navDeliveries => _t('Deliveries', 'التوصيلات');
+  String get navEarnings => _t('Earnings', 'الأرباح');
+  String get navNotifications => _t('Alerts', 'التنبيهات');
   String get navProfile => _t('Profile', 'الملف');
   String get navSettings => _t('Settings', 'الإعدادات');
+
+  /// Legacy alias — bottom nav now uses [navDeliveries].
+  String get navOrders => navDeliveries;
   String get exploreArchitectureScreenTitle =>
       _t('Explore Architecture', 'استكشف الهيكلة');
-  String get ordersScreenTitle => _t('Orders', 'الطلبات');
+  String get deliveriesScreenTitle => _t('Deliveries', 'التوصيلات');
+  String get earningsScreenTitle => _t('Earnings', 'الأرباح');
+  String get notificationsScreenTitle => _t('Notifications', 'الإشعارات');
+  String get ordersScreenTitle => deliveriesScreenTitle;
   String get settingsScreenTitle => _t('Settings', 'الإعدادات');
+  String get supportScreenTitle => _t('Support', 'الدعم');
+  String get activeDeliveryScreenTitle =>
+      _t('Active delivery', 'التوصيل النشط');
+  String get deliveryVerifyScreenTitle =>
+      _t('Verify delivery', 'تأكيد التسليم');
+  String get deliveryIssueScreenTitle =>
+      _t('Report an issue', 'الإبلاغ عن مشكلة');
+  String get deliveryMapsAction => _t('Copy maps link', 'نسخ رابط الخرائط');
+  String get deliveryMapsCopied =>
+      _t('Maps link copied', 'تم نسخ رابط الخرائط');
+  String get deliveryReportIssueAction =>
+      _t('Report a problem', 'الإبلاغ عن مشكلة');
+  String get deliveryResumeIssueAction =>
+      _t('Resume delivery', 'استئناف التوصيل');
+  String get deliveryVerifyCodeLabel => _t('Delivery code', 'رمز التسليم');
+  String get deliveryVerifyCodeHint => '1234';
+  String get deliveryVerifySubmit => _t('Confirm code', 'تأكيد الرمز');
+  String get deliveryVerifyHintMessage => _t(
+    'Enter the trial delivery code (Fake).',
+    'أدخل رمز التسليم التجريبي (وهمي).',
+  );
+  String get deliveryDismissSummary =>
+      _t('Finish and return home', 'إنهاء والعودة للرئيسية');
+  String get deliveryIssueCategoryDelay =>
+      _t('Unexpected delay', 'تأخير غير متوقع');
+  String get deliveryIssueCategoryMerchant =>
+      _t('Merchant issue', 'مشكلة لدى التاجر');
+  String get deliveryIssueCategoryCustomer =>
+      _t('Customer issue', 'مشكلة لدى العميل');
+  String get deliveryIssueCategoryOther => _t('Other', 'أخرى');
+  String get deliveryIssueSubmit => _t('Submit issue', 'إرسال البلاغ');
+  String get deliveryStageAssigned => _t('Assigned', 'تم التعيين');
+  String get deliveryStageNavPickup => _t('To pickup', 'إلى نقطة الاستلام');
+  String get deliveryStageArrivedPickup => _t('At pickup', 'عند الاستلام');
+  String get deliveryStageWaitingPickup =>
+      _t('Waiting for order', 'بانتظار الطلب');
+  String get deliveryStageCollected => _t('Collected', 'تم الاستلام');
+  String get deliveryStageNavCustomer => _t('To customer', 'إلى العميل');
+  String get deliveryStageArrivedCustomer => _t('At customer', 'عند العميل');
+  String get deliveryStageVerifying => _t('Verifying', 'جارٍ التحقق');
+  String get deliveryStageDelivered => _t('Delivered', 'تم التسليم');
+  String get deliveryStageSummary => _t('Summary', 'الملخص');
+  String get deliveryStageIssueOpen => _t('Issue open', 'مشكلة مفتوحة');
+  String get deliveryActionStartPickup =>
+      _t('Start trip to pickup', 'بدء التوجه للاستلام');
+  String get deliveryActionArrivedPickup =>
+      _t('I arrived at pickup', 'وصلت لنقطة الاستلام');
+  String get deliveryActionWaitPickup =>
+      _t('Waiting for handoff', 'بانتظار التسليم من التاجر');
+  String get deliveryActionConfirmPickup =>
+      _t('Confirm pickup', 'تأكيد الاستلام');
+  String get deliveryActionStartCustomer =>
+      _t('Start trip to customer', 'بدء التوجه للعميل');
+  String get deliveryActionArrivedCustomer =>
+      _t('I arrived at customer', 'وصلت للعميل');
+  String get deliveryActionStartVerify =>
+      _t('Enter delivery code', 'إدخال رمز التسليم');
+  String get deliveryActionShowSummary => _t('View summary', 'عرض الملخص');
+  String get deliveryWorkflowFailureMessage =>
+      _t('This step is not available right now.', 'هذه الخطوة غير متاحة الآن.');
+  String get deliveryVerificationFailureMessage => _t(
+    'Invalid delivery code. Try again.',
+    'رمز التسليم غير صالح. حاول مجددًا.',
+  );
   String screenComingSoon(String title) =>
       _t('$title screen - Coming soon', 'شاشة $title — قريبًا');
+  String get shellPlaceholderMessage => _t(
+    'This section will be ready in a later increment.',
+    'هذا القسم سيكون جاهزًا في زيادة لاحقة.',
+  );
   String get loadingEllipsis => _t('...', '...');
   String get loading => _t('Loading', 'جارٍ التحميل');
+  String get cancelAction => _t('Cancel', 'إلغاء');
+  String get confirmAction => _t('Confirm', 'تأكيد');
+  String get offlineBannerMessage => _t(
+    'You are offline. Some actions may be unavailable.',
+    'أنت غير متصل. قد تكون بعض الإجراءات غير متاحة.',
+  );
 
-  // —— Welcome ——
-  String get welcomeTitle =>
-      _t('Welcome to Saeq Driver', 'مرحبًا بك في سائق صَعِق');
-  String get welcomeSubtitle =>
-      _t('Your reliable delivery partner', 'شريكك الموثوق للتوصيل');
+  // —— History / Earnings / Notifications (PHASE 2.6 Inc 3) ——
+  String get historyFilterAll => _t('All', 'الكل');
+  String get historyFilterDelivered => _t('Delivered', 'مُسلَّم');
+  String get historyFilterCancelled => _t('Cancelled', 'ملغى');
+  String get historyStatusDelivered => _t('Delivered', 'مُسلَّم');
+  String get historyStatusCancelled => _t('Cancelled', 'ملغى');
+  String get historyEmptyTitle =>
+      _t('No deliveries yet', 'لا توجد توصيلات بعد');
+  String get historyEmptyMessage =>
+      _t('Completed trips will appear here.', 'ستظهر الرحلات المكتملة هنا.');
+  String get historyErrorTitle =>
+      _t('Could not load history', 'تعذر تحميل السجل');
+  String get historyErrorMessage =>
+      _t('Please try again.', 'يرجى المحاولة مجددًا.');
+  String get historyDetailTitle => _t('Delivery details', 'تفاصيل التوصيل');
+
+  String get earningsFilterAll => _t('All', 'الكل');
+  String get earningsFilterToday => _t('Today', 'اليوم');
+  String get earningsFilterWeek => _t('This week', 'هذا الأسبوع');
+  String get earningsFilterMonth => _t('This month', 'هذا الشهر');
+  String get earningsEmptyTitle => _t('No earnings yet', 'لا توجد أرباح بعد');
+  String get earningsEmptyMessage =>
+      _t('Earnings summaries will appear here.', 'ستظهر ملخصات الأرباح هنا.');
+  String get earningsErrorTitle =>
+      _t('Could not load earnings', 'تعذر تحميل الأرباح');
+  String get earningsErrorMessage =>
+      _t('Please try again.', 'يرجى المحاولة مجددًا.');
+  String get earningsDetailTitle => _t('Earnings details', 'تفاصيل الأرباح');
+
+  String get notificationsEmptyTitle =>
+      _t('No notifications', 'لا توجد إشعارات');
+  String get notificationsEmptyMessage =>
+      _t('Updates will appear here.', 'ستظهر التحديثات هنا.');
+  String get notificationsErrorTitle =>
+      _t('Could not load notifications', 'تعذر تحميل الإشعارات');
+  String get notificationsErrorMessage =>
+      _t('Please try again.', 'يرجى المحاولة مجددًا.');
+  String get notificationDetailTitle => _t('Notification', 'إشعار');
+  String get notificationRead => _t('Read', 'مقروء');
+  String get notificationUnread => _t('Unread', 'غير مقروء');
+  String get notificationMarkRead => _t('Mark as read', 'تعليمليم كمقروء');
+  String get notificationTitleOffer =>
+      _t('New delivery offer', 'عرض توصيل جديد');
+  String get notificationTitlePayout => _t('Payout update', 'تحديث الأرباح');
+  String get notificationTitleSystem => _t('System notice', 'تنبيه النظام');
+  String get notificationBodyOffer => _t(
+    'A new offer is available while you are online.',
+    'يتوفر عرض جديد أثناء اتصالك.',
+  );
+  String get notificationBodyPayout => _t(
+    'Your trial earnings summary was updated.',
+    'تم تحديث ملخص أرباحك التجريبي.',
+  );
+  String get notificationBodySystem => _t(
+    'Keep the app updated for the best experience.',
+    'أبقِ التطبيق محدّثًا لأفضل تجربة.',
+  );
+
+  // —— Welcome / First Launch (Figma Final/Auth/First Launch) ——
+  String get firstLaunchTitle => _t('Saeq Driver', 'سائق سايق');
+  String get firstLaunchSubtitle => _t(
+    'Professional delivery platform for drivers',
+    'منصة التوصيل الاحترافية للسائقين',
+  );
+  String get firstLaunchStartAction => _t('Start', 'ابدأ');
+  String get firstLaunchSwitchToEnglish => _t('English', 'English');
+  String get firstLaunchSwitchToArabic => _t('العربية', 'العربية');
+  String get welcomeTitle => firstLaunchTitle;
+  String get welcomeSubtitle => firstLaunchSubtitle;
   String get exploreArchitecture =>
       _t('Explore Architecture', 'استكشف الهيكلة');
   String get architectureTitle => _t('Clean Architecture', 'هيكلة نظيفة');
@@ -102,21 +251,39 @@ class AppLocalizations {
   // —— Authentication ——
   String get signIn => _t('Sign In', 'تسجيل الدخول');
   String get signOut => _t('Sign Out', 'تسجيل الخروج');
-  String get loginTitle => _t('Driver Sign In', 'تسجيل دخول السائق');
-  String get loginSubtitle => _t(
-    'Enter your phone number to continue (trial mode)',
-    'أدخل رقم جوالك للمتابعة (وضع تجريبي)',
+  String get signOutConfirmTitle => _t('Sign out?', 'تسجيل الخروج؟');
+  String get signOutConfirmMessage => _t(
+    'You will need to sign in again to receive delivery offers.',
+    'ستحتاج لتسجيل الدخول مجددًا لاستقبال عروض التوصيل.',
   );
-  String get phoneNumberLabel => _t('Phone number', 'رقم الجوال');
+  String get loginTitle => _t('Sign in', 'تسجيل الدخول');
+  String get loginSubtitle =>
+      _t('Enter your Saudi mobile number', 'أدخل رقم الجوال السعودي');
+  String get phoneNumberLabel => _t('Mobile number', 'رقم الجوال');
 
   /// Format hint — same pattern in both languages (Saudi mobile format).
-  String get phoneNumberHint => '05XXXXXXXX';
+  String get phoneNumberHint => '05xxxxxxxx';
   String get homeWelcomeTitle =>
       _t('Signed in successfully', 'تم تسجيل الدخول بنجاح');
-  String get invalidPhoneNumberMessage => _t(
-    'Please enter a valid phone number (05XXXXXXXX).',
-    'يرجى إدخال رقم جوال صالح (05XXXXXXXX).',
-  );
+  String get homeTodayEarningsLabel => _t("Today's earnings", 'أرباح اليوم');
+  String get homeTripsTodayLabel => _t('Trips today', 'رحلات اليوم');
+  String get homeAcceptanceRateLabel => _t('Acceptance rate', 'نسبة القبول');
+  String homeEarningsValue(String amount) => _t('SAR $amount', '$amount ر.س');
+  String homeTripsValue(int count) => _t('$count trips', '$count رحلة');
+  String homeAcceptanceValue(int percent) => _t('$percent%', '$percent%');
+  String get homeQuickActionsTitle => _t('Quick actions', 'إجراءات سريعة');
+  String get homeQuickActionDeliveries =>
+      _t('View deliveries', 'عرض التوصيلات');
+  String get homeQuickActionEarnings => _t('View earnings', 'عرض الأرباح');
+  String get homeQuickActionNotifications => _t('Notifications', 'الإشعارات');
+  String get homeOpenNotificationsTooltip =>
+      _t('Open notifications', 'فتح الإشعارات');
+  String get homeFakeSummaryHint =>
+      _t('Trial summary (Fake data)', 'ملخص تجريبي (بيانات وهمية)');
+  String get fakeAlphaDataHint =>
+      _t('Trial data for preview only', 'بيانات تجريبية للعرض فقط');
+  String get invalidPhoneNumberMessage =>
+      _t('Invalid mobile number', 'رقم الجوال غير صالح');
   String get authenticationRejectedMessage => _t(
     'Sign-in was rejected. Please try again.',
     'تم رفض تسجيل الدخول. حاول مجددًا.',
@@ -129,15 +296,61 @@ class AppLocalizations {
     'Your saved session could not be read. Please sign in again.',
     'تعذر قراءة الجلسة المحفوظة. سجّل الدخول مجددًا.',
   );
+  String get secureStorageFailureTitle => _t('Could not save', 'تعذر الحفظ');
   String get secureStorageFailureMessage => _t(
-    'Could not access secure storage. Please try again.',
-    'تعذر الوصول إلى التخزين الآمن. حاول مجددًا.',
+    'Could not save the session on this device',
+    'تعذر حفظ الجلسة على الجهاز',
   );
+  String get networkFailureTitle => _t('Connection failed', 'تعذر الاتصال');
+  String get networkFailureMessage => _t(
+    'Check your network, then try again',
+    'تحقق من الشبكة ثم أعد المحاولة',
+  );
+  String get rateLimitTitle => _t('Limit exceeded', 'تم تجاوز الحد');
+  String get otpRateLimitedMessage => _t(
+    'Too many send attempts. Try again later.',
+    'تم تجاوز عدد محاولات الإرسال. حاول لاحقاً.',
+  );
+  String get authRetryAction => _t('Try again', 'إعادة المحاولة');
   String get unexpectedAuthErrorMessage =>
       _t('Something went wrong. Please try again.', 'حدث خطأ. حاول مجددًا.');
 
+  String get otpTitle => _t('Enter verification code', 'أدخل رمز التحقق');
+  String get otpSubtitle => _t(
+    'Enter the 6-digit code sent to your phone.',
+    'أدخل الرمز المكوّن من 6 أرقام المرسل إلى جوالك.',
+  );
+  String otpSentToMasked(String maskedPhone) =>
+      _t('We sent a code to $maskedPhone', 'أرسلنا رمزاً إلى $maskedPhone');
+  String get otpCodeLabel => _t('Verification code', 'رمز التحقق');
+  String get otpCodeHint => _t('6-digit code', 'رمز من 6 أرقام');
+  String get otpVerifyAction => _t('Verify', 'تحقق');
+  String get otpResendAction => _t('Resend', 'إعادة الإرسال');
+  String otpResendCooldown(int seconds) =>
+      otpResendCountdown(_formatSecondsAsMmSs(seconds));
+  String otpResendCountdown(String mmSs) =>
+      _t('Resend in $mmSs', 'إعادة الإرسال خلال $mmSs');
+  String get otpResendReadyMessage =>
+      _t('You can resend now', 'يمكنك إعادة الإرسال الآن');
+  String _formatSecondsAsMmSs(int seconds) {
+    final safe = seconds < 0 ? 0 : seconds;
+    final m = (safe ~/ 60).toString().padLeft(2, '0');
+    final s = (safe % 60).toString().padLeft(2, '0');
+    return '$m:$s';
+  }
+
+  String get invalidOtpMessage => _t('Incorrect code', 'رمز غير صحيح');
+  String get expiredOtpMessage => _t('Code expired', 'انتهت صلاحية الرمز');
+  String get incompleteOtpMessage => _t(
+    'Enter the full 6-digit code.',
+    'أدخل الرمز المكوّن من 6 أرقام كاملًا.',
+  );
+  String get otpRequestAction => _t('Send code', 'إرسال رمز التحقق');
+
   // —— Profile ——
   String get profileTitle => _t('Profile', 'ملف السائق');
+  String get profileOpenSettings => _t('Settings', 'الإعدادات');
+  String get profileOpenSupport => _t('Support', 'الدعم');
   String get profileRetry => _t('Retry', 'إعادة المحاولة');
   String get profileEmptyTitle => _t('No profile yet', 'لا يوجد ملف بعد');
   String get profileEmptyMessage => _t(
@@ -180,6 +393,102 @@ class AppLocalizations {
   String get profileUnexpectedMessage => _t(
     'Something went wrong while loading your profile.',
     'حدث خطأ أثناء تحميل ملفك.',
+  );
+  String get profileEditAction => _t('Edit profile', 'تعديل الملف');
+  String get profileEditTitle => _t('Edit profile', 'تعديل الملف');
+  String get profileEditFullNameLabel => _t('Full name', 'الاسم الكامل');
+  String get profileEditFullNameRequired =>
+      _t('Full name is required.', 'الاسم الكامل مطلوب.');
+  String get profileEditEmailLabel =>
+      _t('Email (optional)', 'البريد (اختياري)');
+  String get profileEditEmailHint => _t('name@example.com', 'name@example.com');
+  String get profileEditEmailInvalid =>
+      _t('Enter a valid email address.', 'أدخل بريداً إلكترونياً صالحاً.');
+  String get profileEditSaveAction => _t('Save changes', 'حفظ التغييرات');
+  String get profileEditSuccessMessage =>
+      _t('Profile updated.', 'تم تحديث الملف.');
+  String get profileEditFailureMessage => _t(
+    'Could not update profile. Please try again.',
+    'تعذر تحديث الملف. حاول مجددًا.',
+  );
+  String get profileEditHint => _t(
+    'Phone number and account status cannot be changed here.',
+    'لا يمكن تغيير رقم الجوال وحالة الحساب من هنا.',
+  );
+
+  // —— Settings (PHASE 2.6 Inc 4) ——
+  String get settingsAppearanceSectionTitle => _t('Appearance', 'المظهر');
+  String get settingsAppearanceSectionSubtitle => _t(
+    'Choose how SAEQ Driver looks on this device.',
+    'اختر مظهر تطبيق سائق على هذا الجهاز.',
+  );
+  String get settingsThemeSystem => _t('System', 'النظام');
+  String get settingsThemeLight => _t('Light', 'فاتح');
+  String get settingsThemeDark => _t('Dark', 'داكن');
+  String get settingsLanguageSectionTitle => _t('Language', 'اللغة');
+  String get settingsLanguageSectionSubtitle => _t(
+    'Switch between Arabic and English.',
+    'التبديل بين العربية والإنجليزية.',
+  );
+  String get settingsLanguageArabic => _t('Arabic', 'العربية');
+  String get settingsLanguageEnglish => _t('English', 'English');
+  String get settingsAboutSectionTitle => _t('About', 'حول التطبيق');
+  String get settingsAboutSectionSubtitle =>
+      _t('Application information.', 'معلومات التطبيق.');
+  String settingsAppVersionLabel(String version) =>
+      _t('Version $version', 'الإصدار $version');
+  String get settingsAccountSectionTitle => _t('Account', 'الحساب');
+  String get settingsAccountSectionSubtitle =>
+      _t('Sign out of this device.', 'تسجيل الخروج من هذا الجهاز.');
+
+  // —— Support (PHASE 2.6 Inc 4) ——
+  String get supportFaqSectionTitle =>
+      _t('Frequently asked questions', 'الأسئلة الشائعة');
+  String get supportFaq1Question =>
+      _t('How do I receive delivery offers?', 'كيف أستقبل عروض التوصيل؟');
+  String get supportFaq1Answer => _t(
+    'Turn on availability from Home and stay signed in while online.',
+    'فعّل التوفر من الرئيسية وابقَ مسجّل الدخول أثناء الاتصال.',
+  );
+  String get supportFaq2Question =>
+      _t('Why can I not go available?', 'لماذا لا أستطيع التحول إلى متاح؟');
+  String get supportFaq2Answer => _t(
+    'Check your profile status, connectivity, and that you are not busy on an active delivery.',
+    'تحقق من حالة ملفك والاتصال وأنك لست مشغولًا بتوصيل نشط.',
+  );
+  String get supportFaq3Question =>
+      _t('Who can I contact for help?', 'من أتواصل معه للمساعدة؟');
+  String get supportFaq3Answer => _t(
+    'Support channels appear here when configured by the platform. Until then, use in-app guidance and your fleet coordinator.',
+    'تظهر قنوات الدعم هنا عند تهيئتها من المنصة. حتى ذلك الحين، استخدم الإرشادات داخل التطبيق أو منسّق الأسطول.',
+  );
+  String get supportContactSectionTitle =>
+      _t('Contact support', 'التواصل مع الدعم');
+  String get supportContactUnavailableTitle =>
+      _t('Support unavailable', 'الدعم غير متاح');
+  String get supportContactUnavailableMessage => _t(
+    'Contact channels are not configured yet. Check back after platform setup.',
+    'قنوات التواصل غير مهيّأة بعد. عد لاحقًا بعد إعداد المنصة.',
+  );
+  String get supportContactPhoneLabel => _t('Phone', 'الهاتف');
+  String get supportContactEmailLabel => _t('Email', 'البريد');
+  String get supportContactHelpUrlLabel => _t('Help center', 'مركز المساعدة');
+  String get supportAboutSectionTitle => _t('About SAEQ Driver', 'حول سائق');
+  String get supportSafetyTipsAction => _t('Safety tips', 'نصائح السلامة');
+  String get supportSafetyScreenTitle => _t('Safety tips', 'نصائح السلامة');
+  String get supportSafetyIntro =>
+      _t('Stay safe while delivering.', 'ابقَ آمنًا أثناء التوصيل.');
+  String get supportSafetyTip1 => _t(
+    'Follow traffic rules and wear required safety gear.',
+    'التزم بقواعد المرور وارتدِ معدات السلامة المطلوبة.',
+  );
+  String get supportSafetyTip2 => _t(
+    'Verify the customer and delivery code before handing over the order.',
+    'تحقق من العميل ورمز التسليم قبل تسليم الطلب.',
+  );
+  String get supportSafetyTip3 => _t(
+    'Report issues from the active delivery screen instead of bypassing workflow steps.',
+    'أبلغ عن المشاكل من شاشة التوصيل النشط بدلًا من تجاوز خطوات سير العمل.',
   );
 
   // —— Availability (PHASE 2.4 / 2.4.1) ——

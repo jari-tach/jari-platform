@@ -47,6 +47,8 @@ This document records **every significant architectural decision** made for the 
 | ADR-027 | Fake Offer Security | ✅ Accepted | 2026-07-26 |
 | ADR-028 | Delivery Assignment Persistence | ✅ Accepted | 2026-07-26 |
 
+**Program note (not a new ADR):** PHASE 2.6 expands from “Active Delivery Flow” to **Complete Driver UI & Interaction Layer** (shell + history/earnings/notifications/settings/support + active stages). Decision record: [`PHASE_2_6_COMPLETE_DRIVER_UI_PLAN.md`](./PHASE_2_6_COMPLETE_DRIVER_UI_PLAN.md). New ADRs only if a decision crosses layers or apps (e.g. stage persistence schema) — Increment 2 may add a stage-persistence ADR if Drift JSON extension warrants one.
+
 ---
 
 ## 3. ADR Details

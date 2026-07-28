@@ -75,6 +75,26 @@ class _MemoryAuth implements AuthenticationRepository {
   }
 
   @override
+  Future<void> requestOtp(String phoneNumber) async {}
+
+  @override
+  Future<DriverSession> verifyOtp({
+    required String phoneNumber,
+    required String otpCode,
+  }) async {
+    throw const UnexpectedAuthError();
+  }
+
+  @override
+  Future<DriverSession?> refreshSession() async => session;
+
+  @override
+  void clearOtpChallenge() {}
+
+  @override
+  DateTime? get otpResendAvailableAt => null;
+
+  @override
   Future<void> signOut() async {
     session = null;
   }

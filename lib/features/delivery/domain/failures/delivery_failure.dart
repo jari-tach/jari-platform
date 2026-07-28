@@ -180,3 +180,33 @@ final class DeliveryUnknownFailure extends DeliveryFailure {
   @override
   String get code => 'delivery.unknown';
 }
+
+/// Workflow stage transition denied (PHASE 2.6 default-deny).
+final class InvalidDeliveryWorkflowTransition extends DeliveryFailure {
+  const InvalidDeliveryWorkflowTransition([
+    super.message = 'Delivery workflow transition is not allowed.',
+  ]);
+
+  @override
+  String get code => 'delivery.invalid_workflow_transition';
+}
+
+/// Delivery verification code rejected (Fake/Backend).
+final class DeliveryVerificationFailed extends DeliveryFailure {
+  const DeliveryVerificationFailed([
+    super.message = 'Delivery verification code is invalid or expired.',
+  ]);
+
+  @override
+  String get code => 'delivery.verification_failed';
+}
+
+/// No active assignment to advance.
+final class DeliveryAssignmentNotFound extends DeliveryFailure {
+  const DeliveryAssignmentNotFound([
+    super.message = 'No active delivery assignment was found.',
+  ]);
+
+  @override
+  String get code => 'delivery.assignment_not_found';
+}

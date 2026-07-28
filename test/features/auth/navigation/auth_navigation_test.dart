@@ -30,6 +30,24 @@ class _NeverRestoringRepository implements AuthenticationRepository {
       throw UnimplementedError();
 
   @override
+  Future<void> requestOtp(String phoneNumber) async {}
+
+  @override
+  Future<DriverSession> verifyOtp({
+    required String phoneNumber,
+    required String otpCode,
+  }) => throw UnimplementedError();
+
+  @override
+  Future<DriverSession?> refreshSession() async => null;
+
+  @override
+  void clearOtpChallenge() {}
+
+  @override
+  DateTime? get otpResendAvailableAt => null;
+
+  @override
   Future<void> signOut() async {}
 
   @override
@@ -138,6 +156,35 @@ void main() {
 
       expect(router.state.uri.path, AppRoutes.home);
     });
+
+    testWidgets(
+      'authenticated user is redirected away from the login OTP route',
+      (tester) async {
+        final repository = FakeAuthenticationRepository(
+          sessionStorage: sessionStorage,
+          logger: logger,
+          isProductionEnvironment: () => false,
+          signInDelay: Duration.zero,
+        );
+        addTearDown(repository.dispose);
+        await repository.signIn('0501234567');
+
+        final container = ProviderContainer(
+          overrides: [
+            authControllerProvider.overrideWith(
+              () => AuthController(repositoryReader: (ref) => repository),
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
+        final router = await _pumpRouterApp(tester, container);
+
+        router.go('${AppRoutes.loginOtp}?phone=0501234567');
+        await _pumpUntilSettled(tester);
+
+        expect(router.state.uri.path, AppRoutes.home);
+      },
+    );
 
     testWidgets(
       'authenticated user is redirected from welcome to home on cold start',

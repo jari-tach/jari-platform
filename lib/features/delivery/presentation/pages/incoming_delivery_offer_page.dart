@@ -120,10 +120,10 @@ class IncomingDeliveryOfferPage extends ConsumerWidget {
   }
 
   void _continueDelivery(BuildContext context) {
-    // Map / live tracking lands in a later increment; return to Home for now.
+    // Increment 1: route to active-delivery stub (summary only).
     final router = GoRouter.maybeOf(context);
     if (router != null) {
-      router.go(AppRoutes.home);
+      router.go(AppRoutes.deliveryActive);
       return;
     }
     if (Navigator.of(context).canPop()) {

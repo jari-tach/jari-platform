@@ -90,13 +90,13 @@ void main() {
         locale: const Locale('ar'),
       );
 
-      expect(find.text('تسجيل دخول السائق'), findsOneWidget);
-      expect(find.textContaining('رقم جوالك'), findsOneWidget);
-      expect(find.text('رقم الجوال'), findsOneWidget);
       expect(find.text('تسجيل الدخول'), findsOneWidget);
-      expect(find.text('Sign In'), findsNothing);
-      expect(find.text('Driver Sign In'), findsNothing);
-      expect(find.text('Phone number'), findsNothing);
+      expect(find.textContaining('رقم الجوال السعودي'), findsOneWidget);
+      expect(find.text('رقم الجوال'), findsOneWidget);
+      expect(find.text('إرسال رمز التحقق'), findsOneWidget);
+      expect(find.text('Send code'), findsNothing);
+      expect(find.text('Sign in'), findsNothing);
+      expect(find.text('Mobile number'), findsNothing);
     });
 
     testWidgets('English login shows English-only application copy', (
@@ -109,9 +109,10 @@ void main() {
         locale: const Locale('en', 'US'),
       );
 
-      expect(find.text('Driver Sign In'), findsOneWidget);
-      expect(find.text('Sign In'), findsOneWidget);
-      expect(find.text('Phone number'), findsOneWidget);
+      expect(find.text('Sign in'), findsOneWidget);
+      expect(find.text('Send code'), findsOneWidget);
+      expect(find.text('Sign In'), findsNothing);
+      expect(find.text('Mobile number'), findsOneWidget);
       expect(find.text('تسجيل الدخول'), findsNothing);
       expect(find.text('تسجيل دخول السائق'), findsNothing);
     });
@@ -125,12 +126,12 @@ void main() {
       );
 
       await tester.enterText(find.byType(TextFormField), '123');
-      await tester.tap(find.widgetWithText(SaeqPrimaryButton, 'تسجيل الدخول'));
+      await tester.tap(find.widgetWithText(SaeqPrimaryButton, 'إرسال رمز التحقق'));
       await tester.pump();
 
-      expect(find.textContaining('رقم جوال صالح'), findsOneWidget);
+      expect(find.text('رقم الجوال غير صالح'), findsOneWidget);
       expect(
-        find.text('Please enter a valid phone number (05XXXXXXXX).'),
+        find.text('Invalid mobile number'),
         findsNothing,
       );
     });
@@ -147,7 +148,7 @@ void main() {
       );
 
       await tester.enterText(find.byType(TextFormField), '0501234567');
-      await tester.tap(find.widgetWithText(SaeqPrimaryButton, 'تسجيل الدخول'));
+      await tester.tap(find.widgetWithText(SaeqPrimaryButton, 'إرسال رمز التحقق'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
 
@@ -184,7 +185,7 @@ void main() {
         surfaceSize: const Size(360, 800),
       );
       expect(tester.takeException(), isNull);
-      expect(find.text('تسجيل دخول السائق'), findsOneWidget);
+      expect(find.text('تسجيل الدخول'), findsOneWidget);
     });
   });
 }

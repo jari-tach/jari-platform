@@ -29,6 +29,8 @@ void main() {
             "label: 'Orders'",
             "label: 'Profile'",
             "label: 'Settings'",
+            "label: 'Deliveries'",
+            "label: 'Earnings'",
             'Page not found:',
             'screen - Coming soon',
             "'Explore Architecture'",
