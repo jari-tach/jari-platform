@@ -8,7 +8,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:saeq_driver/core/localization/app_localizations.dart';
 import 'package:saeq_driver/core/providers/app_providers.dart';
-import 'package:saeq_driver/core/routes/app_router.dart';
 import 'package:saeq_driver/core/theme/app_theme.dart';
 import 'package:saeq_driver/features/auth/data/repositories/fake_authentication_repository.dart';
 import 'package:saeq_driver/features/auth/data/session/auth_session_storage.dart';
@@ -22,7 +21,6 @@ import 'package:saeq_driver/features/availability/presentation/controllers/avail
 import 'package:saeq_driver/features/availability/presentation/providers/availability_providers.dart';
 import 'package:saeq_driver/features/profile/domain/entities/driver_profile.dart';
 import 'package:saeq_driver/features/profile/domain/entities/driver_status.dart';
-import 'package:saeq_driver/features/profile/domain/entities/profile_error.dart';
 import 'package:saeq_driver/features/profile/domain/repositories/driver_profile_repository.dart';
 import 'package:saeq_driver/features/profile/presentation/controllers/profile_controller.dart';
 import 'package:saeq_driver/features/profile/presentation/providers/profile_providers.dart';
