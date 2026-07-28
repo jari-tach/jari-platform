@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/auth_error.dart';
@@ -308,6 +309,18 @@ class AuthController extends Notifier<AuthControllerState> {
         resendAvailableAt: state.resendAvailableAt!,
       );
     }
+  }
+
+  /// Test-only: ends the OTP resend cooldown without waiting wall-clock time.
+  @visibleForTesting
+  void debugForceResendAvailable() {
+    final pendingPhone = state.pendingPhone;
+    if (pendingPhone == null) return;
+    state = AuthControllerState.otpRequested(
+      pendingPhone: pendingPhone,
+      resendAvailableAt: DateTime.now().subtract(const Duration(seconds: 1)),
+      error: state.error,
+    );
   }
 
   AuthControllerState _stateForAuthError(AuthError error) {

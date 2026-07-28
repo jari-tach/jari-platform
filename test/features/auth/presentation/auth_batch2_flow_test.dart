@@ -148,6 +148,85 @@ void main() {
       expect(router.state.uri.path, AppRoutes.login);
     });
 
+    testWidgets('A4 OTP Resend → timer end → success stays on OTP', (
+      tester,
+    ) async {
+      final router = await pumpApp(tester, location: AppRoutes.login);
+      await tester.enterText(find.byType(TextFormField), '0512345678');
+      await tester.tap(find.byKey(const Key('loginSubmit')));
+      await tester.pump(const Duration(milliseconds: 100));
+      await _pumpFrames(tester);
+      expect(router.state.uri.path, AppRoutes.loginOtp);
+
+      expect(find.textContaining('Resend in'), findsOneWidget);
+      expect(find.byKey(const Key('otpResend')), findsNothing);
+
+      repository.debugForceResendAvailable();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(MaterialApp)),
+      );
+      container
+          .read(authControllerProvider.notifier)
+          .debugForceResendAvailable();
+      await _pumpFrames(tester);
+
+      expect(find.byKey(const Key('otpResend')), findsOneWidget);
+      expect(find.text('You can resend now'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('otpResend')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+      await _pumpFrames(tester);
+
+      expect(router.state.uri.path, AppRoutes.loginOtp);
+      expect(find.textContaining('Resend in'), findsOneWidget);
+      expect(find.byKey(const Key('otpResend')), findsNothing);
+      expect(find.byKey(const Key('otpErrorMessage')), findsNothing);
+    });
+
+    testWidgets('Expired OTP shows message then Resend restores OTP', (
+      tester,
+    ) async {
+      final router = await pumpApp(tester, location: AppRoutes.login);
+      await tester.enterText(find.byType(TextFormField), '0512345678');
+      await tester.tap(find.byKey(const Key('loginSubmit')));
+      await tester.pump(const Duration(milliseconds: 100));
+      await _pumpFrames(tester);
+      expect(router.state.uri.path, AppRoutes.loginOtp);
+
+      repository.debugAdvancePendingIssuedAt(const Duration(minutes: 6));
+      await tester.enterText(find.byKey(SaeqOtpInput.fieldKey), '246810');
+      await tester.tap(find.byKey(const Key('otpVerifySubmit')));
+      await tester.pump(const Duration(milliseconds: 100));
+      await _pumpFrames(tester);
+
+      expect(find.byKey(const Key('otpErrorMessage')), findsOneWidget);
+      expect(
+        tester.widget<Text>(find.byKey(const Key('otpErrorMessage'))).data,
+        'Code expired',
+      );
+      expect(find.byKey(const Key('otpVerifySubmit')), findsNothing);
+      expect(find.byKey(const Key('otpResend')), findsOneWidget);
+
+      repository.debugForceResendAvailable();
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(MaterialApp)),
+      );
+      container
+          .read(authControllerProvider.notifier)
+          .debugForceResendAvailable();
+      await _pumpFrames(tester);
+
+      await tester.tap(find.byKey(const Key('otpResend')));
+      await tester.pump(const Duration(milliseconds: 100));
+      await _pumpFrames(tester);
+
+      expect(router.state.uri.path, AppRoutes.loginOtp);
+      expect(find.byKey(const Key('otpErrorMessage')), findsNothing);
+      expect(find.byKey(const Key('otpVerifySubmit')), findsOneWidget);
+      expect(find.textContaining('Resend in'), findsOneWidget);
+    });
+
     testWidgets('A5 Invalid OTP shows error', (tester) async {
       await pumpApp(tester, location: AppRoutes.login);
       await tester.enterText(find.byType(TextFormField), '0512345678');
