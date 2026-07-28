@@ -93,6 +93,12 @@ class FakeAuthenticationRepository implements AuthenticationRepository {
     }
   }
 
+  /// Test-only: ends the Fake resend cooldown without waiting wall-clock time.
+  @visibleForTesting
+  void debugForceResendAvailable() {
+    _otpResendAvailableAt = _now().subtract(const Duration(seconds: 1));
+  }
+
   @visibleForTesting
   void debugSimulateNextSignInFailure(AuthError error) {
     _forcedSignInFailure = error;

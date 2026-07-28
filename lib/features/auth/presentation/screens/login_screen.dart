@@ -127,6 +127,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         final phone = Uri.encodeComponent(next.pendingPhone!);
         router.go('${AppRoutes.loginOtp}?phone=$phone');
       }
+      if (next.error is SessionExpiredError) {
+        final router = GoRouter.maybeOf(context);
+        if (router == null) return;
+        ref.read(authControllerProvider.notifier).clearError();
+        router.go(AppRoutes.sessionExpired);
+      }
     });
 
     if (blocking != null) {
@@ -166,6 +172,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               .clearError();
                         },
                 ),
+                if (state.error is UnexpectedAuthError) ...[
+                  const SizedBox(height: AppTheme.spacing12),
+                  TextButton(
+                    key: const Key('loginNetworkBack'),
+                    onPressed: () {
+                      ref.read(authControllerProvider.notifier).clearError();
+                      context.go(AppRoutes.login);
+                    },
+                    child: Text(l10n.backAction),
+                  ),
+                ],
               ],
             ),
           ),
@@ -189,6 +206,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: TextButton(
+                    key: const Key('loginBack'),
+                    onPressed: isBusy
+                        ? null
+                        : () => context.go(AppRoutes.onboarding),
+                    child: Text(l10n.backAction),
+                  ),
+                ),
                 Text(
                   l10n.loginTitle,
                   style: AppTextStyles.headlineLarge.copyWith(

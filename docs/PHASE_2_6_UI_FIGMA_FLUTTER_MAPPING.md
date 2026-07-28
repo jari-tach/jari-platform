@@ -150,8 +150,31 @@
 
 ## Next actions (authorized sequence)
 
-1. **Merge PR #7** (inventory) after owner review.
-2. **Figma Batch 2:** Complete missing frames + wire Prototype flows A–N.
-3. **Flutter Batch 2–8:** Per PR plan — no backend.
+1. **Merge PR #7** (inventory) after owner review. — DONE (`e41c580`)
+2. **Figma Batch 2:** Complete missing frames + wire Prototype flows A–N. — Figma Present **DEFERRED BY OWNER**
+3. **Flutter Batch 2 Auth parity:** **PASS** on `feature/phase-2.6-flutter-auth-parity` (VKP-NX9 validated).
 4. **Device validation** after each batch — VKP-NX9 only.
 5. **Update this mapping** after each batch (Impl / Figma / Proto / Device columns).
+6. **Batch 3:** NOT AUTHORIZED until owner approval.
+
+---
+
+## Flutter Batch 2 — Auth routes (implementation)
+
+| Route | Screen | Impl | Device (VKP-NX9) |
+|-------|--------|------|------------------|
+| `/splash` | SplashScreen | C | C |
+| `/` | WelcomeScreen | C | C |
+| `/onboarding` | OnboardingScreen | C | C |
+| `/login` | LoginScreen | C | C |
+| `/login/otp` | OtpVerificationScreen | C | C |
+| `/session-expired` | SessionExpiredScreen | C | C |
+| `/home` | HomeScreen (post-auth) | C | C |
+
+**Main flow:** Splash → Welcome → Onboarding → Login → OTP → Home — **PASS** on device  
+**Subflows A1–A8:** **PASS** on device (see `PHASE_2_6_UI_FIGMA_REAL_DEVICE_REPORT.md`)
+
+**Figma Present:** DEFERRED BY OWNER  
+**Screenshot comparison:** DEFERRED BY OWNER  
+**NOT CONNECTED buttons (Auth):** **0** (widget suite + HONOR VKP-NX9)  
+**Data:** Fake/Mock only (`246810` OTP, `0512345678` phone)

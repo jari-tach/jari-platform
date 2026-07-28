@@ -217,6 +217,26 @@ class AppLocalizations {
     'أبقِ التطبيق محدّثًا لأفضل تجربة.',
   );
 
+  // —— Splash / Onboarding / Welcome (Phase 2.6 Batch 2) ——
+  String get splashTitle => _t('Saeq Driver', 'سائق سايق');
+  String get splashSubtitle =>
+      _t('Professional delivery platform', 'منصة التوصيل الاحترافية');
+  String get splashTapToContinue => _t('Tap to continue', 'اضغط للمتابعة');
+  String get onboardingTitle => _t('Welcome to Saeq', 'مرحباً بك في سايق');
+  String get onboardingSubtitle => _t(
+    'Track offers, earn with confidence, and manage deliveries easily.',
+    'تابع الطلبات، اربح بثقة، وادِر توصيلاتك بسهولة.',
+  );
+  String get onboardingContinueAction => _t('Continue', 'متابعة');
+  String get onboardingSkipAction => _t('Skip', 'تخطي');
+  String get backAction => _t('Back', 'رجوع');
+  String get changePhoneAction =>
+      _t('Change mobile number', 'تغيير رقم الجوال');
+  String get sessionExpiredTitle => _t('Session expired', 'انتهت الجلسة');
+  String get sessionExpiredLoginAgain => _t('Sign in', 'تسجيل الدخول');
+  String get simulateSessionExpiredAction =>
+      _t('Simulate session expired', 'محاكاة انتهاء الجلسة');
+
   // —— Welcome / First Launch (Figma Final/Auth/First Launch) ——
   String get firstLaunchTitle => _t('Saeq Driver', 'سائق سايق');
   String get firstLaunchSubtitle => _t(
