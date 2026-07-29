@@ -7,10 +7,12 @@ import 'package:saeq_driver/core/localization/app_localizations.dart';
 import 'package:saeq_driver/core/routes/app_router.dart';
 import 'package:saeq_driver/core/theme/app_theme.dart';
 import 'package:saeq_driver/features/batch/batch_feature.dart';
+import 'package:saeq_driver/features/batch/batch_issue_screen.dart';
 import 'package:saeq_driver/features/batch/batch_manual_pickup_screen.dart';
 import 'package:saeq_driver/features/batch/batch_stop_screen.dart';
 import 'package:saeq_driver/features/batch/batch_ui_helpers.dart';
 import 'package:saeq_driver/features/batch/batch_view_data.dart';
+import 'package:saeq_driver/shared/widgets/saeq_primary_button.dart';
 
 class _FixedBatchController extends BatchController {
   _FixedBatchController(this.initial);
@@ -402,6 +404,122 @@ void main() {
     await tester.pump();
     expect(tester.takeException(), isNull);
     expect(find.byKey(BatchCustomerContactCard.cardKey), findsOneWidget);
+  });
+
+  testWidgets('Report a problem opens issue with selectable cancel reason', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    const batchId = FakeBatchService.defaultBatchId;
+    final batch = _pickedBatch(stop1: BatchOrderState.arrived);
+    final orderId = batch.orders.first.orderId;
+    final router = GoRouter(
+      initialLocation: AppRoutes.batchStopPath(batchId, 1),
+      routes: [
+        GoRoute(
+          path:
+              '${AppRoutes.batchPickupRoot}/:batchId/${AppRoutes.batchStopSegment}/:sequence',
+          builder: (_, goState) => BatchStopScreen(
+            batchId: goState.pathParameters['batchId']!,
+            sequence: int.parse(goState.pathParameters['sequence']!),
+          ),
+        ),
+        GoRoute(
+          path:
+              '${AppRoutes.batchPickupRoot}/:batchId/${AppRoutes.batchIssueSegment}/:orderId',
+          builder: (_, goState) => BatchIssueScreen(
+            batchId: goState.pathParameters['batchId']!,
+            orderId: goState.pathParameters['orderId']!,
+          ),
+        ),
+        GoRoute(
+          path:
+              '${AppRoutes.batchPickupRoot}/:batchId/${AppRoutes.batchRouteSegment}',
+          builder: (_, _) => const Scaffold(body: Text('route')),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    final container = ProviderContainer(
+      overrides: [
+        batchServiceProvider.overrideWithValue(
+          FakeBatchService(latency: Duration.zero),
+        ),
+        fakeBatchArrivalDelayProvider.overrideWithValue(
+          const Duration(days: 1),
+        ),
+        fakeBatchLocationControllerProvider.overrideWith(
+          _NoopFakeBatchLocationController.new,
+        ),
+        batchControllerProvider.overrideWith(
+          () => _FixedBatchController(
+            BatchState(
+              batch: batch,
+              offerStatus: BatchOfferViewStatus.accepted,
+              pickupStatus: BatchPickupStatus.pickupConfirmed,
+              journeyStage:
+                  BatchJourneyStage.deliveryAwaitingManualConfirmation,
+              routeStatus: BatchRouteStatus.activeStop1,
+              tripStarted: true,
+              currentSequence: 1,
+            ),
+          ),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp.router(
+          locale: const Locale('en'),
+          theme: AppTheme.lightTheme,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.scrollUntilVisible(
+      find.byKey(BatchStopScreen.issueKey),
+      120,
+      scrollable: find.byType(Scrollable),
+    );
+    await tester.tap(find.byKey(BatchStopScreen.issueKey));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(BatchIssueScreen), findsOneWidget);
+    expect(container.read(batchControllerProvider).issueOrderId, orderId);
+
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('batchIssueReasonCancelled')),
+      80,
+      scrollable: find.byType(Scrollable),
+    );
+    await tester.tap(find.byKey(const Key('batchIssueReasonCancelled')));
+    await tester.pump();
+    expect(
+      container.read(batchControllerProvider).selectedIssueReason,
+      BatchOrderIssueReason.merchantCancelled,
+    );
+
+    await tester.scrollUntilVisible(
+      find.byKey(BatchIssueScreen.confirmKey),
+      80,
+      scrollable: find.byType(Scrollable),
+    );
+    final confirm = tester.widget<SaeqPrimaryButton>(
+      find.byKey(BatchIssueScreen.confirmKey),
+    );
+    expect(confirm.onPressed, isNotNull);
   });
 
   testWidgets('semantics expose contact and automatic arrival', (tester) async {

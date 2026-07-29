@@ -398,9 +398,14 @@ class _BatchStopScreenState extends ConsumerState<BatchStopScreen> {
             label: l10n.batchReportIssueAction,
             onPressed: state.isProcessing
                 ? null
-                : () => context.go(
-                    AppRoutes.batchIssuePath(widget.batchId, order.orderId),
-                  ),
+                : () {
+                    // Must seed issueOrderId before the issue screen can
+                    // accept a reason (selectIssueReason guards on it).
+                    controller.openIssue(order.orderId);
+                    context.go(
+                      AppRoutes.batchIssuePath(widget.batchId, order.orderId),
+                    );
+                  },
           ),
         ),
     ];
