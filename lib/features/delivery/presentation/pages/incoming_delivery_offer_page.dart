@@ -15,6 +15,7 @@ import '../widgets/delivery_offer_card.dart';
 import '../widgets/delivery_offer_empty_state.dart';
 import '../widgets/delivery_offer_error_state.dart';
 import '../widgets/delivery_offer_loading_state.dart';
+import '../../../batch/widgets/batch_offer_entry_card.dart';
 
 /// Full-screen delivery offer / assignment surface (ADR-026).
 ///
@@ -111,8 +112,19 @@ class IncomingDeliveryOfferPage extends ConsumerWidget {
     }
 
     if (state.isEmpty || state.isInitialized) {
-      return DeliveryOfferEmptyState(
-        onRefresh: state.canRefresh ? () => controller.refreshOffers() : null,
+      return SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
+          children: [
+            const BatchOfferEntryCard(),
+            const SizedBox(height: AppTheme.spacingMD),
+            DeliveryOfferEmptyState(
+              onRefresh: state.canRefresh
+                  ? () => controller.refreshOffers()
+                  : null,
+            ),
+          ],
+        ),
       );
     }
 

@@ -7,6 +7,13 @@ import '../../features/auth/presentation/screens/onboarding_screen.dart';
 import '../../features/auth/presentation/screens/otp_verification_screen.dart';
 import '../../features/auth/presentation/screens/session_expired_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
+import '../../features/batch/batch_issue_screen.dart';
+import '../../features/batch/batch_offer_screen.dart';
+import '../../features/batch/batch_pickup_screen.dart';
+import '../../features/batch/batch_route_screen.dart';
+import '../../features/batch/batch_stop_screen.dart';
+import '../../features/batch/batch_summary_screen.dart';
+import '../../features/batch/batch_verify_screen.dart';
 import '../../features/delivery/presentation/pages/active_delivery_page.dart';
 import '../../features/delivery/presentation/pages/delivery_issue_page.dart';
 import '../../features/delivery/presentation/pages/delivery_verify_page.dart';
@@ -76,6 +83,35 @@ class AppRoutes {
   /// Fake map preview of the delivery route (STEP 2B). Outside shell nav.
   static const String mapPreview = '/map/preview';
 
+  /// Multi-order batch assignment (STEP 2C — fake UI). Outside shell nav.
+  static const String batchOfferRoot = '/offers/batch';
+  static const String batchPickupRoot = '/batch';
+  static const String batchVerifySegment = 'verify';
+  static const String batchRouteSegment = 'route';
+  static const String batchStopSegment = 'stop';
+  static const String batchIssueSegment = 'issue';
+  static const String batchSummarySegment = 'summary';
+
+  static String batchOfferPath(String batchId) => '$batchOfferRoot/$batchId';
+
+  static String batchPickupPath(String batchId) =>
+      '$batchPickupRoot/$batchId/pickup';
+
+  static String batchVerifyPath(String batchId) =>
+      '$batchPickupRoot/$batchId/$batchVerifySegment';
+
+  static String batchRoutePath(String batchId) =>
+      '$batchPickupRoot/$batchId/$batchRouteSegment';
+
+  static String batchStopPath(String batchId, int sequence) =>
+      '$batchPickupRoot/$batchId/$batchStopSegment/$sequence';
+
+  static String batchIssuePath(String batchId, String orderId) =>
+      '$batchPickupRoot/$batchId/$batchIssueSegment/$orderId';
+
+  static String batchSummaryPath(String batchId) =>
+      '$batchPickupRoot/$batchId/$batchSummarySegment';
+
   static String deliveryHistoryDetail(String id) => '/deliveries/$id';
 
   static String earningsDetail(String id) => '/earnings/$id';
@@ -107,6 +143,8 @@ class AppRoutes {
     location,
     '/delivery',
     '/map',
+    batchOfferRoot,
+    batchPickupRoot,
   ];
 
   static bool isProtected(String path) {
@@ -336,6 +374,52 @@ class AppRouter {
         GoRoute(
           path: AppRoutes.mapPreview,
           builder: (context, state) => const MapPreviewScreen(),
+        ),
+
+        // Multi-order batch assignment (protected, outside bottom nav — 2C)
+        GoRoute(
+          path: '${AppRoutes.batchOfferRoot}/:batchId',
+          builder: (context, state) =>
+              BatchOfferScreen(batchId: state.pathParameters['batchId']!),
+        ),
+        GoRoute(
+          path: '${AppRoutes.batchPickupRoot}/:batchId/pickup',
+          builder: (context, state) =>
+              BatchPickupScreen(batchId: state.pathParameters['batchId']!),
+        ),
+        GoRoute(
+          path:
+              '${AppRoutes.batchPickupRoot}/:batchId/${AppRoutes.batchVerifySegment}',
+          builder: (context, state) =>
+              BatchVerifyScreen(batchId: state.pathParameters['batchId']!),
+        ),
+        GoRoute(
+          path:
+              '${AppRoutes.batchPickupRoot}/:batchId/${AppRoutes.batchRouteSegment}',
+          builder: (context, state) =>
+              BatchRouteScreen(batchId: state.pathParameters['batchId']!),
+        ),
+        GoRoute(
+          path:
+              '${AppRoutes.batchPickupRoot}/:batchId/${AppRoutes.batchStopSegment}/:sequence',
+          builder: (context, state) => BatchStopScreen(
+            batchId: state.pathParameters['batchId']!,
+            sequence: int.parse(state.pathParameters['sequence']!),
+          ),
+        ),
+        GoRoute(
+          path:
+              '${AppRoutes.batchPickupRoot}/:batchId/${AppRoutes.batchIssueSegment}/:orderId',
+          builder: (context, state) => BatchIssueScreen(
+            batchId: state.pathParameters['batchId']!,
+            orderId: state.pathParameters['orderId']!,
+          ),
+        ),
+        GoRoute(
+          path:
+              '${AppRoutes.batchPickupRoot}/:batchId/${AppRoutes.batchSummarySegment}',
+          builder: (context, state) =>
+              BatchSummaryScreen(batchId: state.pathParameters['batchId']!),
         ),
 
         // Shell route for main app (with bottom nav) — protected
