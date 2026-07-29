@@ -7,6 +7,21 @@
 
 ---
 
+## Batch 3 / STEP 1 status (final)
+
+| Field | Value |
+|-------|-------|
+| Flutter Batch 3 | **PASS — MERGED TO MAIN** |
+| PR #10 | **MERGED** |
+| PR #11 | **MERGED** (`5a4015e`) |
+| PR #12 | Docs-only gate — **AWAITING** owner merge |
+| M2 / Busy / Flow B / M1–M8 | **PASS** |
+| Matrix / NOT CONNECTED / Crash / Freeze | **PASS** / **0** / **0** / **0** |
+| Loading offers | **KNOWN DEFECT — Deferred STEP 3** (not fixed) |
+| Figma preparation for STEP 2 | **READY — NOT IMPLEMENTED IN FLUTTER** |
+| STEP 1 | **AWAITING PR #12 ONLY** |
+| STEP 2 | **LOCKED** |
+
 ## 1. Execution pivot (owner directive)
 
 | Priority order | Focus |
@@ -181,7 +196,7 @@ After each implementation PR, run on **HONOR VKP-NX9** (`AP4EVB6423004646`):
 - AR + EN, RTL + LTR, Light + Dark
 - Capture screenshots to `.backup/device-qa-*` (not committed)
 - Log visual/functional issues before next PR
-- **Batch 3 M2:** Unavailable cold-start race **PASS** on VKP-NX9 (USB ADB) — Offline cleared → Unavailable without restart; Busy path **BLOCKED** (Accept stuck on Loading offers); Batch 3 not fully closed (see `PHASE_2_6_UI_FIGMA_REAL_DEVICE_REPORT.md`)
+- **Batch 3:** Flutter **PASS — MERGED TO MAIN** (PR #10 + PR #11 → `5a4015e`). M2/Busy/Flow B/M1–M8 **PASS**. Matrix **PASS**. NOT CONNECTED=**0**. Crash=**0**. Freeze=**0**. Known defect **Loading offers** → **Deferred STEP 3** (not claimed fixed). STEP 1: **AWAITING PR #12 ONLY**; STEP 2 **LOCKED**. Figma preparation for STEP 2: **READY — NOT IMPLEMENTED IN FLUTTER**. See `PHASE_2_6_UI_FIGMA_REAL_DEVICE_REPORT.md`.
 
 Checklist reference: `docs/testing/REAL_ANDROID_DEVICE_TEST_PLAN.md` §8–13.
 

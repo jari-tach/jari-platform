@@ -1,9 +1,11 @@
 # PHASE 2.6 — Unified Figma ↔ Flutter Screen Mapping
 
-> **Status:** Living document — Batch 3 Home + Availability **IN PROGRESS**
-> **Baseline:** `main` @ `178c75d` (PR [#9](https://github.com/jari-tach/jari-platform/pull/9) Auth Batch 2 **MERGED**)
+> **Status:** Flutter Batch 3: **PASS — MERGED TO MAIN** · STEP 1 **AWAITING PR #12 ONLY** · STEP 2 **LOCKED**
+> **Baseline:** `main` @ `5a4015e` (PR [#11](https://github.com/jari-tach/jari-platform/pull/11) Batch 3 **MERGED**; PR #10 **MERGED**)
 > **Batch 2:** **PASS — MERGED TO MAIN**
-> **Batch 3 branch:** `feature/phase-2.6-flutter-home-availability-parity`
+> **Batch 3:** **PASS — MERGED TO MAIN**
+> **Figma preparation for STEP 2:** **READY — NOT IMPLEMENTED IN FLUTTER**
+> **Batch 3 branch:** `feature/phase-2.6-flutter-home-availability-parity` → **MERGED**
 > **Figma file:** [SAEQ Driver — Design System & UX](https://www.figma.com/design/MNJldEpkMxVjIavCPaPBFh/SAEQ-Driver-%E2%80%94-Design-System---UX) (`MNJldEpkMxVjIavCPaPBFh`)
 > **Prototype:** Page `21 — High-Fidelity Screens` (`1:4`) · Final/Home `41:160`+
 
@@ -157,7 +159,7 @@
 3. **Flutter Batch 2 Auth parity:** **PASS** on `feature/phase-2.6-flutter-auth-parity` (VKP-NX9 validated).
 4. **Device validation** after each batch — VKP-NX9 only.
 5. **Update this mapping** after each batch (Impl / Figma / Proto / Device columns).
-6. **Batch 3:** **AUTHORIZED / IN PROGRESS** — Home + Availability UI parity.
+6. **Batch 3:** **PASS — MERGED TO MAIN** (PR #10 + PR #11 → `5a4015e`). STEP 1 **AWAITING PR #12 ONLY**; STEP 2 **LOCKED**.
 
 ---
 
@@ -187,14 +189,17 @@
 
 | Route / surface | File | Figma Final | Impl | Device |
 |-----------------|------|-------------|------|--------|
-| `/home` Available | `home_screen.dart` | `41:160` | C | PENDING |
-| `/home` Unavailable | same | `41:273` | C | PENDING |
-| `/home` Busy | same | `41:211` | C | PENDING |
-| `/home` Offline | same | `41:308` | C | PENDING |
-| Availability card | `driver_availability_card.dart` | `39:2`/`39:6`/`39:13` | C | PENDING |
-| Connectivity bridge | `availability_connectivity_bridge.dart` | — | C (level reconcile + init replay) | M2 race **PASS** on device (Unavailable path, USB ADB); Busy **BLOCKED** |
+| `/home` Available | `home_screen.dart` | `41:160` | C | **PASS** |
+| `/home` Unavailable | same | `41:273` | C | **PASS** |
+| `/home` Busy | same | `41:211` | C | **PASS** |
+| `/home` Offline | same | `41:308` | C | **PASS** |
+| Availability card | `driver_availability_card.dart` | `39:2`/`39:6`/`39:13` | C | **PASS** |
+| Connectivity bridge | `availability_connectivity_bridge.dart` | — | C (level reconcile + init replay) | M2 race **PASS**; Busy preserved **PASS** (USB ADB) |
 
-**Flow B / M1–M8:** widget PASS · M2 device Unavailable path **PASS** (VKP-NX9 USB ADB) · Busy path **BLOCKED** (Accept stuck on Loading offers) · Batch 3 not fully closed
+**Flow B / M1–M8:** **PASS** (widget + device). Matrix **PASS**. NOT CONNECTED=**0**. Crash=**0**. Freeze=**0**.
+**Loading offers** (after Accept): **KNOWN DEFECT — Deferred STEP 3** (do **not** claim fixed).
+**Flutter Batch 3:** **PASS — MERGED TO MAIN**. STEP 1: **AWAITING PR #12 ONLY**; STEP 2 **LOCKED**.
+**Figma preparation for STEP 2:** **READY — NOT IMPLEMENTED IN FLUTTER**
 **Init race fix:** latest connectivity snapshot replayed after `AvailabilityController.initialize`; `_connectivityEpoch` + idempotent apply
 **Home fixed logout CTA:** removed (NOT CONNECTED = 0 target)
 **Logout:** Settings + `prepareForLogout()`
