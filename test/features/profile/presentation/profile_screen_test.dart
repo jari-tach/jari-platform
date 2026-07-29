@@ -70,7 +70,9 @@ void main() {
     expect(find.text('Driver One'), findsOneWidget);
     expect(find.text('********78'), findsOneWidget);
     expect(find.text('0512345678'), findsNothing);
-    expect(find.text('Not assigned yet'), findsWidgets);
+    expect(find.byKey(ProfileScreen.vehicleRowKey), findsOneWidget);
+    expect(find.byKey(ProfileScreen.documentsRowKey), findsOneWidget);
+    expect(find.byKey(ProfileScreen.signOutRowKey), findsOneWidget);
   });
 
   testWidgets('ProfileScreen shows empty state', (tester) async {
@@ -102,7 +104,7 @@ void main() {
     expect(find.text('Retry'), findsOneWidget);
   });
 
-  testWidgets('ProfileScreen shows partial profile without email or scope', (
+  testWidgets('ProfileScreen shows partial profile without email', (
     tester,
   ) async {
     final now = DateTime.utc(2026, 7, 25);
@@ -142,7 +144,6 @@ void main() {
 
     expect(find.text('Partial Driver'), findsOneWidget);
     expect(find.text('********32'), findsOneWidget);
-    expect(find.text('Not assigned yet'), findsWidgets);
     expect(find.byType(SaeqProfileHeader), findsOneWidget);
   });
 }

@@ -17,8 +17,12 @@ import '../../features/driver/presentation/welcome_screen.dart';
 import '../../features/earnings/presentation/screens/earnings_screen.dart';
 import '../../features/history/presentation/screens/deliveries_history_screen.dart';
 import '../../features/notifications/presentation/screens/notifications_screen.dart';
+import '../../features/profile/documents/document_upload_screen.dart';
+import '../../features/profile/documents/documents_list_screen.dart';
 import '../../features/profile/presentation/screens/profile_edit_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
+import '../../features/profile/vehicle/vehicle_edit_screen.dart';
+import '../../features/profile/vehicle/vehicle_overview_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/support/presentation/screens/support_safety_screen.dart';
 import '../../features/support/presentation/screens/support_screen.dart';
@@ -41,6 +45,10 @@ class AppRoutes {
   static const String notifications = '/notifications';
   static const String profile = '/profile';
   static const String profileEdit = '/profile/edit';
+  static const String profileVehicle = '/profile/vehicle';
+  static const String profileVehicleEdit = '/profile/vehicle/edit';
+  static const String profileDocuments = '/profile/documents';
+  static const String profileDocumentsUpload = '/profile/documents/upload';
   static const String settings = '/settings';
   static const String support = '/support';
   static const String supportSafety = '/support/safety';
@@ -65,6 +73,8 @@ class AppRoutes {
   static String earningsDetail(String id) => '/earnings/$id';
 
   static String notificationDetail(String id) => '/notifications/$id';
+
+  static String profileDocumentDetail(String id) => '/profile/documents/$id';
 
   /// Public auth / entry routes that authenticated users should leave.
   static const List<String> authEntryRoutes = [
@@ -285,6 +295,27 @@ class AppRouter {
         GoRoute(
           path: AppRoutes.profileEdit,
           builder: (context, state) => const ProfileEditScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.profileVehicle,
+          builder: (context, state) => const VehicleOverviewScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.profileVehicleEdit,
+          builder: (context, state) => const VehicleEditScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.profileDocuments,
+          builder: (context, state) => const DocumentsListScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.profileDocumentsUpload,
+          builder: (context, state) => const DocumentUploadScreen(),
+        ),
+        GoRoute(
+          path: '/profile/documents/:id',
+          builder: (context, state) =>
+              DocumentDetailScreen(id: state.pathParameters['id']!),
         ),
 
         // Shell route for main app (with bottom nav) — protected

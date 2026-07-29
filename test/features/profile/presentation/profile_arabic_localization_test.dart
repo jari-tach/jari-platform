@@ -95,19 +95,14 @@ void main() {
         locale: const Locale('ar'),
       );
 
-      expect(find.text('ملف السائق'), findsOneWidget);
+      expect(find.text('الملف الشخصي'), findsOneWidget);
       expect(find.text('أحمد السائق'), findsOneWidget);
-      // Phone is masked for display (last 2 digits only).
       expect(find.text('********78'), findsOneWidget);
       expect(find.text('0512345678'), findsNothing);
-      expect(find.text('حالة الحساب'), findsOneWidget);
-      expect(find.text('موثَّق'), findsOneWidget);
-      expect(find.text('نشط'), findsOneWidget);
-      expect(find.text('غير معيّن بعد'), findsWidgets);
-      // Success state no longer shows a redundant retry action.
+      expect(find.text('المركبة'), findsOneWidget);
+      expect(find.text('المستندات'), findsOneWidget);
+      expect(find.text('تسجيل الخروج'), findsOneWidget);
       expect(find.text('إعادة المحاولة'), findsNothing);
-      expect(find.text('Account status'), findsNothing);
-      expect(find.text('Verified'), findsNothing);
       expect(find.text('Profile'), findsNothing);
     });
 
@@ -153,10 +148,9 @@ void main() {
 
       expect(find.text('Profile'), findsOneWidget);
       expect(find.text('Driver One'), findsOneWidget);
-      expect(find.text('Account status'), findsOneWidget);
-      expect(find.text('Pending verification'), findsOneWidget);
+      expect(find.text('Vehicle'), findsOneWidget);
+      expect(find.text('Documents'), findsOneWidget);
       expect(find.text('ملف السائق'), findsNothing);
-      expect(find.text('حالة الحساب'), findsNothing);
     });
 
     testWidgets('Arabic locale drives RTL on profile', (tester) async {
@@ -183,7 +177,7 @@ void main() {
         surfaceSize: const Size(360, 800),
       );
       expect(tester.takeException(), isNull);
-      expect(find.text('ملف السائق'), findsOneWidget);
+      expect(find.text('الملف الشخصي'), findsOneWidget);
     });
   });
 }

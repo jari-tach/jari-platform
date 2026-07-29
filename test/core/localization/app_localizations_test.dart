@@ -24,7 +24,7 @@ void main() {
       expect(l10n.signIn, 'تسجيل الدخول');
       expect(l10n.signOut, 'تسجيل الخروج');
       expect(l10n.loginTitle, 'تسجيل الدخول');
-      expect(l10n.profileTitle, 'ملف السائق');
+      expect(l10n.profileTitle, 'الملف الشخصي');
       expect(l10n.homeWelcomeTitle, 'مرحبًا بعودتك');
       expect(l10n.navHome, 'الرئيسية');
       expect(l10n.availabilitySectionTitle, 'التوفر');
