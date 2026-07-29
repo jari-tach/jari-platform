@@ -1120,6 +1120,461 @@ class AppLocalizations {
       _t('Delivery update in progress', 'جارٍ تحديث التوصيل');
   String get deliverySemanticsAssignment =>
       _t('Active delivery assignment', 'تعيين التوصيل النشط');
+
+  // —— Multi-order batch assignment (STEP 2C — fake UI) ——
+
+  String get batchOfferTitle => _t('Batch delivery offer', 'عرض توصيل مجمّع');
+  String get batchEntryTitle =>
+      _t('Batch delivery offer available', 'يتوفر عرض توصيل مجمّع');
+  String batchEntryMessage(int count) => _t(
+    '$count orders from one store on a single trip.',
+    '$count طلبات من متجر واحد في رحلة واحدة.',
+  );
+  String get batchEntryAction => _t('View batch offer', 'عرض التفاصيل');
+
+  String get batchStoreLabel => _t('Store', 'المتجر');
+  String get batchStoreName => _t('Wajba Restaurant', 'مطعم وجبة');
+  String get batchPickupLabel => _t('Pickup', 'الاستلام');
+  String get batchPickupPointName =>
+      _t('Main branch — pickup counter', 'الفرع الرئيسي — نقطة الاستلام');
+  String get batchOrdersLabel => _t('Orders', 'الطلبات');
+  String get batchDistanceLabel => _t('Total distance', 'المسافة الكلية');
+  String get batchEtaLabel => _t('Estimated time', 'الوقت التقديري');
+  String get batchEarningsLabel => _t('Batch earnings', 'أرباح الدفعة');
+  String get batchCountdownLabel => _t('Time to respond', 'وقت الاستجابة');
+
+  String batchOrdersValue(int count) => _t('$count orders', '$count طلبات');
+  String batchDistanceValue(String kilometers) =>
+      _t('$kilometers km', '$kilometers كم');
+  String batchEtaValue(int minutes) => _t('$minutes min', '$minutes دقيقة');
+  String batchEarningsValue(String amount) => _t('$amount SAR', '$amount ر.س');
+  String batchCountdownValue(int seconds) => _t('${seconds}s', '$seconds ث');
+  String get batchCountdownExpired => _t('Expired', 'انتهى الوقت');
+
+  String get batchAcceptAction => _t('Accept whole batch', 'قبول الدفعة كاملة');
+  String get batchRejectAction => _t('Reject batch', 'رفض الدفعة');
+  String get batchAcceptingLabel => _t('Accepting batch…', 'جارٍ قبول الدفعة…');
+  String get batchRejectingLabel => _t('Rejecting batch…', 'جارٍ رفض الدفعة…');
+  String get batchWholeBatchNote => _t(
+    'Batches are accepted or rejected as a whole.',
+    'يتم قبول الدفعة أو رفضها بالكامل.',
+  );
+  String get batchRetryAction => _t('Try again', 'إعادة المحاولة');
+  String get batchBackToOffersAction => _t('Back to offers', 'العودة للعروض');
+
+  String get batchOfferLoadingTitle =>
+      _t('Loading batch offer', 'جارٍ تحميل العرض المجمّع');
+  String get batchOfferLoadingMessage => _t(
+    'Preparing the orders included in this batch.',
+    'جارٍ تجهيز الطلبات المشمولة في هذه الدفعة.',
+  );
+  String get batchOfferExpiredTitle =>
+      _t('Batch offer expired', 'انتهت صلاحية العرض المجمّع');
+  String get batchOfferExpiredMessage => _t(
+    'This batch is no longer reserved for you. Return to offers.',
+    'لم تعد هذه الدفعة محجوزة لك. عد إلى العروض.',
+  );
+  String get batchOfferErrorTitle =>
+      _t('Could not load the batch', 'تعذر تحميل الدفعة');
+  String get batchOfferErrorMessage => _t(
+    'Something went wrong while loading this batch offer.',
+    'حدث خطأ أثناء تحميل هذا العرض المجمّع.',
+  );
+  String get batchOfferOfflineTitle => _t('You are offline', 'أنت غير متصل');
+  String get batchOfferOfflineMessage => _t(
+    'Reconnect to load the batch offer.',
+    'أعد الاتصال لتحميل العرض المجمّع.',
+  );
+  String get batchUnavailableTitle =>
+      _t('Batch preview unavailable', 'معاينة الدفعة غير متاحة');
+  String get batchUnavailableMessage => _t(
+    'This batch preview is a trial surface and is disabled in this build.',
+    'معاينة الدفعة تجريبية وغير مفعّلة في هذه النسخة.',
+  );
+
+  String batchOrderLabel(String maskedOrderId) =>
+      _t('Order $maskedOrderId', 'الطلب $maskedOrderId');
+  String batchStopLabel(int sequence) =>
+      _t('Stop $sequence', 'المحطة $sequence');
+  String batchStopOfLabel(int sequence, int total) =>
+      _t('Stop $sequence of $total', 'المحطة $sequence من $total');
+  String batchProgressLabel(int resolved, int total) =>
+      _t('$resolved of $total orders done', 'تم $resolved من $total طلبات');
+
+  /// Synthetic first-name label. Never a full name, never a phone number.
+  String batchCustomerFirstName(int index) {
+    return switch (index) {
+      1 => _t('Nora', 'نورة'),
+      2 => _t('Faisal', 'فيصل'),
+      3 => _t('Layan', 'ليان'),
+      _ => _t('Omar', 'عمر'),
+    };
+  }
+
+  /// Synthetic district label — area only, never a street address.
+  String batchDistrictName(int index) {
+    return switch (index) {
+      1 => _t('Al Rawdah district', 'حي الروضة'),
+      2 => _t('Al Nakheel district', 'حي النخيل'),
+      3 => _t('Al Yasmin district', 'حي الياسمين'),
+      _ => _t('Al Wurud district', 'حي الورود'),
+    };
+  }
+
+  String get batchOrderStateOffered => _t('Offered', 'معروض');
+  String get batchOrderStatePreparing => _t('Preparing', 'قيد التحضير');
+  String get batchOrderStateReady => _t('Ready', 'جاهز');
+  String get batchOrderStatePickedUp => _t('Picked up', 'تم الاستلام');
+  String get batchOrderStateVerified => _t('Verified', 'تم التحقق');
+  String get batchOrderStateHeading => _t('On the way', 'في الطريق');
+  String get batchOrderStateArrived => _t('At customer', 'عند العميل');
+  String get batchOrderStateDelivered => _t('Delivered', 'تم التسليم');
+  String get batchOrderStatePendingSync =>
+      _t('Saved offline', 'محفوظ دون اتصال');
+  String get batchOrderStateUnavailable =>
+      _t('Customer unavailable', 'العميل غير متواجد');
+  String get batchOrderStateCancelled => _t('Cancelled', 'ملغي');
+  String get batchOrderStateExpired => _t('Expired', 'منتهي');
+
+  String get batchPickupTitle => _t('Pickup', 'الاستلام');
+  String get batchPickupWaitingTitle =>
+      _t('Waiting for the store', 'في انتظار المتجر');
+  String get batchPickupWaitingMessage => _t(
+    'The store is still preparing the orders in this batch.',
+    'المتجر لا يزال يجهز طلبات هذه الدفعة.',
+  );
+  String get batchPickupPartialTitle =>
+      _t('Some orders are ready', 'بعض الطلبات جاهزة');
+  String get batchPickupPartialMessage => _t(
+    'Wait until every order in the batch is ready before you verify.',
+    'انتظر جاهزية جميع طلبات الدفعة قبل التحقق.',
+  );
+  String get batchPickupAllReadyTitle =>
+      _t('All orders are ready', 'جميع الطلبات جاهزة');
+  String get batchPickupAllReadyMessage => _t(
+    'Verify each package label before you leave the store.',
+    'تحقق من بطاقة كل طلب قبل مغادرة المتجر.',
+  );
+  String batchPickupReadyCount(int ready, int total) =>
+      _t('$ready of $total ready', '$ready من $total جاهزة');
+  String get batchPickupRefreshAction =>
+      _t('Refresh pickup status', 'تحديث حالة الاستلام');
+  String get batchPickupVerifyAction =>
+      _t('Verify orders', 'التحقق من الطلبات');
+  String get batchPickupConfirmedTitle =>
+      _t('Pickup confirmed', 'تم تأكيد الاستلام');
+  String get batchPickupConfirmedMessage => _t(
+    'You have all orders in this batch. Start the route when ready.',
+    'جميع طلبات الدفعة معك. ابدأ المسار عندما تكون جاهزًا.',
+  );
+
+  String get batchVerifyTitle => _t('Verify orders', 'التحقق من الطلبات');
+  String get batchVerifyMessage => _t(
+    'Match every package label with the order below.',
+    'طابق بطاقة كل طرد مع الطلب أدناه.',
+  );
+  String batchVerifiedCount(int verified, int total) =>
+      _t('$verified of $total verified', 'تم التحقق من $verified من $total');
+  String get batchVerifyOrderAction => _t('Verify', 'تحقق');
+  String get batchVerifyMismatchAction =>
+      _t('Label does not match', 'البطاقة غير مطابقة');
+  String get batchVerifyErrorTitle => _t('Verification failed', 'فشل التحقق');
+  String get batchVerifyErrorMessage => _t(
+    'Ask the store to reprint the label, then verify again.',
+    'اطلب من المتجر إعادة طباعة البطاقة ثم أعد التحقق.',
+  );
+  String get batchVerifyConfirmPickupAction =>
+      _t('Confirm pickup', 'تأكيد الاستلام');
+  String get batchVerifyProcessingLabel =>
+      _t('Confirming pickup…', 'جارٍ تأكيد الاستلام…');
+
+  String get batchRouteTitle => _t('Batch route', 'مسار الدفعة');
+  String get batchRouteOverviewTitle => _t('Route overview', 'نظرة على المسار');
+  String get batchRouteOverviewMessage => _t(
+    'Stops keep their order. Deliver them one by one.',
+    'تحفظ المحطات ترتيبها. سلّمها واحدة تلو الأخرى.',
+  );
+  String get batchStartRouteAction => _t('Start route', 'بدء المسار');
+  String get batchContinueRouteAction => _t('Continue route', 'متابعة المسار');
+  String batchOpenStopAction(int sequence) =>
+      _t('Open stop $sequence', 'فتح المحطة $sequence');
+  String get batchFinishAction => _t('Finish batch', 'إنهاء الدفعة');
+  String get batchFinishDisabledHint => _t(
+    'Finish becomes available once every order is resolved.',
+    'يتاح الإنهاء بعد معالجة جميع الطلبات.',
+  );
+  String get batchProcessingLabel => _t('Working…', 'جارٍ التنفيذ…');
+
+  String get batchStopCustomerLabel => _t('Customer', 'العميل');
+  String get batchStopAreaLabel => _t('Area', 'المنطقة');
+  String get batchStopDistanceLabel => _t('Distance', 'المسافة');
+  String get batchStopEarningsLabel => _t('Order earnings', 'أرباح الطلب');
+  String batchStopNextHint(int remaining) => _t(
+    'Next: $remaining more stop(s) in this batch.',
+    'التالي: يتبقى $remaining محطة في هذه الدفعة.',
+  );
+  String get batchStopFinalHint =>
+      _t('This is the last stop of the batch.', 'هذه آخر محطة في الدفعة.');
+  String get batchPrivacyNote => _t(
+    'Next customer details stay hidden until you reach that stop.',
+    'تظل بيانات العميل التالي مخفية حتى تصل إلى محطته.',
+  );
+  String get batchReportIssueAction =>
+      _t('Report a problem', 'الإبلاغ عن مشكلة');
+
+  String get batchOfflineQueueTitle =>
+      _t('Saved on this device', 'محفوظ على هذا الجهاز');
+  String get batchOfflineQueueMessage => _t(
+    'The delivery update is queued locally and will sync later.',
+    'تم حفظ تحديث التسليم محليًا وسيُزامن لاحقًا.',
+  );
+  String get batchRetrySyncAction => _t('Retry sync', 'إعادة المزامنة');
+  String get batchRestoredTitle => _t('Batch restored', 'تم استعادة الدفعة');
+  String get batchRestoredMessage => _t(
+    'You are back on the stop you were working on.',
+    'عدت إلى المحطة التي كنت تعمل عليها.',
+  );
+  String get batchResumeAction => _t('Resume batch', 'متابعة الدفعة');
+
+  String get batchIssueTitle => _t('Report a problem', 'الإبلاغ عن مشكلة');
+  String get batchIssueMessage => _t(
+    'This report affects only the order shown here.',
+    'يخص هذا الإبلاغ الطلب المعروض هنا فقط.',
+  );
+  String get batchIssueSelectReasonHint =>
+      _t('Choose a reason to continue.', 'اختر سببًا للمتابعة.');
+  String get batchIssueReasonCustomerUnavailable =>
+      _t('Customer unavailable', 'العميل غير متواجد');
+  String get batchIssueReasonMerchantCancelled =>
+      _t('Store cancelled this order', 'المتجر ألغى هذا الطلب');
+  String get batchIssueReasonAddressUnreachable =>
+      _t('Address cannot be reached', 'لا يمكن الوصول إلى العنوان');
+  String get batchIssueConfirmAction =>
+      _t('Confirm and continue', 'تأكيد ومتابعة');
+  String get batchIssueBackAction => _t('Back to stop', 'العودة للمحطة');
+  String get batchCustomerUnavailableTitle =>
+      _t('Customer unavailable', 'العميل غير متواجد');
+  String get batchCustomerUnavailableMessage => _t(
+    'This order is on hold. The rest of the batch continues.',
+    'تم تعليق هذا الطلب. تستمر بقية الدفعة.',
+  );
+  String get batchOrderCancelledTitle =>
+      _t('Order cancelled', 'تم إلغاء الطلب');
+  String get batchOrderCancelledMessage => _t(
+    'Only this order was cancelled. The batch is still active.',
+    'تم إلغاء هذا الطلب فقط. الدفعة لا تزال نشطة.',
+  );
+  String get batchContinueRemainingAction =>
+      _t('Continue with remaining orders', 'متابعة الطلبات المتبقية');
+
+  String get batchSummaryTitle => _t('Batch summary', 'ملخص الدفعة');
+  String get batchSummaryCompletedTitle =>
+      _t('Batch completed', 'اكتملت الدفعة');
+  String get batchSummaryCompletedMessage => _t(
+    'Every order in this batch was delivered.',
+    'تم تسليم جميع طلبات هذه الدفعة.',
+  );
+  String get batchSummaryPartialTitle =>
+      _t('Batch partly completed', 'اكتملت الدفعة جزئيًا');
+  String get batchSummaryPartialMessage => _t(
+    'Some orders were not delivered. They are listed separately.',
+    'بعض الطلبات لم تُسلَّم. تظهر في قائمة منفصلة.',
+  );
+  String get batchSummaryCancelledIncludedTitle =>
+      _t('Batch closed with a cancelled order', 'أُغلقت الدفعة مع طلب ملغي');
+  String get batchSummaryCancelledIncludedMessage => _t(
+    'A cancelled order does not cancel the batch.',
+    'إلغاء طلب لا يلغي الدفعة.',
+  );
+  String get batchSummaryCompletedSection =>
+      _t('Completed orders', 'الطلبات المكتملة');
+  String get batchSummaryIncompleteSection => _t('Not completed', 'غير مكتملة');
+  String get batchSummaryTotalLabel => _t('Total earned', 'إجمالي الأرباح');
+  String get batchSummaryBreakdownAction =>
+      _t('Show earnings breakdown', 'عرض تفصيل الأرباح');
+  String get batchSummaryHideBreakdownAction =>
+      _t('Hide earnings breakdown', 'إخفاء تفصيل الأرباح');
+  String get batchSummaryReturnHomeAction =>
+      _t('Back to home', 'العودة للرئيسية');
+
+  String get batchLeaveTitle => _t('Leave this batch?', 'مغادرة هذه الدفعة؟');
+  String get batchLeaveMessage => _t(
+    'The batch stays active and you can come back to it.',
+    'تظل الدفعة نشطة ويمكنك العودة إليها.',
+  );
+  String get batchLeaveConfirm => _t('Leave', 'مغادرة');
+  String get batchLeaveCancel => _t('Stay', 'البقاء');
+
+  String get batchSemanticsMap =>
+      _t('Batch stops preview', 'معاينة محطات الدفعة');
+  String get batchSemanticsProgress =>
+      _t('Batch delivery progress', 'تقدم توصيل الدفعة');
+  String get batchSemanticsOrders =>
+      _t('Orders in this batch', 'طلبات هذه الدفعة');
+
+  // —— Mandatory driver journey (Figma 150:427 / 39:35) ——
+  //
+  // Manual pickup → automatic arrival by location → manual delivery.
+
+  String get batchManualPickupTitle =>
+      _t('Manual pickup confirmation', 'تأكيد الاستلام اليدوي');
+  String get batchManualPickupBannerTitle =>
+      _t('All orders verified', 'تم التحقق من جميع الطلبات');
+  String get batchManualPickupBannerMessage => _t(
+    'Confirm the batch pickup manually before you leave the store.',
+    'أكد استلام الدفعة يدويًا قبل مغادرة المتجر.',
+  );
+  String get batchManualPickupAction =>
+      _t('Confirm batch pickup manually', 'تأكيد استلام الدفعة يدويًا');
+  String get batchManualPickupProcessingLabel =>
+      _t('Confirming pickup…', 'جارٍ تأكيد الاستلام…');
+  String get batchManualPickupGateHint => _t(
+    'Every order must be ready and verified before pickup can be confirmed.',
+    'يجب أن تكون جميع الطلبات جاهزة ومُتحقّقًا منها قبل تأكيد الاستلام.',
+  );
+  String get batchBackToVerifyAction => _t('Back to review', 'العودة للمراجعة');
+  String get batchVerifyContinueAction =>
+      _t('Continue to pickup confirmation', 'متابعة إلى تأكيد الاستلام');
+  String get batchOrderConfirmedBadge => _t('Confirmed', 'مؤكد');
+  String get batchOrderVerifiedSubtitle =>
+      _t('Order verified', 'تم التحقق من الطلب');
+
+  String get batchRouteLockedTitle => _t('Route not started', 'لم تبدأ الرحلة');
+  String get batchRouteLockedMessage => _t(
+    'The route opens only after the batch pickup is confirmed manually.',
+    'تبدأ الرحلة فقط بعد تأكيد استلام الدفعة يدويًا.',
+  );
+
+  /// Read-only arrival status (Figma 115:835 / 115:890 / 115:1000).
+  String get batchAutomaticArrivalStatus => _t(
+    'Arrival is recorded automatically by location',
+    'الوصول يُسجّل تلقائيًا عبر الموقع',
+  );
+  String get batchEnRouteTitle =>
+      _t('On the way to the customer', 'في الطريق إلى العميل');
+  String get batchEnRouteMessage => _t(
+    'Contact details stay locked until arrival is recorded automatically.',
+    'تظل بيانات الاتصال مقفلة حتى تسجيل الوصول تلقائيًا.',
+  );
+  String batchArrivedAutomaticallyTitle(int sequence, int total) => _t(
+    'Arrived automatically — order $sequence of $total',
+    'تم الوصول تلقائيًا — الطلب $sequence من $total',
+  );
+
+  // —— Current customer contact (Figma 119:406 · 119:366 / 119:377 / 119:397) ——
+
+  String get batchContactStatusLocked => _t('Before pickup', 'قبل الاستلام');
+  String get batchContactStatusRevealed => _t('Available now', 'متاح الآن');
+  String get batchContactStatusClosed => _t('Details hidden', 'البيانات مخفية');
+  String get batchContactClosedName => _t('Order closed', 'تم إغلاق الطلب');
+  String get batchContactPhoneLabel => _t('Mobile number', 'رقم الجوال');
+  String get batchContactPhoneLockedMask => '05• ••• ••••';
+  String get batchContactPhoneClosedMask => '••••••••••';
+  String get batchContactLockedNote => _t(
+    'The full number appears after every order is confirmed as picked up.',
+    'سيظهر الرقم كاملًا بعد تأكيد استلام جميع الطلبات.',
+  );
+  String get batchContactClosedNote => _t(
+    'Contact details were hidden after delivery or cancellation.',
+    'أُخفيت بيانات الاتصال بعد التسليم أو الإلغاء.',
+  );
+  String get batchContactCallUnavailable =>
+      _t('Calling unavailable', 'الاتصال غير متاح');
+  String get batchContactAddressLabel => _t('Full address', 'العنوان الكامل');
+  String get batchContactNotesLabel => _t('Delivery notes', 'ملاحظات التسليم');
+  String get batchContactNotesValue =>
+      _t('Please call on arrival.', 'الرجاء الاتصال عند الوصول.');
+  String get batchContactCallAction => _t('Call', 'اتصال');
+  String get batchContactWhatsappAction => _t('WhatsApp', 'واتساب');
+  String get batchContactCurrentOnlyNote => _t(
+    'Only the current stop customer details are shown.',
+    'تظهر بيانات عميل التوقف الحالي فقط.',
+  );
+  String batchContactAttemptsLabel(int attempts) =>
+      _t('Contact attempts: $attempts', 'محاولات التواصل: $attempts');
+
+  /// Synthetic contact number. Fixture data only — never a real subscriber.
+  String batchCustomerPhoneNumber(int index) {
+    return switch (index) {
+      1 => '055 123 4567',
+      2 => '055 123 4568',
+      3 => '055 123 4569',
+      _ => '055 123 4570',
+    };
+  }
+
+  /// Synthetic street address revealed only for the current stop.
+  String batchCustomerAddress(int index) {
+    return switch (index) {
+      1 => _t(
+        'Al Nakheel district, Al Tahlia street, building 14',
+        'حي النخيل، شارع التحلية، مبنى 14',
+      ),
+      2 => _t(
+        'Al Rawdah district, Al Amir street, building 27',
+        'حي الروضة، شارع الأمير، مبنى 27',
+      ),
+      3 => _t(
+        'Al Yasmin district, Al Sahafa street, building 8',
+        'حي الياسمين، شارع الصحافة، مبنى 8',
+      ),
+      _ => _t(
+        'Al Wurud district, Al Urubah street, building 33',
+        'حي الورود، شارع العروبة، مبنى 33',
+      ),
+    };
+  }
+
+  String get batchContactLockedBannerTitle =>
+      _t('Details protected before pickup', 'البيانات محمية قبل الاستلام');
+  String get batchContactLockedBannerMessage => _t(
+    'The full customer number appears after every order is picked up.',
+    'سيظهر رقم العميل كاملًا بعد تأكيد استلام جميع الطلبات.',
+  );
+  String get batchContactClosedBannerTitle =>
+      _t('Privacy preserved', 'الخصوصية محفوظة');
+  String get batchContactClosedBannerMessage => _t(
+    'The customer number is not shown in the trip or the short log after closing.',
+    'لا يظهر رقم العميل في الرحلة أو السجل المختصر بعد الإغلاق.',
+  );
+  String get batchNextStopBadge => _t('Next', 'التالي');
+  String batchNextStopTitle(String district) =>
+      _t('Next order · $district', 'الطلب التالي · $district');
+  String get batchNextStopHiddenMessage => _t(
+    'The next customer number stays hidden until their stop.',
+    'رقم العميل التالي مخفي حتى حلول توقفه',
+  );
+
+  // —— Manual delivery (Figma 125:462 / 125:508) ——
+
+  String get batchManualDeliveryAction =>
+      _t('Confirm delivery manually', 'تأكيد التسليم يدويًا');
+  String get batchManualDeliveryProcessingLabel =>
+      _t('Confirming delivery…', 'جارٍ تأكيد التسليم…');
+  String get batchDeliveryLockedHint => _t(
+    'Delivery confirmation unlocks after arrival is recorded automatically.',
+    'يتاح تأكيد التسليم بعد تسجيل الوصول تلقائيًا.',
+  );
+  String get batchDeliveredTitle => _t('Order delivered', 'تم تسليم الطلب');
+  String batchStopCompletedTitle(int sequence) =>
+      _t('Stop $sequence completed', 'اكتمل التوقف $sequence');
+  String get batchContactHiddenAfterCloseMessage => _t(
+    'Customer details were hidden after the order was closed.',
+    'تم إخفاء بيانات العميل بعد إغلاق الطلب.',
+  );
+  String get batchCustomerUnavailableContactNote => _t(
+    'The customer number stays visible until the outcome is recorded or the order is closed.',
+    'يبقى رقم العميل ظاهرًا حتى تسجيل النتيجة أو إغلاق الطلب.',
+  );
+  String get batchJourneyStepAccept => _t('Accept\norder', 'قبول\nالطلب');
+  String get batchJourneyStepPickup => _t('Manual\npickup', 'استلام\nيدوي');
+  String get batchJourneyStepArrival =>
+      _t('Automatic\narrival', 'وصول\nتلقائي');
+  String get batchJourneyStepDelivery => _t('Manual\ndelivery', 'تسليم\nيدوي');
+  String get batchJourneyTimelineCaption => _t(
+    'Pickup and delivery need a manual confirm · arrival is recorded by location',
+    'الاستلام والتسليم بتأكيد يدوي · الوصول يُسجّل تلقائيًا بالموقع',
+  );
 }
 
 /// Localizations delegate
