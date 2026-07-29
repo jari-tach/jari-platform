@@ -1,6 +1,5 @@
 import '../entities/availability_change_request.dart';
 import '../entities/availability_connectivity_change.dart';
-import '../entities/availability_reconciliation_request.dart';
 import '../entities/availability_result.dart';
 import '../entities/availability_status.dart';
 import '../entities/driver_availability.dart';
@@ -56,15 +55,23 @@ class HandleConnectivityChange {
       );
     }
 
-    // Reconnect: reconcile contract only — no auto available activation.
-    return _repository.reconcileAvailability(
-      AvailabilityReconciliationRequest(
-        driverId: change.driverId,
-        requestedAt: change.changedAt,
-        localState: current,
-        lastKnownRevision: current.revision,
-        correlationId: change.correlationId,
-      ),
-    );
+    // Reconnect: clear connectivity-offline into safe unavailable.
+    // Never auto-activate available (ADR-017). Preserve Busy/Available/
+    // Unavailable/Pending operational states when not connectivity-offline.
+    if (current.status == AvailabilityStatus.offline) {
+      return _repository.requestAvailabilityChange(
+        AvailabilityChangeRequest(
+          driverId: change.driverId,
+          requestedStatus: AvailabilityStatus.unavailable,
+          actor: AvailabilityActor.connectivity,
+          requestedAt: change.changedAt,
+          correlationId: change.correlationId,
+          connectivityOnline: true,
+        ),
+      );
+    }
+
+    // Idempotent: already an online operational status — no write.
+    return AvailabilitySuccess(current);
   }
 }

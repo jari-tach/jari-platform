@@ -592,36 +592,42 @@ void main() {
       );
     });
 
-    test('connectivity regain does not auto-activate', () async {
-      final fake = FakeDriverAvailabilityRepository(
-        seed: DriverAvailability(
-          driverId: 'drv-1',
-          status: AvailabilityStatus.offline,
-          source: AvailabilitySource.connectivityPolicy,
-          lastChangedAt: at,
-          revision: 1,
-        ),
-      );
-      final container = await boot(fake);
-      final requestsBefore = fake.requestCallCount;
-      await container
-          .read(availabilityControllerProvider.notifier)
-          .handleConnectivityChange(
-            AvailabilityConnectivityChange(
-              driverId: 'drv-1',
-              isOnline: true,
-              changedAt: at,
-            ),
-          );
-      expect(fake.reconcileRequests, isNotEmpty);
-      expect(
-        fake.changeRequests.where(
-          (r) => r.requestedStatus == AvailabilityStatus.available,
-        ),
-        isEmpty,
-      );
-      expect(fake.requestCallCount, requestsBefore);
-    });
+    test(
+      'connectivity regain restores unavailable without auto-activate',
+      () async {
+        final fake = FakeDriverAvailabilityRepository(
+          seed: DriverAvailability(
+            driverId: 'drv-1',
+            status: AvailabilityStatus.offline,
+            source: AvailabilitySource.connectivityPolicy,
+            lastChangedAt: at,
+            revision: 1,
+          ),
+        );
+        final container = await boot(fake);
+        final requestsBefore = fake.requestCallCount;
+        await container
+            .read(availabilityControllerProvider.notifier)
+            .handleConnectivityChange(
+              AvailabilityConnectivityChange(
+                driverId: 'drv-1',
+                isOnline: true,
+                changedAt: at,
+              ),
+            );
+        expect(
+          container.read(availabilityControllerProvider).current?.status,
+          AvailabilityStatus.unavailable,
+        );
+        expect(
+          fake.changeRequests.where(
+            (r) => r.requestedStatus == AvailabilityStatus.available,
+          ),
+          isEmpty,
+        );
+        expect(fake.requestCallCount, greaterThan(requestsBefore));
+      },
+    );
 
     test('available logout resets controller', () async {
       final fake = FakeDriverAvailabilityRepository(seed: availablePending());

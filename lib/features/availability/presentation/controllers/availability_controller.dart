@@ -72,6 +72,9 @@ class AvailabilityController extends Notifier<AvailabilityControllerState> {
   }
 
   int _generation = 0;
+
+  /// Monotonic token so only the latest connectivity reconciliation applies.
+  int _connectivityEpoch = 0;
   bool _initializeStarted = false;
   bool _commandInFlight = false;
   StreamSubscription<DriverAvailability>? _watchSubscription;
@@ -90,6 +93,7 @@ class AvailabilityController extends Notifier<AvailabilityControllerState> {
 
   void _disposeResources() {
     _generation++;
+    _connectivityEpoch++;
     _watchSubscription?.cancel();
     _watchSubscription = null;
     _commandInFlight = false;
@@ -375,17 +379,18 @@ class AvailabilityController extends Notifier<AvailabilityControllerState> {
   Future<void> handleConnectivityChange(
     AvailabilityConnectivityChange change,
   ) async {
-    if (_commandInFlight) return;
     final repository = _repository;
     if (repository == null) {
       _retainWithFailure(const AvailabilityUnknownFailure());
       return;
     }
 
+    // Latest connectivity level wins — drop stale async completions.
+    final epoch = ++_connectivityEpoch;
     final generation = _generation;
     final stable = state.current;
     final result = await HandleConnectivityChange(repository)(change);
-    if (!_isCurrent(generation)) return;
+    if (!_isCurrent(generation) || epoch != _connectivityEpoch) return;
     _applyCommandResult(result, fallback: stable);
   }
 
