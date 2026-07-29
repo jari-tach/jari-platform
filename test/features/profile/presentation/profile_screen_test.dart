@@ -72,6 +72,12 @@ void main() {
     expect(find.text('0512345678'), findsNothing);
     expect(find.byKey(ProfileScreen.vehicleRowKey), findsOneWidget);
     expect(find.byKey(ProfileScreen.documentsRowKey), findsOneWidget);
+    expect(find.byKey(ProfileScreen.locationRowKey), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.byKey(ProfileScreen.signOutRowKey),
+      120,
+    );
     expect(find.byKey(ProfileScreen.signOutRowKey), findsOneWidget);
   });
 

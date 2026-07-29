@@ -29,6 +29,7 @@ class ProfileScreen extends ConsumerWidget {
   static const editRowKey = Key('profileEditRow');
   static const vehicleRowKey = Key('profileVehicleRow');
   static const documentsRowKey = Key('profileDocumentsRow');
+  static const locationRowKey = Key('profileLocationRow');
   static const settingsRowKey = Key('profileSettingsRow');
   static const supportRowKey = Key('profileSupportRow');
   static const safetyRowKey = Key('profileSafetyRow');
@@ -123,6 +124,12 @@ class ProfileScreen extends ConsumerWidget {
               key: documentsRowKey,
               label: l10n.profileMenuDocuments,
               onTap: () => context.push(AppRoutes.profileDocuments),
+            ),
+            const SizedBox(height: AppTheme.spacingSM),
+            SaeqProfileNavigationRow(
+              key: locationRowKey,
+              label: l10n.locationTitle,
+              onTap: () => context.push(AppRoutes.location),
             ),
             const SizedBox(height: AppTheme.spacingSM),
             SaeqProfileNavigationRow(

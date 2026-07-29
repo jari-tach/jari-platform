@@ -577,6 +577,191 @@ class AppLocalizations {
     'اختر ملفًا تجريبيًا قبل الإرسال.',
   );
 
+  // —— Location and GPS (STEP 2B Fake UI) ——
+  String get locationTitle => _t('Location and GPS', 'الموقع وتحديد المواقع');
+  String get locationPermissionIntroTitle =>
+      _t('Share your location', 'شارك موقعك');
+  String get locationPermissionIntroMessage => _t(
+    'SAEQ Driver uses your location to match nearby deliveries and to show pickup and dropoff points.',
+    'يستخدم تطبيق سائق موقعك لمطابقة الطلبات القريبة ولعرض نقاط الاستلام والتسليم.',
+  );
+  String get locationTrialNote => _t(
+    'Trial screen — no real GPS and no system permission are requested in this increment.',
+    'شاشة تجريبية — لا يُطلب موقع حقيقي ولا صلاحية نظام في هذه الزيادة.',
+  );
+  String get locationAllowAction =>
+      _t('Allow location access', 'السماح بالوصول إلى الموقع');
+  String get locationPermissionPageTitle =>
+      _t('Allow location access', 'السماح بالوصول إلى الموقع');
+  String get locationPermissionReasonTitle =>
+      _t('Why we need your location', 'لماذا نحتاج إلى موقعك');
+  String get locationPermissionUsageLabel =>
+      _t('Location access', 'استخدام الموقع');
+  String get locationPermissionUsageValue =>
+      _t('While using the app only', 'أثناء استخدام التطبيق فقط');
+  String get locationPermissionAccuracyLabel =>
+      _t('Location accuracy', 'دقة الموقع');
+  String get locationPermissionAccuracyValue =>
+      _t('Precise location when needed', 'موقع دقيق عند الحاجة');
+  String get locationNotNowAction => _t('Not now', 'ليس الآن');
+  String get locationReturnHomeAction => _t('Return home', 'العودة للرئيسية');
+  String get locationPermissionPathLabel =>
+      _t('Settings path', 'مسار الإعدادات');
+  String get locationPermissionPathValue => _t(
+    'Settings > Apps > SAEQ Driver > Permissions > Location',
+    'الإعدادات > التطبيقات > سائق > الأذونات > الموقع',
+  );
+  String get locationOpenAppSettingsAction =>
+      _t('Open app settings', 'فتح إعدادات التطبيق');
+  String get locationOpenLocationSettingsAction =>
+      _t('Open location settings', 'فتح إعدادات الموقع');
+  String get locationLocatingTitle => _t('Locating you', 'جارٍ تحديد موقعك');
+  String get locationLocatingMessage =>
+      _t('Waiting for a location fix.', 'في انتظار تحديد الموقع.');
+  String get locationAvailableTitle => _t('Location available', 'الموقع متاح');
+  String get locationAvailableMessage => _t(
+    'Your position can be shared while you are available for deliveries.',
+    'يمكن مشاركة موقعك أثناء توفرك لاستلام الطلبات.',
+  );
+  String get locationWeakAccuracyTitle =>
+      _t('Weak location accuracy', 'دقة الموقع ضعيفة');
+  String get locationWeakAccuracyMessage => _t(
+    'The fix is imprecise. Move to an open area for a stronger signal.',
+    'التحديد غير دقيق. انتقل إلى مكان مفتوح للحصول على إشارة أقوى.',
+  );
+  String get locationDeniedTitle =>
+      _t('Location permission denied', 'تم رفض صلاحية الموقع');
+  String get locationDeniedMessage => _t(
+    'Allow location access to receive nearby delivery offers.',
+    'اسمح بالوصول إلى الموقع لاستقبال عروض التوصيل القريبة.',
+  );
+  String get locationPermanentlyDeniedTitle =>
+      _t('Location permission blocked', 'صلاحية الموقع محجوبة');
+  String get locationPermanentlyDeniedMessage => _t(
+    'Location access is blocked for SAEQ Driver on this device.',
+    'الوصول إلى الموقع محجوب لتطبيق سائق على هذا الجهاز.',
+  );
+  String get locationOpenSettingsAction => _t('Open settings', 'فتح الإعدادات');
+  String get locationOpenSettingsGuidance => _t(
+    'Enable location for SAEQ Driver from the device settings app, then return and retry. This trial screen cannot open settings for you.',
+    'فعّل الموقع لتطبيق سائق من تطبيق إعدادات الجهاز ثم عد وأعد المحاولة. هذه الشاشة التجريبية لا تفتح الإعدادات نيابة عنك.',
+  );
+  String get locationGpsDisabledTitle =>
+      _t('Location services are off', 'خدمات الموقع مغلقة');
+  String get locationGpsDisabledMessage => _t(
+    'Turn on location services on this device, then retry.',
+    'شغّل خدمات الموقع على هذا الجهاز ثم أعد المحاولة.',
+  );
+  String get locationOfflineTitle =>
+      _t('Location unavailable offline', 'الموقع غير متاح دون اتصال');
+  String get locationOfflineMessage => _t(
+    'Connect to the internet to refresh your location.',
+    'اتصل بالإنترنت لتحديث موقعك.',
+  );
+  String get locationUnavailableTitle =>
+      _t('Location unavailable', 'الموقع غير متاح');
+  String get locationUnavailableMessage => _t(
+    'Location preview is not available in this build.',
+    'معاينة الموقع غير متاحة في هذه النسخة.',
+  );
+  String get locationRefreshAction => _t('Refresh location', 'تحديث الموقع');
+  String get locationOpenMapPreviewAction =>
+      _t('Open map preview', 'فتح معاينة الخريطة');
+  String get locationApproximateLabel =>
+      _t('Approximate location', 'الموقع التقريبي');
+  String get locationApproximateValue =>
+      _t('Riyadh — Al Olaya district', 'الرياض — حي العليا');
+  String get locationOpenGoogleMapsAction =>
+      _t('Open in Google Maps', 'فتح في خرائط Google');
+  String get locationRelocateAction =>
+      _t('Locate me again', 'تحديد موقعي مجددًا');
+  String get locationContinueWithoutNavigationAction =>
+      _t('Continue without navigation', 'المتابعة دون ملاحة');
+  String get locationAccuracyHigh =>
+      _t('Strong GPS accuracy', 'دقة تحديد المواقع جيدة');
+  String get locationAccuracyWeak =>
+      _t('Weak GPS accuracy', 'دقة تحديد المواقع ضعيفة');
+  String get locationAccuracyUnknown =>
+      _t('GPS accuracy unknown', 'دقة تحديد المواقع غير معروفة');
+  String locationAccuracyMeters(int meters) => _t('±$meters m', '±$meters م');
+  String get locationTrialStatesTitle =>
+      _t('Trial states', 'الحالات التجريبية');
+  String get locationTrialStatesHint => _t(
+    'Fake states for this increment — switch to review each location state.',
+    'حالات وهمية لهذه الزيادة — بدّل بينها لمراجعة كل حالة موقع.',
+  );
+  String get locationTrialGranted => _t('Granted', 'مسموح');
+  String get locationTrialDenied => _t('Denied', 'مرفوض');
+  String get locationTrialBlocked => _t('Blocked', 'محجوب');
+  String get locationTrialGpsOff => _t('GPS off', 'الموقع مغلق');
+  String get locationTrialWeakAccuracy => _t('Weak accuracy', 'دقة ضعيفة');
+  String get locationTrialOffline => _t('Offline', 'دون اتصال');
+
+  // —— Map preview (STEP 2B Fake UI) ——
+  String get mapPreviewTitle => _t('Map', 'الخريطة');
+  String get mapPreviewLoadingTitle =>
+      _t('Loading map preview', 'جارٍ تحميل معاينة الخريطة');
+  String get mapPreviewLoadingMessage => _t(
+    'Preparing the trial route placeholder.',
+    'جارٍ تحضير مخطط المسار التجريبي.',
+  );
+  String get mapPreviewErrorTitle =>
+      _t('Could not load map preview', 'تعذر تحميل معاينة الخريطة');
+  String get mapPreviewErrorMessage =>
+      _t('Please try again.', 'يرجى المحاولة مجددًا.');
+  String get mapPreviewAddressLabel => _t('Address', 'العنوان');
+  String get mapPreviewAddressValue =>
+      _t('King Fahd Road, Al Olaya, Riyadh', 'طريق الملك فهد، العليا، الرياض');
+  String get mapPreviewOpenAddressBrowserAction =>
+      _t('Open address in browser', 'فتح العنوان في المتصفح');
+  String get mapPreviewOfflineTitle => _t(
+    'Map preview unavailable offline',
+    'معاينة الخريطة غير متاحة دون اتصال',
+  );
+  String get mapPreviewOfflineMessage => _t(
+    'Connect to the internet to load the route preview.',
+    'اتصل بالإنترنت لتحميل معاينة المسار.',
+  );
+  String get mapPreviewLastKnownLocationLabel =>
+      _t('Last known location', 'آخر موقع معروف');
+  String get mapPreviewLastKnownLocationValue =>
+      _t('Updated a few minutes ago', 'تم التحديث قبل بضع دقائق');
+  String get mapPreviewRetryConnectedAction =>
+      _t('Retry when connected', 'إعادة المحاولة عند الاتصال');
+  String get mapPreviewPlaceholderNote => _t(
+    'Placeholder route — no map provider and no live tracking in this increment.',
+    'مسار توضيحي — لا يوجد مزوّد خرائط ولا تتبع مباشر في هذه الزيادة.',
+  );
+  String get mapPreviewRouteSemantics => _t(
+    'Trial route from your position to the pickup point, then to the dropoff point.',
+    'مسار تجريبي من موقعك إلى نقطة الاستلام ثم إلى نقطة التسليم.',
+  );
+  String get mapPreviewDriverMarker => _t('You', 'أنت');
+  String get mapPreviewPickupMarker => _t('Pickup', 'الاستلام');
+  String get mapPreviewDropoffMarker => _t('Dropoff', 'التسليم');
+  String get mapPreviewOpenExternalNavigationAction =>
+      _t('Open external navigation', 'فتح الملاحة الخارجية');
+  String get mapPreviewExternalNavigationUnavailableTitle =>
+      _t('External navigation unavailable', 'الملاحة الخارجية غير متاحة');
+  String get mapPreviewExternalNavigationUnavailableMessage => _t(
+    'No navigation app handoff exists in this increment. Go back to keep using the trial preview.',
+    'لا يوجد تسليم لتطبيق ملاحة في هذه الزيادة. عد للخلف لمتابعة استخدام المعاينة التجريبية.',
+  );
+  String get mapPreviewCoordinatesLabel => _t('Coordinates', 'الإحداثيات');
+  String get mapPreviewCoordinatesValue =>
+      _t('24.7136, 46.6753', '24.7136، 46.6753');
+  String get mapPreviewBrowserRouteAction =>
+      _t('Open route in browser', 'فتح المسار في المتصفح');
+  String get mapPreviewCopyAddressAction => _t('Copy address', 'نسخ العنوان');
+  String get mapPreviewBackAction =>
+      _t('Back to location', 'العودة إلى الموقع');
+  String get mapPreviewTrialStatesHint => _t(
+    'Fake states for this increment — switch to review each map state.',
+    'حالات وهمية لهذه الزيادة — بدّل بينها لمراجعة كل حالة خريطة.',
+  );
+  String get mapPreviewTrialNormal => _t('Normal', 'عادي');
+  String get mapPreviewTrialError => _t('Error', 'خطأ');
+
   // —— Shared review statuses (STEP 2A) ——
   String get statusApproved => _t('Approved', 'مقبول');
   String get statusUnderReview => _t('Under review', 'قيد المراجعة');
