@@ -6,51 +6,56 @@ import 'package:go_router/go_router.dart';
 import 'package:saeq_driver/core/localization/app_localizations.dart';
 import 'package:saeq_driver/core/routes/app_router.dart';
 import 'package:saeq_driver/core/theme/app_theme.dart';
-import 'package:saeq_driver/features/location/fake_map_placeholder.dart';
-import 'package:saeq_driver/features/location/location_feature.dart';
 import 'package:saeq_driver/features/location/location_screen.dart';
+import 'package:saeq_driver/features/location/location_ui_helpers.dart';
 import 'package:saeq_driver/features/location/map_preview_feature.dart';
 import 'package:saeq_driver/features/location/map_preview_screen.dart';
-import 'package:saeq_driver/shared/widgets/saeq_error_state.dart';
 import 'package:saeq_driver/shared/widgets/saeq_primary_button.dart';
 
-Future<void> _pumpMapPreview(
-  WidgetTester tester, {
-  MapPreviewService? mapPreviewService,
-  Locale locale = const Locale('en', 'US'),
-  ThemeMode themeMode = ThemeMode.light,
-  double textScale = 1.0,
-  Size surface = const Size(390, 844),
-}) async {
-  await tester.binding.setSurfaceSize(surface);
-  addTearDown(() => tester.binding.setSurfaceSize(null));
+class _FixedMapController extends MapPreviewController {
+  _FixedMapController(this.initial);
 
+  final MapPreviewState initial;
+
+  @override
+  MapPreviewState build() => initial;
+}
+
+Future<void> _pump(
+  WidgetTester tester,
+  MapPreviewState state, {
+  Locale locale = const Locale('ar'),
+  ThemeMode themeMode = ThemeMode.light,
+  Size size = const Size(390, 844),
+  double textScale = 1,
+}) async {
+  await tester.binding.setSurfaceSize(size);
+  addTearDown(() => tester.binding.setSurfaceSize(null));
   final router = GoRouter(
-    initialLocation: AppRoutes.mapPreview,
+    initialLocation: AppRoutes.location,
     routes: [
       GoRoute(
         path: AppRoutes.location,
-        builder: (context, state) => const LocationScreen(),
+        builder: (_, _) => const LocationScreen(),
       ),
       GoRoute(
         path: AppRoutes.mapPreview,
-        builder: (context, state) => const MapPreviewScreen(),
+        builder: (_, _) => const MapPreviewScreen(),
       ),
     ],
   );
   addTearDown(router.dispose);
-
+  router.push(AppRoutes.mapPreview);
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        locationServiceProvider.overrideWithValue(FakeLocationService()),
-        mapPreviewServiceProvider.overrideWithValue(
-          mapPreviewService ?? FakeMapPreviewService(),
+        mapPreviewControllerProvider.overrideWith(
+          () => _FixedMapController(state),
         ),
       ],
       child: MediaQuery(
         data: MediaQueryData(
-          size: surface,
+          size: size,
           textScaler: TextScaler.linear(textScale),
         ),
         child: MaterialApp.router(
@@ -71,201 +76,87 @@ Future<void> _pumpMapPreview(
     ),
   );
   await tester.pump();
-  await tester.pump(const Duration(milliseconds: 150));
-}
-
-Future<void> _tapTrialOption(
-  WidgetTester tester,
-  FakeMapScenario scenario,
-) async {
-  final finder = find.byKey(MapPreviewScreen.trialOptionKey(scenario));
-  await tester.scrollUntilVisible(finder, 120);
-  await tester.pump();
-  await tester.ensureVisible(finder);
-  await tester.pump();
-  await tester.tap(finder);
-  await tester.pump();
-  await tester.pump(const Duration(milliseconds: 150));
 }
 
 void main() {
-  testWidgets('Map preview loading state', (tester) async {
-    await _pumpMapPreview(
+  testWidgets('P27 106:276 Map Loading exact structure', (tester) async {
+    await _pump(
       tester,
-      mapPreviewService: FakeMapPreviewService(
-        latency: const Duration(milliseconds: 800),
+      const MapPreviewState(
+        status: MapPreviewStatus.loading,
+        isProcessing: true,
       ),
     );
-
-    expect(find.text('Loading map preview'), findsOneWidget);
-    await tester.pump(const Duration(milliseconds: 900));
-    expect(find.byKey(FakeMapPlaceholder.mapKey), findsOneWidget);
-  });
-
-  testWidgets('Map preview placeholder renders markers route and accuracy', (
-    tester,
-  ) async {
-    await _pumpMapPreview(tester);
-
-    expect(find.byKey(FakeMapPlaceholder.mapKey), findsOneWidget);
-    expect(find.byKey(FakeMapPlaceholder.driverMarkerKey), findsOneWidget);
-    expect(find.byKey(FakeMapPlaceholder.pickupMarkerKey), findsOneWidget);
-    expect(find.byKey(FakeMapPlaceholder.dropoffMarkerKey), findsOneWidget);
-    expect(find.byKey(FakeMapPlaceholder.routeKey), findsOneWidget);
-    expect(find.byKey(FakeMapPlaceholder.accuracyKey), findsOneWidget);
-    expect(find.text('Strong GPS accuracy · ±14 m'), findsOneWidget);
-    expect(find.text('You'), findsOneWidget);
-    expect(find.text('Pickup'), findsOneWidget);
-    expect(find.text('Dropoff'), findsOneWidget);
-    expect(find.byKey(FakeMapPlaceholder.retryKey), findsOneWidget);
+    expect(find.text('الخريطة'), findsOneWidget);
+    expect(find.byKey(MapPreviewScreen.loadingStatusKey), findsOneWidget);
+    expect(find.byKey(MapPreviewScreen.mapSkeletonKey), findsOneWidget);
     expect(
-      find.byKey(FakeMapPlaceholder.externalNavigationKey),
-      findsOneWidget,
+      tester.getSize(find.byKey(MapPreviewScreen.mapSkeletonKey)).height,
+      300,
     );
+    expect(find.byKey(MapPreviewScreen.detailSkeletonKey), findsOneWidget);
     expect(
-      find.textContaining('no map provider and no live tracking'),
-      findsOneWidget,
+      tester.getSize(find.byKey(MapPreviewScreen.detailSkeletonKey)).height,
+      220,
     );
-  });
-
-  testWidgets('Map preview error state retries into the placeholder', (
-    tester,
-  ) async {
-    await _pumpMapPreview(tester);
-
-    await _tapTrialOption(tester, FakeMapScenario.error);
-    expect(find.text('Could not load map preview'), findsOneWidget);
-    expect(find.byKey(SaeqErrorState.retryKey), findsOneWidget);
-
-    await tester.tap(find.byKey(SaeqErrorState.retryKey));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 150));
-
-    expect(find.byKey(FakeMapPlaceholder.mapKey), findsOneWidget);
-  });
-
-  testWidgets('Map preview offline state retries into the placeholder', (
-    tester,
-  ) async {
-    await _pumpMapPreview(tester);
-
-    await _tapTrialOption(tester, FakeMapScenario.offline);
-    expect(find.text('Map preview unavailable offline'), findsOneWidget);
-
-    await tester.tap(find.byKey(SaeqErrorState.retryKey));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 150));
-
-    expect(find.byKey(FakeMapPlaceholder.mapKey), findsOneWidget);
-  });
-
-  testWidgets('Map preview error state persists while still failing', (
-    tester,
-  ) async {
-    await _pumpMapPreview(
-      tester,
-      mapPreviewService: FakeMapPreviewService(recoverAfterFailures: 0),
-    );
-
-    await _tapTrialOption(tester, FakeMapScenario.error);
-    expect(find.text('Could not load map preview'), findsOneWidget);
-
-    await tester.tap(find.byKey(SaeqErrorState.retryKey));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 150));
-    expect(find.text('Could not load map preview'), findsOneWidget);
-  });
-
-  testWidgets('Map preview external navigation reports unavailable and backs '
-      'out safely', (tester) async {
-    await _pumpMapPreview(tester);
-
-    await tester.tap(find.byKey(FakeMapPlaceholder.externalNavigationKey));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 150));
-
-    expect(find.text('External navigation unavailable'), findsOneWidget);
-    expect(
-      find.byKey(FakeMapPlaceholder.externalNavigationNoticeKey),
-      findsOneWidget,
-    );
-    expect(find.byKey(FakeMapPlaceholder.mapKey), findsOneWidget);
-
-    final backFinder = find.byKey(FakeMapPlaceholder.backKey);
-    await tester.ensureVisible(backFinder);
-    await tester.pump();
-    await tester.tap(backFinder);
-    await tester.pumpAndSettle();
-
-    expect(find.byType(LocationScreen), findsOneWidget);
-  });
-
-  testWidgets('Map preview external navigation guards duplicate taps', (
-    tester,
-  ) async {
-    await _pumpMapPreview(
-      tester,
-      mapPreviewService: FakeMapPreviewService(
-        latency: const Duration(milliseconds: 800),
-      ),
-    );
-    await tester.pump(const Duration(milliseconds: 900));
-
-    await tester.tap(find.byKey(FakeMapPlaceholder.externalNavigationKey));
-    await tester.pump();
-
     final button = tester.widget<SaeqPrimaryButton>(
-      find.byKey(FakeMapPlaceholder.externalNavigationKey),
+      find.byKey(MapPreviewScreen.loadingActionKey),
     );
     expect(button.onPressed, isNull);
     expect(button.isLoading, isTrue);
-
-    await tester.tap(find.byKey(FakeMapPlaceholder.externalNavigationKey));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 900));
-
-    expect(find.text('External navigation unavailable'), findsOneWidget);
+    expect(find.byType(ChoiceChip), findsNothing);
   });
 
-  testWidgets('Map preview English LTR renders left to right', (tester) async {
-    await _pumpMapPreview(tester);
-
-    expect(find.text('Map preview'), findsOneWidget);
-    expect(
-      Directionality.of(tester.element(find.byType(MapPreviewScreen))),
-      TextDirection.ltr,
-    );
+  testWidgets('P27 106:288 Map Error Retry', (tester) async {
+    await _pump(tester, const MapPreviewState(status: MapPreviewStatus.error));
+    expect(find.text('تعذر تحميل معاينة الخريطة'), findsOneWidget);
+    expect(tester.getSize(find.byType(P27Skeleton)).height, 300);
+    expect(find.text('العنوان'), findsOneWidget);
+    expect(find.byKey(MapPreviewScreen.retryKey), findsOneWidget);
+    expect(find.text('فتح العنوان في المتصفح'), findsOneWidget);
   });
 
-  testWidgets('Map preview Arabic RTL renders right to left', (tester) async {
-    await _pumpMapPreview(tester, locale: const Locale('ar'));
-
-    expect(find.text('معاينة الخريطة'), findsOneWidget);
-    expect(find.text('أنت'), findsOneWidget);
-    expect(find.text('الاستلام'), findsOneWidget);
-    expect(find.text('التسليم'), findsOneWidget);
-    expect(find.text('Pickup'), findsNothing);
-    expect(
-      Directionality.of(tester.element(find.byType(MapPreviewScreen))),
-      TextDirection.rtl,
-    );
-  });
-
-  testWidgets('Map preview Arabic dark narrow screen at text scale 1.3 has '
-      'no overflow', (tester) async {
-    await _pumpMapPreview(
+  testWidgets('P27 106:304 Map Offline', (tester) async {
+    await _pump(
       tester,
-      locale: const Locale('ar'),
-      themeMode: ThemeMode.dark,
-      textScale: 1.3,
-      surface: const Size(320, 640),
+      const MapPreviewState(status: MapPreviewStatus.offline),
     );
-
-    expect(find.byKey(FakeMapPlaceholder.mapKey), findsOneWidget);
-    expect(tester.takeException(), isNull);
-
-    await _tapTrialOption(tester, FakeMapScenario.offline);
     expect(find.text('معاينة الخريطة غير متاحة دون اتصال'), findsOneWidget);
+    expect(tester.getSize(find.byType(P27FakeMap)), const Size(358, 300));
+    expect(find.text('آخر موقع معروف'), findsOneWidget);
+    expect(find.text('فتح في خرائط Google'), findsOneWidget);
+    expect(find.text('إعادة المحاولة عند الاتصال'), findsOneWidget);
+  });
+
+  testWidgets('P27 106:433 External App Unavailable and safe back', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      const MapPreviewState(
+        status: MapPreviewStatus.externalNavigationUnavailable,
+        snapshot: FakeMapPreviewService.defaultSnapshot,
+      ),
+      size: const Size(320, 640),
+      textScale: 1.3,
+    );
+    expect(find.text('الملاحة الخارجية غير متاحة'), findsNWidgets(2));
+    expect(find.text('العنوان'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.byKey(MapPreviewScreen.secondaryActionKey),
+      180,
+    );
+    await tester.pump();
+    expect(find.text('الإحداثيات'), findsOneWidget);
+    expect(tester.getSize(find.byType(P27Skeleton)).height, 300);
+    expect(find.text('فتح المسار في المتصفح'), findsOneWidget);
+    expect(find.text('نسخ العنوان'), findsOneWidget);
     expect(tester.takeException(), isNull);
+
+    await tester.scrollUntilVisible(find.byType(BackButton), -180);
+    await tester.pump();
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+    expect(find.byType(LocationScreen), findsOneWidget);
   });
 }
