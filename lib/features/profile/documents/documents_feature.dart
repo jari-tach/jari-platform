@@ -19,6 +19,9 @@ enum DocumentEligibilityImpact {
   requiresRenewal,
 }
 
+/// Stable fake/review codes — never show raw English in Arabic UI.
+enum DocumentRejectionReasonCode { plateNumberMismatch }
+
 class DocumentViewData {
   const DocumentViewData({
     required this.id,
@@ -27,7 +30,8 @@ class DocumentViewData {
     required this.expiryDate,
     required this.status,
     this.issueDate,
-    this.rejectionReason,
+    this.rejectionReasonCode,
+    this.uploadedAt,
     this.eligibilityImpact = DocumentEligibilityImpact.none,
   });
 
@@ -37,7 +41,8 @@ class DocumentViewData {
   final DateTime? issueDate;
   final DateTime expiryDate;
   final DocumentReviewStatus status;
-  final String? rejectionReason;
+  final DocumentRejectionReasonCode? rejectionReasonCode;
+  final DateTime? uploadedAt;
   final DocumentEligibilityImpact eligibilityImpact;
 }
 
@@ -87,6 +92,7 @@ class FakeDocumentsRepository implements DocumentsRepository {
       maskedNumber: '•••• •••• 9034',
       issueDate: DateTime.utc(2024, 1, 10),
       expiryDate: DateTime.utc(2029, 1, 9),
+      uploadedAt: DateTime.utc(2026, 7, 1),
       status: DocumentReviewStatus.underReview,
       eligibilityImpact: DocumentEligibilityImpact.blocksAvailability,
     ),
@@ -95,8 +101,9 @@ class FakeDocumentsRepository implements DocumentsRepository {
       type: DocumentType.vehicleRegistration,
       maskedNumber: '•••• •••• 7712',
       expiryDate: DateTime.utc(2027, 6, 30),
+      uploadedAt: DateTime.utc(2026, 5, 12),
       status: DocumentReviewStatus.rejected,
-      rejectionReason: 'Plate number mismatch',
+      rejectionReasonCode: DocumentRejectionReasonCode.plateNumberMismatch,
       eligibilityImpact: DocumentEligibilityImpact.blocksVehicleApproval,
     ),
     DocumentViewData(

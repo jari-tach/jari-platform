@@ -9,6 +9,7 @@ import 'package:saeq_driver/core/theme/app_theme.dart';
 import 'package:saeq_driver/features/profile/documents/document_upload_screen.dart';
 import 'package:saeq_driver/features/profile/documents/documents_feature.dart';
 import 'package:saeq_driver/features/profile/documents/documents_list_screen.dart';
+import 'package:saeq_driver/shared/widgets/saeq_primary_button.dart';
 
 Future<void> _pumpDocumentsList(
   WidgetTester tester, {
@@ -33,9 +34,8 @@ Future<void> _pumpDocumentsList(
       ),
       GoRoute(
         path: '/profile/documents/:id',
-        builder: (context, state) => DocumentDetailScreen(
-          id: state.pathParameters['id']!,
-        ),
+        builder: (context, state) =>
+            DocumentDetailScreen(id: state.pathParameters['id']!),
       ),
     ],
   );
@@ -72,33 +72,89 @@ Future<void> _pumpDocumentsList(
 
 void main() {
   testWidgets('Documents list shows all review statuses', (tester) async {
-    await _pumpDocumentsList(
-      tester,
-      repository: FakeDocumentsRepository(),
-    );
+    await _pumpDocumentsList(tester, repository: FakeDocumentsRepository());
 
     expect(find.text('Approved'), findsOneWidget);
     expect(find.text('Under review'), findsOneWidget);
     expect(find.text('Rejected'), findsOneWidget);
     expect(find.text('Expiring soon'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Expired'), 200);
     expect(find.text('Expired'), findsOneWidget);
   });
 
-  testWidgets('Document detail shows masked number and impact', (tester) async {
+  testWidgets('Documents list shows eligibility banner and date subtitles', (
+    tester,
+  ) async {
+    await _pumpDocumentsList(tester, repository: FakeDocumentsRepository());
+
+    expect(
+      find.byKey(DocumentsListScreen.eligibilityBannerKey),
+      findsOneWidget,
+    );
+    expect(find.text('Eligibility summary'), findsOneWidget);
+    expect(find.textContaining('Expires'), findsWidgets);
+    expect(find.textContaining('Uploaded'), findsOneWidget);
+  });
+
+  testWidgets('Documents list loading state', (tester) async {
+    await _pumpDocumentsList(
+      tester,
+      repository: FakeDocumentsRepository(
+        latency: const Duration(milliseconds: 800),
+      ),
+    );
+    expect(find.text('Loading documents'), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 900));
+  });
+
+  testWidgets('Document approved detail', (tester) async {
+    await _pumpDocumentsList(tester, repository: FakeDocumentsRepository());
+    await tester.tap(find.byKey(const Key('documentRow-doc-approved')));
+    await tester.pumpAndSettle();
+    expect(find.text('National ID'), findsOneWidget);
+    expect(find.text('Approved'), findsOneWidget);
+    expect(find.text('•••• •••• 4821'), findsOneWidget);
+  });
+
+  testWidgets('Document under review detail', (tester) async {
+    await _pumpDocumentsList(tester, repository: FakeDocumentsRepository());
+    await tester.tap(find.byKey(const Key('documentRow-doc-review')));
+    await tester.pumpAndSettle();
+    expect(find.text('Under review'), findsOneWidget);
+    expect(
+      find.textContaining('Going available may be blocked'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('Document rejected detail localizes reason in Arabic', (
+    tester,
+  ) async {
     await _pumpDocumentsList(
       tester,
       repository: FakeDocumentsRepository(),
+      locale: const Locale('ar'),
     );
 
     await tester.tap(find.byKey(const Key('documentRow-doc-rejected')));
     await tester.pumpAndSettle();
 
     expect(find.text('•••• •••• 7712'), findsOneWidget);
-    expect(find.text('Plate number mismatch'), findsOneWidget);
-    expect(
-      find.textContaining('Vehicle approval may remain blocked.'),
-      findsOneWidget,
-    );
+    expect(find.text('عدم تطابق رقم اللوحة'), findsOneWidget);
+    expect(find.text('Plate number mismatch'), findsNothing);
+    expect(find.textContaining('اعتماد المركبة'), findsOneWidget);
+  });
+
+  testWidgets('Document expired detail', (tester) async {
+    await _pumpDocumentsList(tester, repository: FakeDocumentsRepository());
+    final expiredRow = find.byKey(const Key('documentRow-doc-expired'));
+    await tester.scrollUntilVisible(expiredRow, 300);
+    await tester.drag(find.byType(ListView), const Offset(0, -150));
+    await tester.pumpAndSettle();
+    await tester.tap(expiredRow);
+    await tester.pumpAndSettle();
+    expect(find.text('Expired'), findsOneWidget);
+    expect(find.text('•••• •••• 2208'), findsOneWidget);
   });
 
   testWidgets('Documents empty state', (tester) async {
@@ -125,11 +181,8 @@ void main() {
     expect(find.text('Documents unavailable offline'), findsOneWidget);
   });
 
-  testWidgets('Document upload fake file flow', (tester) async {
-    await _pumpDocumentsList(
-      tester,
-      repository: FakeDocumentsRepository(),
-    );
+  testWidgets('Document upload fake file success flow', (tester) async {
+    await _pumpDocumentsList(tester, repository: FakeDocumentsRepository());
 
     await tester.tap(find.byKey(DocumentsListScreen.uploadKey));
     await tester.pumpAndSettle();
@@ -148,6 +201,43 @@ void main() {
     expect(find.text('Document uploaded.'), findsWidgets);
   });
 
+  testWidgets('Document uploading disables submit', (tester) async {
+    await _pumpDocumentsList(
+      tester,
+      repository: FakeDocumentsRepository(
+        latency: const Duration(milliseconds: 800),
+      ),
+    );
+    await tester.tap(find.byKey(DocumentsListScreen.uploadKey));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(DocumentUploadScreen.selectFileKey));
+    await tester.pump();
+    await tester.tap(find.byKey(DocumentUploadScreen.uploadKey));
+    await tester.pump();
+
+    final button = tester.widget<SaeqPrimaryButton>(
+      find.byKey(DocumentUploadScreen.uploadKey),
+    );
+    expect(button.onPressed, isNull);
+    await tester.pump(const Duration(milliseconds: 900));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('Document upload failure shows retryable error', (tester) async {
+    await _pumpDocumentsList(
+      tester,
+      repository: FakeDocumentsRepository(failUpload: true),
+    );
+    await tester.tap(find.byKey(DocumentsListScreen.uploadKey));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(DocumentUploadScreen.selectFileKey));
+    await tester.pump();
+    await tester.tap(find.byKey(DocumentUploadScreen.uploadKey));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.text('Upload failed. Please try again.'), findsOneWidget);
+  });
+
   testWidgets('Documents Arabic narrow text scale smoke', (tester) async {
     await _pumpDocumentsList(
       tester,
@@ -158,6 +248,7 @@ void main() {
       surface: const Size(320, 800),
     );
     expect(find.text('المستندات'), findsOneWidget);
+    expect(find.text('ملخص الأهلية'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

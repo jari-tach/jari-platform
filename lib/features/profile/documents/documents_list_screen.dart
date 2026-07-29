@@ -7,6 +7,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/routes/app_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/saeq_semantic_colors.dart';
 import '../../../shared/widgets/saeq_empty_state.dart';
 import '../../../shared/widgets/saeq_error_state.dart';
 import '../../../shared/widgets/saeq_info_card.dart';
@@ -20,6 +21,7 @@ class DocumentsListScreen extends ConsumerWidget {
   const DocumentsListScreen({super.key});
 
   static const uploadKey = Key('documentsUploadAction');
+  static const eligibilityBannerKey = Key('documentsEligibilityBanner');
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -79,29 +81,81 @@ class DocumentsListScreen extends ConsumerWidget {
           onRetry: ref.read(documentsListControllerProvider.notifier).load,
         );
       case DocumentsViewStatus.loaded:
-        return ListView.separated(
-          itemCount: state.documents.length,
-          separatorBuilder: (_, _) =>
-              const SizedBox(height: AppTheme.spacingSM),
-          itemBuilder: (context, index) {
-            final document = state.documents[index];
-            return SaeqInfoCard(
-              key: Key('documentRow-${document.id}'),
-              title: documentTypeLabel(l10n, document.type),
-              subtitle: document.maskedNumber,
-              child: Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: SaeqStatusChip(
-                  label: documentStatusLabel(l10n, document.status),
-                  tone: documentStatusTone(document.status),
+        final showBanner = documentsHaveEligibilityWarnings(state.documents);
+        return ListView(
+          children: [
+            if (showBanner) ...[
+              _EligibilityBanner(l10n: l10n),
+              const SizedBox(height: AppTheme.spacingMD),
+            ],
+            ...state.documents.map((document) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: AppTheme.spacingSM),
+                child: SaeqInfoCard(
+                  key: Key('documentRow-${document.id}'),
+                  title: documentTypeLabel(l10n, document.type),
+                  subtitle:
+                      '${document.maskedNumber}\n${documentCardDateSubtitle(l10n, document)}',
+                  child: Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: SaeqStatusChip(
+                      label: documentStatusLabel(l10n, document.status),
+                      tone: documentStatusTone(document.status),
+                    ),
+                  ),
+                  onTap: () => context.push(
+                    AppRoutes.profileDocumentDetail(document.id),
+                  ),
                 ),
-              ),
-              onTap: () =>
-                  context.push(AppRoutes.profileDocumentDetail(document.id)),
-            );
-          },
+              );
+            }),
+          ],
         );
     }
+  }
+}
+
+class _EligibilityBanner extends StatelessWidget {
+  const _EligibilityBanner({required this.l10n});
+
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = SaeqSemanticColors.of(context);
+    final theme = Theme.of(context);
+    return Semantics(
+      key: DocumentsListScreen.eligibilityBannerKey,
+      liveRegion: true,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(AppTheme.spacingMD),
+        decoration: BoxDecoration(
+          color: colors.warningContainer,
+          borderRadius: BorderRadius.circular(AppTheme.radiusMD),
+          border: Border.all(color: colors.warning.withValues(alpha: 0.35)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.documentsEligibilityBannerTitle,
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: colors.warning,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spacingXS),
+            Text(
+              l10n.documentsEligibilityBannerMessage,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colors.textPrimary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -160,10 +214,18 @@ class DocumentDetailScreen extends ConsumerWidget {
                           label: l10n.documentExpiryLabel,
                           value: dateFormat.format(document.expiryDate),
                         ),
-                        if (document.rejectionReason != null)
+                        if (document.uploadedAt != null)
+                          _DetailRow(
+                            label: l10n.documentUploadedDateLabel,
+                            value: dateFormat.format(document.uploadedAt!),
+                          ),
+                        if (document.rejectionReasonCode != null)
                           _DetailRow(
                             label: l10n.documentRejectionReasonLabel,
-                            value: document.rejectionReason!,
+                            value: documentRejectionReasonLabel(
+                              l10n,
+                              document.rejectionReasonCode!,
+                            ),
                           ),
                         _DetailRow(
                           label: l10n.documentEligibilityImpactLabel,
@@ -206,14 +268,16 @@ class _DetailRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(child: Text(label, style: theme.textTheme.bodyMedium)),
-          const SizedBox(width: AppTheme.spacingMD),
-          Expanded(
-            child: Text(
-              value,
-              textAlign: TextAlign.end,
-              style: theme.textTheme.bodyLarge,
+          if (value.isNotEmpty) ...[
+            const SizedBox(width: AppTheme.spacingMD),
+            Expanded(
+              child: Text(
+                value,
+                textAlign: TextAlign.end,
+                style: theme.textTheme.bodyLarge,
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );

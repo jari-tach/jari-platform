@@ -11,6 +11,7 @@ import '../../../shared/widgets/saeq_error_state.dart';
 import '../../../shared/widgets/saeq_info_card.dart';
 import '../../../shared/widgets/saeq_loading_skeleton.dart';
 import '../../../shared/widgets/saeq_primary_button.dart';
+import '../../../shared/widgets/saeq_secondary_button.dart';
 import '../../../shared/widgets/saeq_status_chip.dart';
 import 'vehicle_feature.dart';
 
@@ -18,6 +19,7 @@ class VehicleOverviewScreen extends ConsumerWidget {
   const VehicleOverviewScreen({super.key});
 
   static const editKey = Key('vehicleEditAction');
+  static const documentsKey = Key('vehicleDocumentsAction');
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -132,6 +134,13 @@ class VehicleOverviewScreen extends ConsumerWidget {
               label: l10n.vehicleEditAction,
               icon: Icons.edit_outlined,
               onPressed: () => context.push(AppRoutes.profileVehicleEdit),
+            ),
+            const SizedBox(height: AppTheme.spacingSM),
+            SaeqSecondaryButton(
+              key: documentsKey,
+              label: l10n.vehicleViewDocumentsAction,
+              icon: Icons.description_outlined,
+              onPressed: () => context.push(AppRoutes.profileDocuments),
             ),
           ],
         );

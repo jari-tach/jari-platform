@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 import '../../../core/localization/app_localizations.dart';
 import '../../../shared/widgets/saeq_status_chip.dart';
 import 'documents_feature.dart';
@@ -44,4 +46,40 @@ String documentEligibilityImpactLabel(
     DocumentEligibilityImpact.requiresRenewal =>
       l10n.documentImpactRequiresRenewal,
   };
+}
+
+String documentRejectionReasonLabel(
+  AppLocalizations l10n,
+  DocumentRejectionReasonCode code,
+) {
+  return switch (code) {
+    DocumentRejectionReasonCode.plateNumberMismatch =>
+      l10n.documentRejectionPlateMismatch,
+  };
+}
+
+String documentCardDateSubtitle(
+  AppLocalizations l10n,
+  DocumentViewData document,
+) {
+  final locale = l10n.locale.languageCode;
+  final dateFormat = DateFormat.yMMMd(locale);
+  if (document.status == DocumentReviewStatus.underReview &&
+      document.uploadedAt != null) {
+    return l10n.documentUploadedSubtitle(
+      dateFormat.format(document.uploadedAt!),
+    );
+  }
+  return l10n.documentExpirySubtitle(dateFormat.format(document.expiryDate));
+}
+
+bool documentsHaveEligibilityWarnings(List<DocumentViewData> documents) {
+  return documents.any(
+    (document) =>
+        document.status == DocumentReviewStatus.rejected ||
+        document.status == DocumentReviewStatus.expired ||
+        document.status == DocumentReviewStatus.expiringSoon ||
+        document.status == DocumentReviewStatus.underReview ||
+        document.eligibilityImpact != DocumentEligibilityImpact.none,
+  );
 }

@@ -471,6 +471,8 @@ class AppLocalizations {
   String get vehicleErrorMessage =>
       _t('Please try again.', 'يرجى المحاولة مجددًا.');
   String get vehicleEditAction => _t('Edit vehicle', 'تعديل المركبة');
+  String get vehicleViewDocumentsAction =>
+      _t('View vehicle documents', 'عرض مستندات المركبة');
   String get vehicleEditTitle => _t('Edit vehicle', 'تعديل المركبة');
   String get vehicleMakeLabel => _t('Make', 'الشركة المصنّعة');
   String get vehicleModelLabel => _t('Model', 'الموديل');
@@ -521,10 +523,23 @@ class AppLocalizations {
   String get documentNumberLabel => _t('Document number', 'رقم المستند');
   String get documentIssueDateLabel => _t('Issue date', 'تاريخ الإصدار');
   String get documentExpiryLabel => _t('Expiry date', 'تاريخ الانتهاء');
+  String get documentUploadedDateLabel => _t('Upload date', 'تاريخ الرفع');
   String get documentRejectionReasonLabel =>
       _t('Rejection reason', 'سبب الرفض');
   String get documentEligibilityImpactLabel =>
       _t('Eligibility impact', 'تأثير الأهلية');
+  String get documentsEligibilityBannerTitle =>
+      _t('Eligibility summary', 'ملخص الأهلية');
+  String get documentsEligibilityBannerMessage => _t(
+    'Rejected, expired, or under-review documents can block going available or vehicle approval.',
+    'المستندات المرفوضة أو المنتهية أو قيد المراجعة قد تحجب التحوّل إلى متاح أو اعتماد المركبة.',
+  );
+  String documentExpirySubtitle(String date) =>
+      _t('Expires $date', 'ينتهي في $date');
+  String documentUploadedSubtitle(String date) =>
+      _t('Uploaded $date', 'رُفع في $date');
+  String get documentRejectionPlateMismatch =>
+      _t('Plate number mismatch', 'عدم تطابق رقم اللوحة');
   String get documentTypeNationalId => _t('National ID', 'الهوية الوطنية');
   String get documentTypeDriverLicense => _t('Driver license', 'رخصة القيادة');
   String get documentTypeVehicleRegistration =>
