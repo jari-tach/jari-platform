@@ -236,7 +236,7 @@ void main() {
           );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 20));
-      expect(find.text('Available for new requests'), findsOneWidget);
+      expect(find.text('Available for orders'), findsOneWidget);
       expect(find.text('Confirmed'), findsOneWidget);
       expect(find.text('Pending confirmation'), findsNothing);
       expect(find.text('Restored — unconfirmed'), findsNothing);
@@ -253,7 +253,7 @@ void main() {
       expect(find.text('Confirming availability'), findsOneWidget);
       expect(find.text('Pending confirmation'), findsOneWidget);
       expect(find.text('Confirmed'), findsNothing);
-      expect(find.text('Available for new requests'), findsNothing);
+      expect(find.text('Available for orders'), findsNothing);
     });
 
     testWidgets('restored available is unconfirmed', (tester) async {
@@ -286,7 +286,14 @@ void main() {
           );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 20));
-      expect(find.text('Busy with an active request'), findsOneWidget);
+      expect(find.text('Busy'), findsWidgets);
+      expect(find.byKey(DriverAvailabilityCard.statusLabelKey), findsOneWidget);
+      expect(
+        (tester.widget<Text>(
+          find.byKey(DriverAvailabilityCard.statusLabelKey),
+        )).data,
+        'Busy',
+      );
       expect(find.text('asg-1'), findsNothing);
       final button = tester.widget<FilledButton>(
         find.descendant(

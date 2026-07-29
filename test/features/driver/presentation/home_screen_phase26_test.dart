@@ -99,9 +99,9 @@ Future<ProviderContainer> _pumpHome(
 }
 
 void main() {
-  testWidgets('Home shows Fake summary and quick actions', (tester) async {
+  testWidgets('Home shows summary and quick actions', (tester) async {
     await _pumpHome(tester);
-    expect(find.textContaining('Trial summary'), findsOneWidget);
+    expect(find.textContaining("Today's summary"), findsOneWidget);
     expect(find.text('View deliveries'), findsOneWidget);
     expect(find.text('View earnings'), findsOneWidget);
     expect(find.text('Notifications'), findsWidgets);
@@ -112,12 +112,9 @@ void main() {
     expect(find.byKey(SaeqOfflineBanner.bannerKey), findsOneWidget);
   });
 
-  testWidgets('Sign-out cancel keeps session', (tester) async {
-    final container = await _pumpHome(tester);
-    await tester.tap(find.byKey(HomeScreen.signOutKey));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('saeqDestructiveDialogCancel')));
-    await tester.pumpAndSettle();
-    expect(container.read(authControllerProvider).session, isNotNull);
+  testWidgets('Home does not expose fixed sign-out CTA', (tester) async {
+    await _pumpHome(tester);
+    expect(find.text('Sign Out'), findsNothing);
+    expect(find.byKey(const Key('homeSignOut')), findsNothing);
   });
 }

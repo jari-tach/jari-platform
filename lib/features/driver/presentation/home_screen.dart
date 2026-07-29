@@ -8,27 +8,30 @@ import '../../../core/providers/home_ui_providers.dart';
 import '../../../core/routes/app_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/saeq_semantic_colors.dart';
-import '../../../shared/widgets/saeq_destructive_dialog.dart';
 import '../../../shared/widgets/saeq_icon_button.dart';
 import '../../../shared/widgets/saeq_info_card.dart';
 import '../../../shared/widgets/saeq_offline_banner.dart';
-import '../../../shared/widgets/saeq_primary_button.dart';
 import '../../../shared/widgets/saeq_secondary_button.dart';
-import '../../auth/domain/entities/auth_error.dart';
-import '../../auth/presentation/controllers/auth_controller_state.dart';
 import '../../auth/presentation/providers/auth_providers.dart';
-import '../../availability/presentation/providers/availability_providers.dart';
 import '../../availability/presentation/widgets/availability_connectivity_bridge.dart';
 import '../../availability/presentation/widgets/driver_availability_card.dart';
+import '../../delivery/presentation/providers/delivery_providers.dart';
 import '../../delivery/presentation/widgets/delivery_offer_home_banner.dart';
 
-/// Authenticated landing screen with availability control (PHASE 2.4)
-/// and Home completion strip (PHASE 2.6 Increment 1).
+/// Authenticated Home dashboard (PHASE 2.6 Batch 3 — Figma Home/Availability).
+///
+/// Sign-out lives in Settings (with confirmation + [prepareForLogout]), not here.
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   static const notificationsActionKey = Key('homeNotificationsAction');
-  static const signOutKey = Key('homeSignOut');
+  static const greetingKey = Key('homeGreeting');
+  static const summaryStripKey = Key('homeSummaryStrip');
+  static const quickActionDeliveriesKey = Key('homeQuickActionDeliveries');
+  static const quickActionEarningsKey = Key('homeQuickActionEarnings');
+  static const quickActionNotificationsKey = Key(
+    'homeQuickActionNotifications',
+  );
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -36,7 +39,6 @@ class HomeScreen extends ConsumerWidget {
     final colors = SaeqSemanticColors.of(context);
     final state = ref.watch(authControllerProvider);
     final session = state.session;
-    final isBusy = state.isBusy;
     final offline = ref.watch(isOfflineProvider);
     final summary = ref.watch(fakeHomeSummaryProvider);
 
@@ -56,7 +58,7 @@ class HomeScreen extends ConsumerWidget {
         child: Padding(
           padding: const EdgeInsets.all(AppConstants.contentPadding),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const AvailabilityConnectivityBridge(),
               Expanded(
@@ -68,24 +70,28 @@ class HomeScreen extends ConsumerWidget {
                         message: l10n.offlineBannerMessage,
                         visible: offline,
                       ),
-                      const DriverAvailabilityCard(),
-                      const SizedBox(height: AppTheme.spacingMD),
-                      const DeliveryOfferHomeBanner(),
-                      const SizedBox(height: AppTheme.spacingLG),
                       Text(
+                        key: greetingKey,
                         l10n.homeWelcomeTitle,
-                        style: AppTextStyles.titleMedium.copyWith(
-                          color: colors.textSecondary,
+                        style: AppTextStyles.headlineLarge.copyWith(
+                          color: colors.textPrimary,
+                          fontWeight: AppTheme.fontWeightBold,
                         ),
                       ),
-                      const SizedBox(height: AppTheme.spacingXS),
-                      if (session != null)
+                      if (session != null) ...[
+                        const SizedBox(height: AppTheme.spacingXS),
                         Text(
                           session.maskedPhoneNumber,
                           style: AppTextStyles.bodyMedium.copyWith(
                             color: colors.textSecondary,
                           ),
                         ),
+                      ],
+                      const SizedBox(height: AppTheme.spacingMD),
+                      const DriverAvailabilityCard(),
+                      const SizedBox(height: AppTheme.spacingMD),
+                      const DeliveryOfferHomeBanner(),
+                      const _HomeNoOfferHint(),
                       if (summary != null) ...[
                         const SizedBox(height: AppTheme.spacingMD),
                         _HomeSummaryStrip(summary: summary),
@@ -100,36 +106,29 @@ class HomeScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: AppTheme.spacingSM),
                       SaeqSecondaryButton(
+                        key: quickActionDeliveriesKey,
                         label: l10n.homeQuickActionDeliveries,
                         icon: Icons.local_shipping_outlined,
                         onPressed: () => context.go(AppRoutes.deliveries),
                       ),
                       const SizedBox(height: AppTheme.spacingSM),
                       SaeqSecondaryButton(
+                        key: quickActionEarningsKey,
                         label: l10n.homeQuickActionEarnings,
                         icon: Icons.payments_outlined,
                         onPressed: () => context.go(AppRoutes.earnings),
                       ),
                       const SizedBox(height: AppTheme.spacingSM),
                       SaeqSecondaryButton(
+                        key: quickActionNotificationsKey,
                         label: l10n.homeQuickActionNotifications,
                         icon: Icons.notifications_outlined,
                         onPressed: () => context.go(AppRoutes.notifications),
                       ),
-                      // Clearance so fixed sign-out does not cover quick actions.
                       const SizedBox(height: AppTheme.spacingLG),
                     ],
                   ),
                 ),
-              ),
-              const SizedBox(height: AppTheme.spacingSM),
-              SaeqPrimaryButton(
-                key: signOutKey,
-                label: l10n.signOut,
-                icon: Icons.logout,
-                onPressed: isBusy
-                    ? null
-                    : () => _confirmSignOut(context, ref, l10n),
               ),
             ],
           ),
@@ -137,33 +136,29 @@ class HomeScreen extends ConsumerWidget {
       ),
     );
   }
+}
 
-  Future<void> _confirmSignOut(
-    BuildContext context,
-    WidgetRef ref,
-    AppLocalizations l10n,
-  ) async {
-    final confirmed = await SaeqDestructiveDialog.show(
-      context,
-      title: l10n.signOutConfirmTitle,
-      message: l10n.signOutConfirmMessage,
-      confirmLabel: l10n.signOut,
-      cancelLabel: l10n.cancelAction,
-    );
-    if (confirmed == true) {
-      await ref
-          .read(availabilityControllerProvider.notifier)
-          .prepareForLogout();
-      await ref.read(authControllerProvider.notifier).signOut();
-      if (!context.mounted) return;
-      final authState = ref.read(authControllerProvider);
-      if (authState.status == AuthControllerStatus.failure &&
-          authState.error is SecureStorageFailureError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.secureStorageFailureMessage)),
-        );
-      }
+class _HomeNoOfferHint extends ConsumerWidget {
+  const _HomeNoOfferHint();
+
+  static const keyHint = Key('homeNoOfferHint');
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final delivery = ref.watch(deliveryControllerProvider);
+    if (delivery.hasOffer || delivery.hasActiveAssignment) {
+      return const SizedBox.shrink();
     }
+    final l10n = AppLocalizations.of(context);
+    final colors = SaeqSemanticColors.of(context);
+    return Padding(
+      key: keyHint,
+      padding: const EdgeInsets.only(bottom: AppTheme.spacingSM),
+      child: Text(
+        l10n.homeNoOfferMessage,
+        style: AppTextStyles.bodyMedium.copyWith(color: colors.textSecondary),
+      ),
+    );
   }
 }
 
@@ -182,7 +177,8 @@ class _HomeSummaryStrip extends StatelessWidget {
     );
 
     return SaeqInfoCard(
-      title: l10n.homeFakeSummaryHint,
+      key: HomeScreen.summaryStripKey,
+      title: l10n.homeSummarySectionTitle,
       child: Row(
         children: [
           Expanded(

@@ -11,8 +11,9 @@ import 'package:saeq_driver/features/auth/domain/entities/auth_error.dart';
 import 'package:saeq_driver/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:saeq_driver/features/auth/presentation/providers/auth_providers.dart';
 import 'package:saeq_driver/features/auth/presentation/screens/login_screen.dart';
-import 'package:saeq_driver/features/driver/presentation/home_screen.dart';
+import 'package:saeq_driver/features/settings/presentation/screens/settings_screen.dart';
 import 'package:saeq_driver/shared/widgets/saeq_primary_button.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../test_doubles.dart';
 
@@ -87,10 +88,7 @@ void main() {
       await tester.tap(find.widgetWithText(SaeqPrimaryButton, 'Send code'));
       await tester.pump();
 
-      expect(
-        find.text('Invalid mobile number'),
-        findsOneWidget,
-      );
+      expect(find.text('Invalid mobile number'), findsOneWidget);
     });
 
     // 17. Loading disables duplicate submission
@@ -153,15 +151,16 @@ void main() {
       );
     });
 
-    // 19. Logout action
-    testWidgets('HomeScreen sign-out button clears the session', (
+    // 19. Logout action (Batch 3: Settings owns Sign Out, not Home)
+    testWidgets('SettingsScreen sign-out button clears the session', (
       tester,
     ) async {
+      SharedPreferences.setMockInitialValues({});
+      await tester.binding.setSurfaceSize(const Size(400, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
       final container = ProviderContainer(overrides: overridesWith(repository));
       addTearDown(container.dispose);
-      // Drive the controller into an authenticated state directly, to keep
-      // this test focused on the widget interaction rather than restore
-      // timing.
       container.read(authControllerProvider);
       await container
           .read(authControllerProvider.notifier)
@@ -179,18 +178,18 @@ void main() {
               GlobalCupertinoLocalizations.delegate,
             ],
             supportedLocales: AppLocalizations.supportedLocales,
-            home: const HomeScreen(),
+            home: const SettingsScreen(),
           ),
         ),
       );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
 
-      await tester.tap(find.widgetWithText(SaeqPrimaryButton, 'Sign Out'));
+      await tester.ensureVisible(find.byKey(SettingsScreen.signOutKey));
+      await tester.tap(find.byKey(SettingsScreen.signOutKey));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
 
-      // Confirm destructive dialog (PHASE 2.6).
       await tester.tap(find.byKey(const Key('saeqDestructiveDialogConfirm')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));

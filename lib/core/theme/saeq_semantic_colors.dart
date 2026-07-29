@@ -65,7 +65,7 @@ class SaeqSemanticColors extends ThemeExtension<SaeqSemanticColors> {
   /// Final Auth palette from Figma `Final/Auth/*` (file MNJldEpkMxVjIavCPaPBFh).
   static const SaeqSemanticColors light = SaeqSemanticColors(
     primary: Color(0xFF0D4F3C),
-    primaryContainer: Color(0xFFE8F5E9),
+    primaryContainer: Color(0xFFE8F3ED),
     secondary: Color(0xFF2E7D32),
     accent: Color(0xFF00838F),
     background: Color(0xFFF6F8F7),
@@ -76,17 +76,18 @@ class SaeqSemanticColors extends ThemeExtension<SaeqSemanticColors> {
     textSecondary: Color(0xFF5C615E),
     disabled: Color(0xFF9E9E9E),
     success: Color(0xFF2E7D32),
-    successContainer: Color(0xFFE8F5E9),
+    successContainer: Color(0xFFE8F3ED),
     warning: Color(0xFFE65100),
     warningContainer: Color(0xFFFFF3E0),
     error: Color(0xFFBA1A1A),
-    errorContainer: Color(0xFFFFEBEE),
+    errorContainer: Color(0xFFFFF0F0),
     information: Color(0xFF0277BD),
     informationContainer: Color(0xFFE1F5FE),
     overlay: Color(0x1A000000),
     scrim: Color(0x80000000),
-    busy: Color(0xFFEF6C00),
-    busyContainer: Color(0xFFFFF3E0),
+    // Final/Home Busy card (Figma 39:6 / 41:211).
+    busy: Color(0xFF6B5CD1),
+    busyContainer: Color(0xFFEEEAFE),
   );
 
   /// Dark Auth frames keep CTA `#0D4F3C`; OTP cells force white in [SaeqOtpInput].
@@ -112,8 +113,8 @@ class SaeqSemanticColors extends ThemeExtension<SaeqSemanticColors> {
     informationContainer: Color(0xFF01579B),
     overlay: Color(0x33FFFFFF),
     scrim: Color(0xB3000000),
-    busy: Color(0xFFFFB74D),
-    busyContainer: Color(0xFF4E342E),
+    busy: Color(0xFFB39DDB),
+    busyContainer: Color(0xFF3A3358),
   );
 
   static SaeqSemanticColors of(BuildContext context) {
