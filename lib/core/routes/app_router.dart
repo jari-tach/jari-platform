@@ -16,6 +16,8 @@ import '../../features/driver/presentation/shell_placeholder_screen.dart';
 import '../../features/driver/presentation/welcome_screen.dart';
 import '../../features/earnings/presentation/screens/earnings_screen.dart';
 import '../../features/history/presentation/screens/deliveries_history_screen.dart';
+import '../../features/location/location_screen.dart';
+import '../../features/location/map_preview_screen.dart';
 import '../../features/notifications/presentation/screens/notifications_screen.dart';
 import '../../features/profile/documents/document_upload_screen.dart';
 import '../../features/profile/documents/documents_list_screen.dart';
@@ -68,6 +70,12 @@ class AppRoutes {
   /// Delivery issue report (PHASE 2.6 Inc 2).
   static const String deliveryIssue = '/delivery/issue';
 
+  /// Driver location and GPS states (STEP 2B). Outside shell nav.
+  static const String location = '/location';
+
+  /// Fake map preview of the delivery route (STEP 2B). Outside shell nav.
+  static const String mapPreview = '/map/preview';
+
   static String deliveryHistoryDetail(String id) => '/deliveries/$id';
 
   static String earningsDetail(String id) => '/earnings/$id';
@@ -96,7 +104,9 @@ class AppRoutes {
     settings,
     support,
     orders,
+    location,
     '/delivery',
+    '/map',
   ];
 
   static bool isProtected(String path) {
@@ -316,6 +326,16 @@ class AppRouter {
           path: '/profile/documents/:id',
           builder: (context, state) =>
               DocumentDetailScreen(id: state.pathParameters['id']!),
+        ),
+
+        // Location / fake map preview (protected, outside bottom nav — 2B)
+        GoRoute(
+          path: AppRoutes.location,
+          builder: (context, state) => const LocationScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.mapPreview,
+          builder: (context, state) => const MapPreviewScreen(),
         ),
 
         // Shell route for main app (with bottom nav) — protected
