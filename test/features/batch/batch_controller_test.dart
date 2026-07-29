@@ -141,7 +141,9 @@ void main() {
   });
 
   group('BatchController pickup and route', () {
-    Future<BatchController> acceptedController(ProviderContainer container) async {
+    Future<BatchController> acceptedController(
+      ProviderContainer container,
+    ) async {
       final controller = container.read(batchControllerProvider.notifier);
       await controller.loadOffer();
       await controller.acceptBatch();

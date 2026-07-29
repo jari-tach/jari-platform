@@ -5,6 +5,7 @@
 /// batch a driver sees here is a synthetic fixture built in memory.
 library;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/app_config.dart';
@@ -289,6 +290,15 @@ final batchServiceProvider = Provider<BatchService?>((ref) {
   }
   return FakeBatchService(latency: const Duration(milliseconds: 600));
 });
+
+/// Whether the fake batch fixture entry may be surfaced on the offers page.
+///
+/// `false` in release/profile builds and in the production environment, so the
+/// fake batch UI keeps no reachable affordance in production (governance §10).
+/// Tests override this provider to assert both visibility branches.
+final batchFixtureEntryEnabledProvider = Provider<bool>(
+  (ref) => kDebugMode && !AppConfig.isProduction,
+);
 
 class BatchController extends Notifier<BatchState> {
   @override
