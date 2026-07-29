@@ -375,9 +375,12 @@ class AppLocalizations {
   String get otpRequestAction => _t('Send code', 'إرسال رمز التحقق');
 
   // —— Profile ——
-  String get profileTitle => _t('Profile', 'ملف السائق');
+  String get profileTitle => _t('Profile', 'الملف الشخصي');
   String get profileOpenSettings => _t('Settings', 'الإعدادات');
   String get profileOpenSupport => _t('Support', 'الدعم');
+  String get profileMenuVehicle => _t('Vehicle', 'المركبة');
+  String get profileMenuDocuments => _t('Documents', 'المستندات');
+  String get profileMenuSafety => _t('Safety', 'السلامة');
   String get profileRetry => _t('Retry', 'إعادة المحاولة');
   String get profileEmptyTitle => _t('No profile yet', 'لا يوجد ملف بعد');
   String get profileEmptyMessage => _t(
@@ -442,6 +445,144 @@ class AppLocalizations {
     'Phone number and account status cannot be changed here.',
     'لا يمكن تغيير رقم الجوال وحالة الحساب من هنا.',
   );
+
+  // —— Vehicle (STEP 2A Fake UI) ——
+  String get vehicleTitle => _t('Vehicle', 'المركبة');
+  String get vehicleLoadingTitle => _t('Loading vehicle', 'جارٍ تحميل المركبة');
+  String get vehicleLoadingMessage => _t(
+    'Fetching your registered vehicle details.',
+    'جارٍ جلب تفاصيل مركبتك المسجّلة.',
+  );
+  String get vehicleEmptyTitle =>
+      _t('No vehicle on file', 'لا توجد مركبة مسجّلة');
+  String get vehicleEmptyMessage => _t(
+    'Add your vehicle to continue onboarding checks.',
+    'أضف مركبتك لمتابعة فحوصات التسجيل.',
+  );
+  String get vehicleAddAction => _t('Add vehicle', 'إضافة مركبة');
+  String get vehicleOfflineTitle =>
+      _t('Vehicle unavailable offline', 'المركبة غير متاحة دون اتصال');
+  String get vehicleOfflineMessage => _t(
+    'Connect to the internet to load or update vehicle details.',
+    'اتصل بالإنترنت لتحميل أو تحديث تفاصيل المركبة.',
+  );
+  String get vehicleErrorTitle =>
+      _t('Could not load vehicle', 'تعذر تحميل المركبة');
+  String get vehicleErrorMessage =>
+      _t('Please try again.', 'يرجى المحاولة مجددًا.');
+  String get vehicleEditAction => _t('Edit vehicle', 'تعديل المركبة');
+  String get vehicleViewDocumentsAction =>
+      _t('View vehicle documents', 'عرض مستندات المركبة');
+  String get vehicleEditTitle => _t('Edit vehicle', 'تعديل المركبة');
+  String get vehicleMakeLabel => _t('Make', 'الشركة المصنّعة');
+  String get vehicleModelLabel => _t('Model', 'الموديل');
+  String get vehicleYearLabel => _t('Year', 'السنة');
+  String get vehicleColorLabel => _t('Color', 'اللون');
+  String get vehiclePlateLabel => _t('Plate number', 'رقم اللوحة');
+  String get vehicleTypeLabel => _t('Vehicle type', 'نوع المركبة');
+  String vehicleTypeValue(String type) => _t('Type: $type', 'النوع: $type');
+  String get vehicleSaveAction => _t('Save vehicle', 'حفظ المركبة');
+  String get vehicleSavingAction => _t('Saving…', 'جارٍ الحفظ…');
+  String get vehicleSaveSuccess => _t('Vehicle saved.', 'تم حفظ المركبة.');
+  String get vehicleSaveFailure => _t(
+    'Could not save vehicle. Please try again.',
+    'تعذر حفظ المركبة. حاول مجددًا.',
+  );
+  String get vehicleValidationMessage => _t(
+    'Enter valid vehicle details before saving.',
+    'أدخل تفاصيل مركبة صالحة قبل الحفظ.',
+  );
+
+  // —— Documents (STEP 2A Fake UI) ——
+  String get documentsTitle => _t('Documents', 'المستندات');
+  String get documentsLoadingTitle =>
+      _t('Loading documents', 'جارٍ تحميل المستندات');
+  String get documentsLoadingMessage => _t(
+    'Fetching uploaded driver documents.',
+    'جارٍ جلب مستندات السائق المرفوعة.',
+  );
+  String get documentsEmptyTitle =>
+      _t('No documents yet', 'لا توجد مستندات بعد');
+  String get documentsEmptyMessage => _t(
+    'Upload your required documents to complete verification.',
+    'ارفع المستندات المطلوبة لإكمال التحقق.',
+  );
+  String get documentsErrorTitle =>
+      _t('Could not load documents', 'تعذر تحميل المستندات');
+  String get documentsErrorMessage =>
+      _t('Please try again.', 'يرجى المحاولة مجددًا.');
+  String get documentsOfflineTitle =>
+      _t('Documents unavailable offline', 'المستندات غير متاحة دون اتصال');
+  String get documentsOfflineMessage => _t(
+    'Connect to the internet to view or upload documents.',
+    'اتصل بالإنترنت لعرض أو رفع المستندات.',
+  );
+  String get documentsUploadAction => _t('Upload document', 'رفع مستند');
+  String get documentDetailTitle => _t('Document details', 'تفاصيل المستند');
+  String get documentTypeLabel => _t('Document type', 'نوع المستند');
+  String get documentNumberLabel => _t('Document number', 'رقم المستند');
+  String get documentIssueDateLabel => _t('Issue date', 'تاريخ الإصدار');
+  String get documentExpiryLabel => _t('Expiry date', 'تاريخ الانتهاء');
+  String get documentUploadedDateLabel => _t('Upload date', 'تاريخ الرفع');
+  String get documentRejectionReasonLabel =>
+      _t('Rejection reason', 'سبب الرفض');
+  String get documentEligibilityImpactLabel =>
+      _t('Eligibility impact', 'تأثير الأهلية');
+  String get documentsEligibilityBannerTitle =>
+      _t('Eligibility summary', 'ملخص الأهلية');
+  String get documentsEligibilityBannerMessage => _t(
+    'Rejected, expired, or under-review documents can block going available or vehicle approval.',
+    'المستندات المرفوضة أو المنتهية أو قيد المراجعة قد تحجب التحوّل إلى متاح أو اعتماد المركبة.',
+  );
+  String documentExpirySubtitle(String date) =>
+      _t('Expires $date', 'ينتهي في $date');
+  String documentUploadedSubtitle(String date) =>
+      _t('Uploaded $date', 'رُفع في $date');
+  String get documentRejectionPlateMismatch =>
+      _t('Plate number mismatch', 'عدم تطابق رقم اللوحة');
+  String get documentTypeNationalId => _t('National ID', 'الهوية الوطنية');
+  String get documentTypeDriverLicense => _t('Driver license', 'رخصة القيادة');
+  String get documentTypeVehicleRegistration =>
+      _t('Vehicle registration', 'تسجيل المركبة');
+  String get documentTypeInsurance => _t('Insurance', 'التأمين');
+  String get documentImpactNone => _t('No impact', 'لا يوجد تأثير');
+  String get documentImpactBlocksAvailability => _t(
+    'Going available may be blocked until review completes.',
+    'قد يُحجب التحول إلى متاح حتى يكتمل المراجعة.',
+  );
+  String get documentImpactBlocksVehicleApproval => _t(
+    'Vehicle approval may remain blocked.',
+    'قد يبقى اعتماد المركبة محجوبًا.',
+  );
+  String get documentImpactRequiresRenewal => _t(
+    'Renew this document soon to avoid eligibility loss.',
+    'جدّد هذا المستند قريبًا لتجنب فقدان الأهلية.',
+  );
+  String get documentUploadTitle => _t('Upload document', 'رفع مستند');
+  String get documentUploadHint => _t(
+    'Trial upload only — no camera or file picker in this increment.',
+    'رفع تجريبي فقط — لا كاميرا ولا منتقي ملفات في هذه الزيادة.',
+  );
+  String get documentUploadSelectAction =>
+      _t('Select trial file', 'اختيار ملف تجريبي');
+  String get documentFakeFileLabel => _t('Selected file', 'الملف المحدد');
+  String get documentUploadSubmitAction => _t('Submit upload', 'إرسال الرفع');
+  String get documentUploadingAction => _t('Uploading…', 'جارٍ الرفع…');
+  String get documentUploadSuccess =>
+      _t('Document uploaded.', 'تم رفع المستند.');
+  String get documentUploadFailure =>
+      _t('Upload failed. Please try again.', 'فشل الرفع. حاول مجددًا.');
+  String get documentValidationMessage => _t(
+    'Select a trial file before submitting.',
+    'اختر ملفًا تجريبيًا قبل الإرسال.',
+  );
+
+  // —— Shared review statuses (STEP 2A) ——
+  String get statusApproved => _t('Approved', 'مقبول');
+  String get statusUnderReview => _t('Under review', 'قيد المراجعة');
+  String get statusRejected => _t('Rejected', 'مرفوض');
+  String get statusExpiringSoon => _t('Expiring soon', 'ينتهي قريبًا');
+  String get statusExpired => _t('Expired', 'منتهي');
 
   // —— Settings (PHASE 2.6 Inc 4) ——
   String get settingsAppearanceSectionTitle => _t('Appearance', 'المظهر');
