@@ -5,6 +5,8 @@
 /// batch a driver sees here is a synthetic fixture built in memory.
 library;
 
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -29,13 +31,18 @@ enum BatchOfferViewStatus {
   rejected,
 }
 
-/// Pickup surface states (waiting → verified → confirmed).
+/// Pickup surface states (waiting → verified → manually confirmed).
+///
+/// [verification] never completes pickup: it hands over to
+/// [awaitingManualConfirmation], the distinct manual-confirmation surface
+/// required by Figma 138:2714.
 enum BatchPickupStatus {
   waiting,
   partiallyReady,
   allReady,
   verification,
   verificationError,
+  awaitingManualConfirmation,
   processing,
   pickupConfirmed,
 }
@@ -182,9 +189,13 @@ class BatchState {
     this.pickupStatus = BatchPickupStatus.waiting,
     this.routeStatus = BatchRouteStatus.overview,
     this.summaryStatus = BatchSummaryStatus.partial,
+    this.journeyStage,
+    this.stageHistory = const <BatchJourneyStage>[],
     this.currentSequence = 1,
     this.issueOrderId,
     this.selectedIssueReason = BatchOrderIssueReason.none,
+    this.callAttempts = 0,
+    this.whatsappAttempts = 0,
     this.isProcessing = false,
     this.tripStarted = false,
     this.restoredFromSnapshot = false,
@@ -197,6 +208,14 @@ class BatchState {
   final BatchRouteStatus routeStatus;
   final BatchSummaryStatus summaryStatus;
 
+  /// Where the batch sits in the mandatory driver journey, or `null` before
+  /// the batch has been picked up.
+  final BatchJourneyStage? journeyStage;
+
+  /// Ordered record of every journey stage the batch passed through. Tests
+  /// assert the exact sequence against the Figma 150:427 contract.
+  final List<BatchJourneyStage> stageHistory;
+
   /// Stop the driver is working on (stable 1-based sequence).
   final int currentSequence;
 
@@ -204,6 +223,10 @@ class BatchState {
   final String? issueOrderId;
 
   final BatchOrderIssueReason selectedIssueReason;
+
+  /// Fake contact attempts for the current stop. Nothing dials out.
+  final int callAttempts;
+  final int whatsappAttempts;
 
   /// In-flight guard — repeated taps must not re-trigger a transition.
   final bool isProcessing;
@@ -227,6 +250,60 @@ class BatchState {
 
   /// Finish stays hidden/disabled until every order is resolved.
   bool get canFinishBatch => batch?.allResolved ?? false;
+
+  /// Journey rule 1 + 2: verification alone is not pickup. The manual
+  /// confirmation is armed only when every required order is ready *and*
+  /// verified.
+  bool get canConfirmPickupManually =>
+      !isProcessing && (batch?.canConfirmPickupManually ?? false);
+
+  /// The batch is on the road only after the driver confirmed pickup.
+  bool get isPickedUp =>
+      journeyStage != null &&
+      journeyStage != BatchJourneyStage.pickupAwaitingManualConfirmation;
+
+  /// Journey rule 3: the route overview opens only after manual pickup.
+  bool get canStartRoute =>
+      isPickedUp && (batch?.actionableStops.isNotEmpty ?? false);
+
+  /// Journey rule 4 + 5: arrival is a read-only state produced by the fake
+  /// location signal, never by a driver action.
+  bool get hasArrivedAtCurrentStop =>
+      currentOrder?.state == BatchOrderState.arrived ||
+      currentOrder?.state == BatchOrderState.customerUnavailable;
+
+  /// Journey rule 9: delivery needs an explicit manual confirmation and can
+  /// only be armed after the automatic arrival.
+  bool get canConfirmDeliveryManually =>
+      !isProcessing &&
+      currentOrder?.state == BatchOrderState.arrived &&
+      (journeyStage == BatchJourneyStage.arrivedAutomaticallyByLocation ||
+          journeyStage == BatchJourneyStage.deliveryAwaitingManualConfirmation);
+
+  /// Journey rules 6–8: locked before pickup and en route, revealed for the
+  /// current stop after the automatic arrival, closed once the order is
+  /// delivered or cancelled. A customer who did not answer keeps their
+  /// contact visible until the outcome is recorded.
+  BatchCustomerContactVisibility get currentContactVisibility {
+    final order = currentOrder;
+    if (order == null) return BatchCustomerContactVisibility.locked;
+    if (order.state == BatchOrderState.customerUnavailable) {
+      return BatchCustomerContactVisibility.revealed;
+    }
+    if (order.isResolved) return BatchCustomerContactVisibility.closed;
+    if (order.state == BatchOrderState.arrived) {
+      return BatchCustomerContactVisibility.revealed;
+    }
+    return BatchCustomerContactVisibility.locked;
+  }
+
+  BatchCustomerContactViewData get currentContact =>
+      BatchCustomerContactViewData(
+        visibility: currentContactVisibility,
+        labelIndex: currentOrder?.labelIndex ?? 1,
+        callAttempts: callAttempts,
+        whatsappAttempts: whatsappAttempts,
+      );
 
   BatchOrderViewData? get currentOrder =>
       batch?.orderBySequence(currentSequence);
@@ -253,10 +330,14 @@ class BatchState {
     BatchPickupStatus? pickupStatus,
     BatchRouteStatus? routeStatus,
     BatchSummaryStatus? summaryStatus,
+    BatchJourneyStage? journeyStage,
+    List<BatchJourneyStage>? stageHistory,
     int? currentSequence,
     String? issueOrderId,
     bool clearIssueOrderId = false,
     BatchOrderIssueReason? selectedIssueReason,
+    int? callAttempts,
+    int? whatsappAttempts,
     bool? isProcessing,
     bool? tripStarted,
     bool? restoredFromSnapshot,
@@ -268,11 +349,15 @@ class BatchState {
       pickupStatus: pickupStatus ?? this.pickupStatus,
       routeStatus: routeStatus ?? this.routeStatus,
       summaryStatus: summaryStatus ?? this.summaryStatus,
+      journeyStage: journeyStage ?? this.journeyStage,
+      stageHistory: stageHistory ?? this.stageHistory,
       currentSequence: currentSequence ?? this.currentSequence,
       issueOrderId: clearIssueOrderId
           ? null
           : (issueOrderId ?? this.issueOrderId),
       selectedIssueReason: selectedIssueReason ?? this.selectedIssueReason,
+      callAttempts: callAttempts ?? this.callAttempts,
+      whatsappAttempts: whatsappAttempts ?? this.whatsappAttempts,
       isProcessing: isProcessing ?? this.isProcessing,
       tripStarted: tripStarted ?? this.tripStarted,
       restoredFromSnapshot: restoredFromSnapshot ?? this.restoredFromSnapshot,
@@ -449,10 +534,28 @@ class BatchController extends Notifier<BatchState> {
     );
   }
 
-  /// Confirms pickup of the whole batch once every order is verified.
-  Future<void> confirmPickup() async {
+  /// Opens the distinct manual pickup confirmation surface (Figma 138:2714).
+  ///
+  /// Verification does not complete pickup; it only unlocks this step.
+  void openManualPickupConfirmation() {
     final batch = state.batch;
-    if (batch == null || state.isProcessing || !batch.allVerified) return;
+    if (batch == null || !batch.canConfirmPickupManually) return;
+    state = _withStage(
+      state.copyWith(
+        pickupStatus: BatchPickupStatus.awaitingManualConfirmation,
+      ),
+      BatchJourneyStage.pickupAwaitingManualConfirmation,
+    );
+  }
+
+  /// Journey step 1 — the driver confirms the batch pickup manually.
+  ///
+  /// Re-entrant taps are dropped by the `isProcessing` guard, so the route
+  /// only opens once, after this action actually succeeds.
+  Future<void> confirmPickupManually() async {
+    final batch = state.batch;
+    if (batch == null || state.isProcessing) return;
+    if (!batch.canConfirmPickupManually) return;
     state = state.copyWith(
       pickupStatus: BatchPickupStatus.processing,
       isProcessing: true,
@@ -460,19 +563,25 @@ class BatchController extends Notifier<BatchState> {
     await _pause();
     if (!ref.mounted) return;
     final picked = state.batch!;
-    state = state.copyWith(
-      pickupStatus: BatchPickupStatus.pickupConfirmed,
-      batch: picked.copyWith(
-        orders: [
-          for (final order in picked.orders)
-            order.copyWith(state: BatchOrderState.pickedUp),
-        ],
+    state = _withStage(
+      state.copyWith(
+        pickupStatus: BatchPickupStatus.pickupConfirmed,
+        batch: picked.copyWith(
+          orders: [
+            for (final order in picked.orders)
+              order.state == BatchOrderState.cancelled ||
+                      order.state == BatchOrderState.expired
+                  ? order
+                  : order.copyWith(state: BatchOrderState.pickedUp),
+          ],
+        ),
+        routeStatus: BatchRouteStatus.overview,
+        currentSequence: picked.actionableStops.isEmpty
+            ? picked.orders.first.sequence
+            : picked.actionableStops.first.sequence,
+        isProcessing: false,
       ),
-      routeStatus: BatchRouteStatus.overview,
-      currentSequence: picked.actionableStops.isEmpty
-          ? picked.orders.first.sequence
-          : picked.actionableStops.first.sequence,
-      isProcessing: false,
+      BatchJourneyStage.pickupConfirmedManually,
     );
   }
 
@@ -481,7 +590,7 @@ class BatchController extends Notifier<BatchState> {
   /// Enters the first actionable stop from the route overview.
   void startRoute() {
     final batch = state.batch;
-    if (batch == null) return;
+    if (batch == null || !state.isPickedUp) return;
     final first = batch.actionableStops.isEmpty
         ? null
         : batch.actionableStops.first.sequence;
@@ -489,12 +598,14 @@ class BatchController extends Notifier<BatchState> {
     openStop(first);
   }
 
-  /// Opens a stop by its stable sequence.
+  /// Opens a stop by its stable sequence. Blocked until the batch has been
+  /// picked up manually (journey rule 3).
   void openStop(int sequence) {
     final batch = state.batch;
     final order = batch?.orderBySequence(sequence);
     if (batch == null || order == null || !order.isActionable) return;
-    state = state
+    if (!state.isPickedUp) return;
+    final next = state
         .copyWith(
           currentSequence: sequence,
           batch: order.state == BatchOrderState.pickedUp
@@ -502,29 +613,68 @@ class BatchController extends Notifier<BatchState> {
                   order.copyWith(state: BatchOrderState.headingToCustomer),
                 )
               : batch,
+          callAttempts: 0,
+          whatsappAttempts: 0,
           restoredFromSnapshot: false,
         )
         .copyWith(routeStatus: _routeStatusFor(sequence));
+    state = order.state == BatchOrderState.arrived
+        ? next
+        : _withStage(next, BatchJourneyStage.enRouteToCustomer);
   }
 
-  /// Marks arrival at the current customer (fake, no GPS).
-  void markArrived() {
+  /// Journey step 2 — arrival registered by the fake location signal.
+  ///
+  /// This is deliberately not reachable from any button, gesture or semantics
+  /// action: only [FakeBatchLocationController] calls it, and in STEP 2C that
+  /// controller is a presentation-only fake with no GPS, geofence or
+  /// permission behind it.
+  void registerAutomaticArrivalByLocation(int sequence) {
     final batch = state.batch;
-    final order = state.currentOrder;
+    final order = batch?.orderBySequence(sequence);
     if (batch == null || order == null || !order.isActionable) return;
+    if (!state.isPickedUp) return;
     if (order.state == BatchOrderState.arrived) return;
-    state = state.copyWith(
+    final arrived = state.copyWith(
+      currentSequence: sequence,
       batch: batch.withOrder(order.copyWith(state: BatchOrderState.arrived)),
-      routeStatus: _routeStatusFor(order.sequence),
+      routeStatus: _routeStatusFor(sequence),
+    );
+    // Both contract stages are recorded: the arrival itself, then the state in
+    // which the app waits for the driver's manual delivery confirmation.
+    state = _withStage(
+      _withStage(arrived, BatchJourneyStage.arrivedAutomaticallyByLocation),
+      BatchJourneyStage.deliveryAwaitingManualConfirmation,
     );
   }
 
-  /// Confirms delivery of the current order only.
-  Future<void> confirmDelivery() async {
+  /// Fake call action for the current stop — counts an attempt, dials nothing.
+  void recordCallAttempt() {
+    if (state.currentContactVisibility !=
+        BatchCustomerContactVisibility.revealed) {
+      return;
+    }
+    state = state.copyWith(callAttempts: state.callAttempts + 1);
+  }
+
+  /// Fake WhatsApp action for the current stop — no intent is ever launched.
+  void recordWhatsappAttempt() {
+    if (state.currentContactVisibility !=
+        BatchCustomerContactVisibility.revealed) {
+      return;
+    }
+    state = state.copyWith(whatsappAttempts: state.whatsappAttempts + 1);
+  }
+
+  /// Journey step 3 — the driver confirms delivery of the current order
+  /// manually. Never called automatically, and never before the automatic
+  /// arrival was registered.
+  Future<void> confirmDeliveryManually() async {
     final batch = state.batch;
     final order = state.currentOrder;
     if (batch == null || order == null || state.isProcessing) return;
     if (!order.isActionable) return;
+    if (!state.canConfirmDeliveryManually) return;
     final sequence = order.sequence;
     state = state.copyWith(
       routeStatus: BatchRouteStatus.processing,
@@ -543,7 +693,10 @@ class BatchController extends Notifier<BatchState> {
             : BatchOrderState.deliveredPendingSync,
       ),
     );
-    state = state.copyWith(batch: updated, isProcessing: false);
+    state = _withStage(
+      state.copyWith(batch: updated, isProcessing: false),
+      BatchJourneyStage.deliveredConfirmedManually,
+    );
     if (!synced) {
       state = state.copyWith(routeStatus: BatchRouteStatus.offlineQueue);
       return;
@@ -707,19 +860,39 @@ class BatchController extends Notifier<BatchState> {
     await Future<void>.delayed(Duration.zero);
   }
 
+  /// Records a journey stage transition without ever rewriting history.
+  BatchState _withStage(BatchState next, BatchJourneyStage stage) {
+    return next.copyWith(
+      journeyStage: stage,
+      stageHistory: List<BatchJourneyStage>.unmodifiable([
+        ...next.stageHistory,
+        stage,
+      ]),
+    );
+  }
+
   void _advanceAfterResolution() {
     final batch = state.batch;
     if (batch == null) return;
     final remaining = batch.actionableStops;
     if (remaining.isEmpty) {
-      state = state.copyWith(routeStatus: BatchRouteStatus.overview);
+      state = state.copyWith(
+        routeStatus: BatchRouteStatus.overview,
+        callAttempts: 0,
+        whatsappAttempts: 0,
+      );
       finishBatchStatusOnly();
       return;
     }
     final next = remaining.first.sequence;
+    // The batch is still picked up; the next stop starts from the route
+    // overview and only becomes "en route" when the driver opens it.
     state = state.copyWith(
       currentSequence: next,
       routeStatus: BatchRouteStatus.overview,
+      journeyStage: BatchJourneyStage.pickupConfirmedManually,
+      callAttempts: 0,
+      whatsappAttempts: 0,
     );
   }
 
@@ -741,3 +914,85 @@ class BatchController extends Notifier<BatchState> {
 final batchControllerProvider = NotifierProvider<BatchController, BatchState>(
   BatchController.new,
 );
+
+/// Fake proximity signal for the current stop (STEP 2C).
+///
+/// This models what STEP 4 will later get from real tracking. Here it is a
+/// timer over in-memory data: no GPS, no geofence, no permissions, no plugin.
+enum FakeBatchLocationSignal { idle, approachingCustomer, atCustomer }
+
+class FakeBatchLocationState {
+  const FakeBatchLocationState({
+    this.signal = FakeBatchLocationSignal.idle,
+    this.sequence,
+  });
+
+  final FakeBatchLocationSignal signal;
+
+  /// Stop the signal refers to, or `null` while idle.
+  final int? sequence;
+
+  bool get isTracking => signal != FakeBatchLocationSignal.idle;
+}
+
+/// How long the fake signal takes to report arrival once a stop is opened.
+///
+/// Tests override this to drive the transition deterministically.
+final fakeBatchArrivalDelayProvider = Provider<Duration>(
+  (ref) => const Duration(seconds: 4),
+);
+
+/// Presentation-only location controller. The driver never triggers arrival:
+/// opening a stop starts the signal, and the signal reports the arrival.
+class FakeBatchLocationController extends Notifier<FakeBatchLocationState> {
+  Timer? _timer;
+
+  @override
+  FakeBatchLocationState build() {
+    ref.onDispose(_cancel);
+    return const FakeBatchLocationState();
+  }
+
+  void _cancel() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  /// Starts tracking towards [sequence] and schedules the automatic arrival.
+  void startApproach(int sequence) {
+    if (state.signal == FakeBatchLocationSignal.approachingCustomer &&
+        state.sequence == sequence) {
+      return;
+    }
+    _cancel();
+    state = FakeBatchLocationState(
+      signal: FakeBatchLocationSignal.approachingCustomer,
+      sequence: sequence,
+    );
+    _timer = Timer(ref.read(fakeBatchArrivalDelayProvider), () {
+      reportArrival(sequence);
+    });
+  }
+
+  /// Reports the arrival for [sequence]. Read-only from the driver's side.
+  void reportArrival(int sequence) {
+    _cancel();
+    state = FakeBatchLocationState(
+      signal: FakeBatchLocationSignal.atCustomer,
+      sequence: sequence,
+    );
+    ref
+        .read(batchControllerProvider.notifier)
+        .registerAutomaticArrivalByLocation(sequence);
+  }
+
+  void reset() {
+    _cancel();
+    state = const FakeBatchLocationState();
+  }
+}
+
+final fakeBatchLocationControllerProvider =
+    NotifierProvider<FakeBatchLocationController, FakeBatchLocationState>(
+      FakeBatchLocationController.new,
+    );

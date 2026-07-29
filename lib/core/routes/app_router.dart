@@ -8,6 +8,7 @@ import '../../features/auth/presentation/screens/otp_verification_screen.dart';
 import '../../features/auth/presentation/screens/session_expired_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/batch/batch_issue_screen.dart';
+import '../../features/batch/batch_manual_pickup_screen.dart';
 import '../../features/batch/batch_offer_screen.dart';
 import '../../features/batch/batch_pickup_screen.dart';
 import '../../features/batch/batch_route_screen.dart';
@@ -87,6 +88,7 @@ class AppRoutes {
   static const String batchOfferRoot = '/offers/batch';
   static const String batchPickupRoot = '/batch';
   static const String batchVerifySegment = 'verify';
+  static const String batchManualPickupSegment = 'confirm-pickup';
   static const String batchRouteSegment = 'route';
   static const String batchStopSegment = 'stop';
   static const String batchIssueSegment = 'issue';
@@ -99,6 +101,9 @@ class AppRoutes {
 
   static String batchVerifyPath(String batchId) =>
       '$batchPickupRoot/$batchId/$batchVerifySegment';
+
+  static String batchManualPickupPath(String batchId) =>
+      '$batchPickupRoot/$batchId/$batchManualPickupSegment';
 
   static String batchRoutePath(String batchId) =>
       '$batchPickupRoot/$batchId/$batchRouteSegment';
@@ -392,6 +397,13 @@ class AppRouter {
               '${AppRoutes.batchPickupRoot}/:batchId/${AppRoutes.batchVerifySegment}',
           builder: (context, state) =>
               BatchVerifyScreen(batchId: state.pathParameters['batchId']!),
+        ),
+        GoRoute(
+          path:
+              '${AppRoutes.batchPickupRoot}/:batchId/${AppRoutes.batchManualPickupSegment}',
+          builder: (context, state) => BatchManualPickupScreen(
+            batchId: state.pathParameters['batchId']!,
+          ),
         ),
         GoRoute(
           path:

@@ -83,11 +83,19 @@ class BatchRouteScreen extends ConsumerWidget {
           message: l10n.batchRestoredMessage,
           tone: P27BannerTone.information,
         ),
-      P27Banner(
-        title: l10n.batchRouteOverviewTitle,
-        message: l10n.batchRouteOverviewMessage,
-        tone: P27BannerTone.information,
-      ),
+      if (!state.isPickedUp)
+        P27Banner(
+          title: l10n.batchRouteLockedTitle,
+          message: l10n.batchRouteLockedMessage,
+          tone: P27BannerTone.warning,
+        )
+      else
+        P27Banner(
+          title: l10n.batchRouteOverviewTitle,
+          message: l10n.batchRouteOverviewMessage,
+          tone: P27BannerTone.information,
+        ),
+      BatchJourneyTimeline(activeStage: state.journeyStage),
       BatchMultiStopMap(
         stopCount: batch.orderCount,
         activeSequence: state.currentSequence,
@@ -116,7 +124,7 @@ class BatchRouteScreen extends ConsumerWidget {
             onPressed: controller.resumeAfterRestore,
           ),
         )
-      else if (nextStop != null)
+      else if (nextStop != null && state.canStartRoute)
         SizedBox(
           height: 56,
           child: SaeqPrimaryButton(

@@ -476,3 +476,424 @@ String formatBatchEarnings(double sar) {
   final rounded = sar == sar.roundToDouble() ? sar.toInt() : sar;
   return '$rounded';
 }
+
+/// Figma 39:35 — Operational/Timeline Final.
+///
+/// Four stages: Accept → Manual pickup → Automatic arrival → Manual delivery.
+class BatchJourneyTimeline extends StatelessWidget {
+  const BatchJourneyTimeline({super.key, this.activeStage});
+
+  static const timelineKey = Key('batchJourneyTimeline');
+
+  final BatchJourneyStage? activeStage;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final colors = SaeqSemanticColors.of(context);
+    final stages = <(IconData, String)>[
+      (Icons.check_circle_outline, l10n.batchJourneyStepAccept),
+      (Icons.inventory_2_outlined, l10n.batchJourneyStepPickup),
+      (Icons.my_location_outlined, l10n.batchJourneyStepArrival),
+      (Icons.handshake_outlined, l10n.batchJourneyStepDelivery),
+    ];
+    final activeIndex = switch (activeStage) {
+      BatchJourneyStage.pickupAwaitingManualConfirmation ||
+      BatchJourneyStage.pickupConfirmedManually => 1,
+      BatchJourneyStage.enRouteToCustomer ||
+      BatchJourneyStage.arrivedAutomaticallyByLocation ||
+      BatchJourneyStage.deliveryAwaitingManualConfirmation => 2,
+      BatchJourneyStage.deliveredConfirmedManually => 3,
+      null => 0,
+    };
+
+    return Semantics(
+      key: timelineKey,
+      label: l10n.batchJourneyTimelineCaption,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(8, 12, 8, 10),
+        decoration: BoxDecoration(
+          color: colors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: colors.border),
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                for (var i = 0; i < stages.length; i++) ...[
+                  if (i > 0)
+                    Expanded(
+                      child: Container(
+                        height: 2,
+                        margin: const EdgeInsets.only(bottom: 36),
+                        color: colors.border,
+                      ),
+                    ),
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: i <= activeIndex
+                                ? colors.primaryContainer
+                                : colors.elevatedSurface,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: i <= activeIndex
+                                  ? colors.primary
+                                  : colors.border,
+                            ),
+                          ),
+                          child: Icon(
+                            stages[i].$1,
+                            size: 18,
+                            color: i <= activeIndex
+                                ? colors.primary
+                                : colors.textSecondary,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          stages[i].$2,
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          softWrap: true,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.supporting.copyWith(
+                            color: colors.textPrimary,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 11,
+                            height: 1.2,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.batchJourneyTimelineCaption,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.supporting.copyWith(
+                color: colors.textSecondary,
+                fontSize: 11,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Figma 115:835 / 115:890 / 115:1000 — non-interactive automatic arrival.
+class BatchAutomaticArrivalStatus extends StatelessWidget {
+  const BatchAutomaticArrivalStatus({super.key});
+
+  static const statusKey = Key('batchAutomaticArrivalStatus');
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final colors = SaeqSemanticColors.of(context);
+    return Semantics(
+      key: statusKey,
+      label: l10n.batchAutomaticArrivalStatus,
+      child: Container(
+        width: double.infinity,
+        constraints: const BoxConstraints(minHeight: 48),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: colors.informationContainer,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: colors.information),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          l10n.batchAutomaticArrivalStatus,
+          textAlign: TextAlign.center,
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: colors.information,
+            fontWeight: FontWeight.w700,
+            fontSize: 14,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Figma 119:406 — Batch/Customer Contact (Locked / Revealed / Closed).
+class BatchCustomerContactCard extends StatelessWidget {
+  const BatchCustomerContactCard({
+    super.key,
+    required this.contact,
+    required this.l10n,
+    this.onCall,
+    this.onWhatsapp,
+  });
+
+  static const cardKey = Key('batchCustomerContactCard');
+  static const callKey = Key('batchContactCall');
+  static const whatsappKey = Key('batchContactWhatsapp');
+  static const lockedActionKey = Key('batchContactCallUnavailable');
+  static const phoneKey = Key('batchContactPhone');
+  static const addressKey = Key('batchContactAddress');
+  static const notesKey = Key('batchContactNotes');
+
+  final BatchCustomerContactViewData contact;
+  final AppLocalizations l10n;
+  final VoidCallback? onCall;
+  final VoidCallback? onWhatsapp;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = SaeqSemanticColors.of(context);
+    final revealed = contact.isRevealed;
+    final closed = contact.isClosed;
+    final name = closed
+        ? l10n.batchContactClosedName
+        : l10n.batchCustomerFirstName(contact.labelIndex);
+    final status = closed
+        ? l10n.batchContactStatusClosed
+        : revealed
+        ? l10n.batchContactStatusRevealed
+        : l10n.batchContactStatusLocked;
+    final statusColor = closed
+        ? colors.primary
+        : revealed
+        ? colors.success
+        : colors.information;
+    final statusBg = closed
+        ? colors.primaryContainer
+        : revealed
+        ? colors.successContainer
+        : colors.informationContainer;
+    final phone = closed
+        ? l10n.batchContactPhoneClosedMask
+        : revealed
+        ? l10n.batchCustomerPhoneNumber(contact.labelIndex)
+        : l10n.batchContactPhoneLockedMask;
+
+    return Semantics(
+      key: cardKey,
+      label: '$name. $status',
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: colors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: colors.border),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    name,
+                    style: AppTextStyles.titleMedium.copyWith(
+                      color: colors.textPrimary,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: statusBg,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    status,
+                    style: AppTextStyles.supporting.copyWith(
+                      color: statusColor,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            _contactField(
+              key: phoneKey,
+              label: l10n.batchContactPhoneLabel,
+              value: phone,
+              valueColor: revealed ? colors.primary : colors.disabled,
+            ),
+            if (revealed) ...[
+              const SizedBox(height: 10),
+              _contactField(
+                key: addressKey,
+                label: l10n.batchContactAddressLabel,
+                value: l10n.batchCustomerAddress(contact.labelIndex),
+                valueColor: colors.textPrimary,
+              ),
+              const SizedBox(height: 10),
+              _contactField(
+                key: notesKey,
+                label: l10n.batchContactNotesLabel,
+                value: l10n.batchContactNotesValue,
+                valueColor: colors.textPrimary,
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 48,
+                      child: FilledButton(
+                        key: callKey,
+                        onPressed: onCall,
+                        style: FilledButton.styleFrom(
+                          backgroundColor: colors.primary,
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size(0, 48),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          l10n.batchContactCallAction,
+                          style: AppTextStyles.button.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: SizedBox(
+                      height: 48,
+                      child: OutlinedButton(
+                        key: whatsappKey,
+                        onPressed: onWhatsapp,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: colors.primary,
+                          side: BorderSide(color: colors.primary),
+                          minimumSize: const Size(0, 48),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          l10n.batchContactWhatsappAction,
+                          style: AppTextStyles.button.copyWith(
+                            color: colors.primary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                l10n.batchContactCurrentOnlyNote,
+                style: AppTextStyles.supporting.copyWith(
+                  color: colors.textSecondary,
+                  fontSize: 12,
+                ),
+              ),
+            ] else ...[
+              const SizedBox(height: 10),
+              Text(
+                closed
+                    ? l10n.batchContactClosedNote
+                    : l10n.batchContactLockedNote,
+                style: AppTextStyles.supporting.copyWith(
+                  color: colors.textSecondary,
+                  fontSize: 12,
+                ),
+              ),
+              if (!closed) ...[
+                const SizedBox(height: 10),
+                Container(
+                  key: lockedActionKey,
+                  height: 48,
+                  width: double.infinity,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: colors.elevatedSurface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: colors.border),
+                  ),
+                  child: Text(
+                    l10n.batchContactCallUnavailable,
+                    style: AppTextStyles.button.copyWith(
+                      color: colors.disabled,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _contactField({
+    required Key key,
+    required String label,
+    required String value,
+    required Color valueColor,
+  }) {
+    return Builder(
+      builder: (context) {
+        final colors = SaeqSemanticColors.of(context);
+        return Container(
+          key: key,
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: colors.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: colors.border),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: AppTextStyles.supporting.copyWith(
+                  color: colors.textSecondary,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: valueColor,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 15,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}

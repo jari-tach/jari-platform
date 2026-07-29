@@ -1319,8 +1319,6 @@ class AppLocalizations {
     'Next customer details stay hidden until you reach that stop.',
     'تظل بيانات العميل التالي مخفية حتى تصل إلى محطته.',
   );
-  String get batchArriveAction => _t('I have arrived', 'لقد وصلت');
-  String get batchDeliverAction => _t('Confirm delivery', 'تأكيد التسليم');
   String get batchReportIssueAction =>
       _t('Report a problem', 'الإبلاغ عن مشكلة');
 
@@ -1413,6 +1411,170 @@ class AppLocalizations {
       _t('Batch delivery progress', 'تقدم توصيل الدفعة');
   String get batchSemanticsOrders =>
       _t('Orders in this batch', 'طلبات هذه الدفعة');
+
+  // —— Mandatory driver journey (Figma 150:427 / 39:35) ——
+  //
+  // Manual pickup → automatic arrival by location → manual delivery.
+
+  String get batchManualPickupTitle =>
+      _t('Manual pickup confirmation', 'تأكيد الاستلام اليدوي');
+  String get batchManualPickupBannerTitle =>
+      _t('All orders verified', 'تم التحقق من جميع الطلبات');
+  String get batchManualPickupBannerMessage => _t(
+    'Confirm the batch pickup manually before you leave the store.',
+    'أكد استلام الدفعة يدويًا قبل مغادرة المتجر.',
+  );
+  String get batchManualPickupAction =>
+      _t('Confirm batch pickup manually', 'تأكيد استلام الدفعة يدويًا');
+  String get batchManualPickupProcessingLabel =>
+      _t('Confirming pickup…', 'جارٍ تأكيد الاستلام…');
+  String get batchManualPickupGateHint => _t(
+    'Every order must be ready and verified before pickup can be confirmed.',
+    'يجب أن تكون جميع الطلبات جاهزة ومُتحقّقًا منها قبل تأكيد الاستلام.',
+  );
+  String get batchBackToVerifyAction => _t('Back to review', 'العودة للمراجعة');
+  String get batchVerifyContinueAction =>
+      _t('Continue to pickup confirmation', 'متابعة إلى تأكيد الاستلام');
+  String get batchOrderConfirmedBadge => _t('Confirmed', 'مؤكد');
+  String get batchOrderVerifiedSubtitle =>
+      _t('Order verified', 'تم التحقق من الطلب');
+
+  String get batchRouteLockedTitle => _t('Route not started', 'لم تبدأ الرحلة');
+  String get batchRouteLockedMessage => _t(
+    'The route opens only after the batch pickup is confirmed manually.',
+    'تبدأ الرحلة فقط بعد تأكيد استلام الدفعة يدويًا.',
+  );
+
+  /// Read-only arrival status (Figma 115:835 / 115:890 / 115:1000).
+  String get batchAutomaticArrivalStatus => _t(
+    'Arrival is recorded automatically by location',
+    'الوصول يُسجّل تلقائيًا عبر الموقع',
+  );
+  String get batchEnRouteTitle =>
+      _t('On the way to the customer', 'في الطريق إلى العميل');
+  String get batchEnRouteMessage => _t(
+    'Contact details stay locked until arrival is recorded automatically.',
+    'تظل بيانات الاتصال مقفلة حتى تسجيل الوصول تلقائيًا.',
+  );
+  String batchArrivedAutomaticallyTitle(int sequence, int total) => _t(
+    'Arrived automatically — order $sequence of $total',
+    'تم الوصول تلقائيًا — الطلب $sequence من $total',
+  );
+
+  // —— Current customer contact (Figma 119:406 · 119:366 / 119:377 / 119:397) ——
+
+  String get batchContactStatusLocked => _t('Before pickup', 'قبل الاستلام');
+  String get batchContactStatusRevealed => _t('Available now', 'متاح الآن');
+  String get batchContactStatusClosed => _t('Details hidden', 'البيانات مخفية');
+  String get batchContactClosedName => _t('Order closed', 'تم إغلاق الطلب');
+  String get batchContactPhoneLabel => _t('Mobile number', 'رقم الجوال');
+  String get batchContactPhoneLockedMask => '05• ••• ••••';
+  String get batchContactPhoneClosedMask => '••••••••••';
+  String get batchContactLockedNote => _t(
+    'The full number appears after every order is confirmed as picked up.',
+    'سيظهر الرقم كاملًا بعد تأكيد استلام جميع الطلبات.',
+  );
+  String get batchContactClosedNote => _t(
+    'Contact details were hidden after delivery or cancellation.',
+    'أُخفيت بيانات الاتصال بعد التسليم أو الإلغاء.',
+  );
+  String get batchContactCallUnavailable =>
+      _t('Calling unavailable', 'الاتصال غير متاح');
+  String get batchContactAddressLabel => _t('Full address', 'العنوان الكامل');
+  String get batchContactNotesLabel => _t('Delivery notes', 'ملاحظات التسليم');
+  String get batchContactNotesValue =>
+      _t('Please call on arrival.', 'الرجاء الاتصال عند الوصول.');
+  String get batchContactCallAction => _t('Call', 'اتصال');
+  String get batchContactWhatsappAction => _t('WhatsApp', 'واتساب');
+  String get batchContactCurrentOnlyNote => _t(
+    'Only the current stop customer details are shown.',
+    'تظهر بيانات عميل التوقف الحالي فقط.',
+  );
+  String batchContactAttemptsLabel(int attempts) =>
+      _t('Contact attempts: $attempts', 'محاولات التواصل: $attempts');
+
+  /// Synthetic contact number. Fixture data only — never a real subscriber.
+  String batchCustomerPhoneNumber(int index) {
+    return switch (index) {
+      1 => '055 123 4567',
+      2 => '055 123 4568',
+      3 => '055 123 4569',
+      _ => '055 123 4570',
+    };
+  }
+
+  /// Synthetic street address revealed only for the current stop.
+  String batchCustomerAddress(int index) {
+    return switch (index) {
+      1 => _t(
+        'Al Nakheel district, Al Tahlia street, building 14',
+        'حي النخيل، شارع التحلية، مبنى 14',
+      ),
+      2 => _t(
+        'Al Rawdah district, Al Amir street, building 27',
+        'حي الروضة، شارع الأمير، مبنى 27',
+      ),
+      3 => _t(
+        'Al Yasmin district, Al Sahafa street, building 8',
+        'حي الياسمين، شارع الصحافة، مبنى 8',
+      ),
+      _ => _t(
+        'Al Wurud district, Al Urubah street, building 33',
+        'حي الورود، شارع العروبة، مبنى 33',
+      ),
+    };
+  }
+
+  String get batchContactLockedBannerTitle =>
+      _t('Details protected before pickup', 'البيانات محمية قبل الاستلام');
+  String get batchContactLockedBannerMessage => _t(
+    'The full customer number appears after every order is picked up.',
+    'سيظهر رقم العميل كاملًا بعد تأكيد استلام جميع الطلبات.',
+  );
+  String get batchContactClosedBannerTitle =>
+      _t('Privacy preserved', 'الخصوصية محفوظة');
+  String get batchContactClosedBannerMessage => _t(
+    'The customer number is not shown in the trip or the short log after closing.',
+    'لا يظهر رقم العميل في الرحلة أو السجل المختصر بعد الإغلاق.',
+  );
+  String get batchNextStopBadge => _t('Next', 'التالي');
+  String batchNextStopTitle(String district) =>
+      _t('Next order · $district', 'الطلب التالي · $district');
+  String get batchNextStopHiddenMessage => _t(
+    'The next customer number stays hidden until their stop.',
+    'رقم العميل التالي مخفي حتى حلول توقفه',
+  );
+
+  // —— Manual delivery (Figma 125:462 / 125:508) ——
+
+  String get batchManualDeliveryAction =>
+      _t('Confirm delivery manually', 'تأكيد التسليم يدويًا');
+  String get batchManualDeliveryProcessingLabel =>
+      _t('Confirming delivery…', 'جارٍ تأكيد التسليم…');
+  String get batchDeliveryLockedHint => _t(
+    'Delivery confirmation unlocks after arrival is recorded automatically.',
+    'يتاح تأكيد التسليم بعد تسجيل الوصول تلقائيًا.',
+  );
+  String get batchDeliveredTitle => _t('Order delivered', 'تم تسليم الطلب');
+  String batchStopCompletedTitle(int sequence) =>
+      _t('Stop $sequence completed', 'اكتمل التوقف $sequence');
+  String get batchContactHiddenAfterCloseMessage => _t(
+    'Customer details were hidden after the order was closed.',
+    'تم إخفاء بيانات العميل بعد إغلاق الطلب.',
+  );
+  String get batchCustomerUnavailableContactNote => _t(
+    'The customer number stays visible until the outcome is recorded or the order is closed.',
+    'يبقى رقم العميل ظاهرًا حتى تسجيل النتيجة أو إغلاق الطلب.',
+  );
+  String get batchJourneyStepAccept => _t('Accept\norder', 'قبول\nالطلب');
+  String get batchJourneyStepPickup => _t('Manual\npickup', 'استلام\nيدوي');
+  String get batchJourneyStepArrival =>
+      _t('Automatic\narrival', 'وصول\nتلقائي');
+  String get batchJourneyStepDelivery => _t('Manual\ndelivery', 'تسليم\nيدوي');
+  String get batchJourneyTimelineCaption => _t(
+    'Pickup and delivery need a manual confirm · arrival is recorded by location',
+    'الاستلام والتسليم بتأكيد يدوي · الوصول يُسجّل تلقائيًا بالموقع',
+  );
 }
 
 /// Localizations delegate

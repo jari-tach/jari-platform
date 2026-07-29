@@ -13,13 +13,17 @@ import 'batch_ui_helpers.dart';
 import 'batch_view_data.dart';
 
 /// P27 pickup verification (115:693).
+///
+/// Verification never completes pickup and never opens the route. When every
+/// required order is verified, the driver is sent to the distinct manual
+/// pickup confirmation surface (Figma 138:2714).
 class BatchVerifyScreen extends ConsumerWidget {
   const BatchVerifyScreen({super.key, required this.batchId});
 
   final String batchId;
 
   static const pageKey = Key('batchVerifyScreen');
-  static const confirmKey = Key('batchVerifyConfirmPickup');
+  static const continueKey = Key('batchVerifyContinueToPickup');
   static const dismissErrorKey = Key('batchVerifyDismissError');
 
   @override
@@ -30,9 +34,9 @@ class BatchVerifyScreen extends ConsumerWidget {
     final batch = state.batch;
 
     ref.listen(batchControllerProvider, (previous, next) {
-      if (next.pickupStatus == BatchPickupStatus.pickupConfirmed &&
+      if (next.pickupStatus == BatchPickupStatus.awaitingManualConfirmation &&
           next.batch?.batchId == batchId) {
-        context.go(AppRoutes.batchRoutePath(batchId));
+        context.go(AppRoutes.batchManualPickupPath(batchId));
       }
     });
 
@@ -59,6 +63,7 @@ class BatchVerifyScreen extends ConsumerWidget {
   ) {
     final pickup = BatchPickupViewData(batch: batch);
     final next = pickup.nextUnverified;
+    final canContinue = batch.canConfirmPickupManually && !state.isProcessing;
 
     return [
       if (state.pickupStatus == BatchPickupStatus.verificationError)
@@ -123,15 +128,12 @@ class BatchVerifyScreen extends ConsumerWidget {
       SizedBox(
         height: 56,
         child: SaeqPrimaryButton(
-          key: confirmKey,
-          label: state.isProcessing
-              ? l10n.batchVerifyProcessingLabel
-              : l10n.batchVerifyConfirmPickupAction,
-          icon: Icons.check_circle_outline,
-          onPressed: batch.allVerified && !state.isProcessing
-              ? controller.confirmPickup
+          key: continueKey,
+          label: l10n.batchVerifyContinueAction,
+          icon: Icons.arrow_forward,
+          onPressed: canContinue
+              ? controller.openManualPickupConfirmation
               : null,
-          isLoading: state.isProcessing,
         ),
       ),
     ];

@@ -24,6 +24,36 @@ enum BatchOrderState {
   expired,
 }
 
+/// Mandatory driver journey contract (Figma 150:427 §1 and 39:35).
+///
+/// Pickup and delivery are confirmed manually by the driver; arrival at the
+/// customer is a read-only state produced by location tracking. In STEP 2C the
+/// location signal is a fake, presentation-only provider — never real GPS.
+enum BatchJourneyStage {
+  /// Every required order is ready and verified; the manual pickup action is
+  /// armed but the batch has not been picked up yet.
+  pickupAwaitingManualConfirmation,
+
+  /// The driver pressed the manual pickup confirmation and it succeeded.
+  pickupConfirmedManually,
+
+  /// Driving to the current customer. Contact details stay locked.
+  enRouteToCustomer,
+
+  /// Arrival registered by the (fake) location signal. Read-only: there is no
+  /// button, gesture or semantics action that means "I arrived".
+  arrivedAutomaticallyByLocation,
+
+  /// Arrival is registered and the manual delivery confirmation is armed.
+  deliveryAwaitingManualConfirmation,
+
+  /// The driver pressed the manual delivery confirmation and it succeeded.
+  deliveredConfirmedManually,
+}
+
+/// Customer contact disclosure states (Figma 119:366 / 119:377 / 119:397).
+enum BatchCustomerContactVisibility { locked, revealed, closed }
+
 /// Why an order left the happy path. Rendered as text, never color alone.
 enum BatchOrderIssueReason {
   none,
@@ -180,6 +210,28 @@ class BatchOfferViewData {
 
   bool get allVerified => orders.every((o) => o.isVerified);
 
+  /// Orders the driver still has to carry: cancelled and expired stops drop
+  /// out of the pickup gate instead of blocking the whole batch.
+  List<BatchOrderViewData> get requiredOrders => orders
+      .where(
+        (o) =>
+            o.state != BatchOrderState.cancelled &&
+            o.state != BatchOrderState.expired,
+      )
+      .toList(growable: false);
+
+  bool get allRequiredReadyForPickup =>
+      requiredOrders.every((o) => o.isReadyForPickup);
+
+  bool get allRequiredVerified => requiredOrders.every((o) => o.isVerified);
+
+  /// Journey rule 1: the route cannot start before every required order is
+  /// both ready and verified. Verification alone never completes pickup.
+  bool get canConfirmPickupManually =>
+      requiredOrders.isNotEmpty &&
+      allRequiredReadyForPickup &&
+      allRequiredVerified;
+
   /// Fake money actually earned: completed orders only.
   double get earnedSar => orders
       .where((o) => o.isCompleted)
@@ -268,6 +320,31 @@ class BatchStopViewData {
 
   int get resolvedCount => batch.resolvedCount;
   int get orderCount => batch.orderCount;
+}
+
+/// Current-stop customer contact (Figma 119:406 and its three variants).
+///
+/// Privacy: the card is built for exactly one order — the current stop. It
+/// carries a label index, never another customer's data, and the phone number
+/// it resolves is a synthetic fixture value.
+class BatchCustomerContactViewData {
+  const BatchCustomerContactViewData({
+    required this.visibility,
+    required this.labelIndex,
+    this.callAttempts = 0,
+    this.whatsappAttempts = 0,
+  });
+
+  final BatchCustomerContactVisibility visibility;
+  final int labelIndex;
+  final int callAttempts;
+  final int whatsappAttempts;
+
+  bool get isRevealed => visibility == BatchCustomerContactVisibility.revealed;
+
+  bool get isClosed => visibility == BatchCustomerContactVisibility.closed;
+
+  int get totalAttempts => callAttempts + whatsappAttempts;
 }
 
 /// Batch closing summary (Figma 115:1142 / 115:1196).

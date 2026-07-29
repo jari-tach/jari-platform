@@ -35,10 +35,14 @@ class _FastBatchService implements BatchService {
   bool syncsImmediately(int sequence) => sequence != 2;
 }
 
-ProviderContainer _container({BatchService? service}) {
+ProviderContainer _container({
+  BatchService? service,
+  Duration arrivalDelay = Duration.zero,
+}) {
   final container = ProviderContainer(
     overrides: [
       batchServiceProvider.overrideWithValue(service ?? _FastBatchService()),
+      fakeBatchArrivalDelayProvider.overrideWithValue(arrivalDelay),
     ],
   );
   addTearDown(container.dispose);
@@ -140,7 +144,7 @@ void main() {
     });
   });
 
-  group('BatchController pickup and route', () {
+  group('BatchController journey contract', () {
     Future<BatchController> acceptedController(
       ProviderContainer container,
     ) async {
@@ -150,55 +154,310 @@ void main() {
       return controller;
     }
 
-    test('pickup waiting → partial → all ready → verify → confirm', () async {
+    test('verification alone does not complete pickup or open route', () async {
       final container = _container();
       final controller = await acceptedController(container);
       controller.refreshPickupStatus();
-      expect(
-        container.read(batchControllerProvider).pickupStatus,
-        BatchPickupStatus.partiallyReady,
-      );
       controller.refreshPickupStatus();
-      expect(
-        container.read(batchControllerProvider).pickupStatus,
-        BatchPickupStatus.allReady,
-      );
       controller.beginVerification();
       final batch = container.read(batchControllerProvider).batch!;
       for (final order in batch.orders) {
         controller.verifyOrder(order.orderId);
       }
-      expect(
-        container.read(batchControllerProvider).batch!.allVerified,
-        isTrue,
-      );
-      await controller.confirmPickup();
       final state = container.read(batchControllerProvider);
-      expect(state.pickupStatus, BatchPickupStatus.pickupConfirmed);
+      expect(state.batch!.allVerified, isTrue);
+      expect(state.pickupStatus, BatchPickupStatus.verification);
+      expect(state.isPickedUp, isFalse);
+      expect(state.canStartRoute, isFalse);
+      expect(state.journeyStage, isNull);
       expect(state.routeStatus, BatchRouteStatus.overview);
     });
 
-    test('verification mismatch then dismiss', () async {
+    test(
+      'all-required-ready + all-verified gate before manual pickup',
+      () async {
+        final container = _container();
+        final controller = await acceptedController(container);
+        expect(
+          container.read(batchControllerProvider).canConfirmPickupManually,
+          isFalse,
+        );
+        controller.refreshPickupStatus();
+        expect(
+          container.read(batchControllerProvider).canConfirmPickupManually,
+          isFalse,
+        );
+        controller.refreshPickupStatus();
+        controller.beginVerification();
+        final orders = container.read(batchControllerProvider).batch!.orders;
+        for (var i = 0; i < orders.length - 1; i++) {
+          controller.verifyOrder(orders[i].orderId);
+        }
+        expect(
+          container.read(batchControllerProvider).canConfirmPickupManually,
+          isFalse,
+        );
+        controller.verifyOrder(orders.last.orderId);
+        expect(
+          container.read(batchControllerProvider).canConfirmPickupManually,
+          isTrue,
+        );
+      },
+    );
+
+    test(
+      'manual pickup has processing + duplicate-tap guard then route',
+      () async {
+        final container = _container();
+        final controller = await acceptedController(container);
+        await _verifyAll(container, controller);
+        controller.openManualPickupConfirmation();
+        expect(
+          container.read(batchControllerProvider).pickupStatus,
+          BatchPickupStatus.awaitingManualConfirmation,
+        );
+        expect(
+          container.read(batchControllerProvider).journeyStage,
+          BatchJourneyStage.pickupAwaitingManualConfirmation,
+        );
+
+        final pending = controller.confirmPickupManually();
+        expect(container.read(batchControllerProvider).isProcessing, isTrue);
+        expect(
+          container.read(batchControllerProvider).pickupStatus,
+          BatchPickupStatus.processing,
+        );
+        // Duplicate tap while processing must be ignored.
+        await controller.confirmPickupManually();
+        await pending;
+
+        final state = container.read(batchControllerProvider);
+        expect(state.pickupStatus, BatchPickupStatus.pickupConfirmed);
+        expect(state.journeyStage, BatchJourneyStage.pickupConfirmedManually);
+        expect(state.isPickedUp, isTrue);
+        expect(state.canStartRoute, isTrue);
+        expect(state.routeStatus, BatchRouteStatus.overview);
+        expect(
+          state.stageHistory,
+          containsAll(<BatchJourneyStage>[
+            BatchJourneyStage.pickupAwaitingManualConfirmation,
+            BatchJourneyStage.pickupConfirmedManually,
+          ]),
+        );
+      },
+    );
+
+    test('cannot open stop before manual pickup', () async {
       final container = _container();
       final controller = await acceptedController(container);
-      controller.refreshPickupStatus();
-      controller.refreshPickupStatus();
-      controller.beginVerification();
+      controller.openStop(1);
+      expect(container.read(batchControllerProvider).currentSequence, 1);
+      expect(container.read(batchControllerProvider).journeyStage, isNull);
+      expect(
+        container
+            .read(batchControllerProvider)
+            .batch!
+            .orderBySequence(1)!
+            .state,
+        BatchOrderState.preparing,
+      );
+    });
+
+    test('exact journey sequence for one stop', () async {
+      final container = _container();
+      final controller = await acceptedController(container);
+      await _advanceToRoute(container, controller);
+      controller.openStop(1);
+      expect(
+        container.read(batchControllerProvider).journeyStage,
+        BatchJourneyStage.enRouteToCustomer,
+      );
+      expect(
+        container.read(batchControllerProvider).currentContactVisibility,
+        BatchCustomerContactVisibility.locked,
+      );
+
+      controller.registerAutomaticArrivalByLocation(1);
+      var state = container.read(batchControllerProvider);
+      expect(
+        state.journeyStage,
+        BatchJourneyStage.deliveryAwaitingManualConfirmation,
+      );
+      expect(
+        state.stageHistory,
+        contains(BatchJourneyStage.arrivedAutomaticallyByLocation),
+      );
+      expect(
+        state.currentContactVisibility,
+        BatchCustomerContactVisibility.revealed,
+      );
+      expect(state.canConfirmDeliveryManually, isTrue);
+      expect(state.batch!.orderBySequence(1)!.state, BatchOrderState.arrived);
+
+      final delivery = controller.confirmDeliveryManually();
+      expect(container.read(batchControllerProvider).isProcessing, isTrue);
+      await controller.confirmDeliveryManually();
+      await delivery;
+      state = container.read(batchControllerProvider);
+      expect(
+        state.stageHistory,
+        contains(BatchJourneyStage.deliveredConfirmedManually),
+      );
+      expect(state.batch!.orderBySequence(1)!.state, BatchOrderState.delivered);
+    });
+
+    test('fake automatic arrival via location controller only', () async {
+      final container = _container(
+        arrivalDelay: const Duration(milliseconds: 20),
+      );
+      final controller = await acceptedController(container);
+      await _advanceToRoute(container, controller);
+      controller.openStop(1);
+      expect(
+        container
+            .read(batchControllerProvider)
+            .batch!
+            .orderBySequence(1)!
+            .state,
+        BatchOrderState.headingToCustomer,
+      );
+
+      container
+          .read(fakeBatchLocationControllerProvider.notifier)
+          .startApproach(1);
+      expect(
+        container.read(fakeBatchLocationControllerProvider).signal,
+        FakeBatchLocationSignal.approachingCustomer,
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 40));
+      final state = container.read(batchControllerProvider);
+      expect(state.batch!.orderBySequence(1)!.state, BatchOrderState.arrived);
+      expect(
+        state.journeyStage,
+        BatchJourneyStage.deliveryAwaitingManualConfirmation,
+      );
+      expect(
+        container.read(fakeBatchLocationControllerProvider).signal,
+        FakeBatchLocationSignal.atCustomer,
+      );
+    });
+
+    test('contact locked before pickup and while en route', () async {
+      final container = _container();
+      final controller = await acceptedController(container);
+      expect(
+        container.read(batchControllerProvider).currentContactVisibility,
+        BatchCustomerContactVisibility.locked,
+      );
+      await _advanceToRoute(container, controller);
+      controller.openStop(1);
+      expect(
+        container.read(batchControllerProvider).currentContactVisibility,
+        BatchCustomerContactVisibility.locked,
+      );
+    });
+
+    test(
+      'contact revealed only after automatic arrival for current stop',
+      () async {
+        final container = _container();
+        final controller = await acceptedController(container);
+        await _advanceToRoute(container, controller);
+        controller.openStop(1);
+        controller.registerAutomaticArrivalByLocation(1);
+        final contact = container.read(batchControllerProvider).currentContact;
+        expect(contact.visibility, BatchCustomerContactVisibility.revealed);
+        expect(contact.labelIndex, 1);
+      },
+    );
+
+    test('fake call and WhatsApp actions count attempts only', () async {
+      final container = _container();
+      final controller = await acceptedController(container);
+      await _advanceToRoute(container, controller);
+      controller.openStop(1);
+      controller.recordCallAttempt();
+      expect(container.read(batchControllerProvider).callAttempts, 0);
+      controller.registerAutomaticArrivalByLocation(1);
+      controller.recordCallAttempt();
+      controller.recordWhatsappAttempt();
+      final state = container.read(batchControllerProvider);
+      expect(state.callAttempts, 1);
+      expect(state.whatsappAttempts, 1);
+      expect(state.currentContact.totalAttempts, 2);
+    });
+
+    test('customer unavailable retains current contact only', () async {
+      final container = _container();
+      final controller = await acceptedController(container);
+      await _advanceToRoute(container, controller);
+      controller.openStop(1);
+      controller.registerAutomaticArrivalByLocation(1);
       final orderId = container
           .read(batchControllerProvider)
           .batch!
           .orders
           .first
           .orderId;
-      controller.reportVerificationMismatch(orderId);
+      controller.openIssue(orderId);
+      controller.selectIssueReason(BatchOrderIssueReason.customerUnavailable);
+      await controller.submitIssue();
+      final state = container.read(batchControllerProvider);
+      expect(state.routeStatus, BatchRouteStatus.customerUnavailable);
       expect(
-        container.read(batchControllerProvider).pickupStatus,
-        BatchPickupStatus.verificationError,
+        state.currentContactVisibility,
+        BatchCustomerContactVisibility.revealed,
       );
-      controller.dismissVerificationError();
+      expect(state.currentContact.labelIndex, 1);
+    });
+
+    test('contact closed after delivered or cancelled', () async {
+      final container = _container();
+      final controller = await acceptedController(container);
+      await _advanceToRoute(container, controller);
+      controller.openStop(1);
+      controller.registerAutomaticArrivalByLocation(1);
+      await controller.confirmDeliveryManually();
+      // After delivery the current sequence advances; reopen stop 1 to check
+      // the closed state for the delivered order.
+      final delivered = container
+          .read(batchControllerProvider)
+          .batch!
+          .orderBySequence(1)!;
+      expect(delivered.state, BatchOrderState.delivered);
+
+      // Cancel stop 2 and assert closed visibility once resolved.
+      controller.openStop(2);
+      controller.registerAutomaticArrivalByLocation(2);
+      final orderId = container
+          .read(batchControllerProvider)
+          .batch!
+          .orderBySequence(2)!
+          .orderId;
+      controller.openIssue(orderId);
+      controller.selectIssueReason(BatchOrderIssueReason.merchantCancelled);
+      await controller.submitIssue();
+      final cancelled = container
+          .read(batchControllerProvider)
+          .batch!
+          .orderBySequence(2)!;
+      expect(cancelled.state, BatchOrderState.cancelled);
+      expect(cancelled.isResolved, isTrue);
+    });
+
+    test('manual delivery refuses auto-complete before arrival', () async {
+      final container = _container();
+      final controller = await acceptedController(container);
+      await _advanceToRoute(container, controller);
+      controller.openStop(1);
+      await controller.confirmDeliveryManually();
       expect(
-        container.read(batchControllerProvider).pickupStatus,
-        BatchPickupStatus.verification,
+        container
+            .read(batchControllerProvider)
+            .batch!
+            .orderBySequence(1)!
+            .state,
+        BatchOrderState.headingToCustomer,
       );
     });
 
@@ -207,8 +466,8 @@ void main() {
       final controller = await acceptedController(container);
       await _advanceToRoute(container, controller);
       controller.openStop(2);
-      controller.markArrived();
-      await controller.confirmDelivery();
+      controller.registerAutomaticArrivalByLocation(2);
+      await controller.confirmDeliveryManually();
       expect(
         container.read(batchControllerProvider).routeStatus,
         BatchRouteStatus.offlineQueue,
@@ -243,32 +502,13 @@ void main() {
       expect(state.batch!.actionableStops.length, 3);
     });
 
-    test('customer unavailable issue', () async {
-      final container = _container();
-      final controller = await acceptedController(container);
-      await _advanceToRoute(container, controller);
-      final orderId = container
-          .read(batchControllerProvider)
-          .batch!
-          .orders
-          .first
-          .orderId;
-      controller.openIssue(orderId);
-      controller.selectIssueReason(BatchOrderIssueReason.customerUnavailable);
-      await controller.submitIssue();
-      expect(
-        container.read(batchControllerProvider).routeStatus,
-        BatchRouteStatus.customerUnavailable,
-      );
-    });
-
     test('progress derives from resolved orders', () async {
       final container = _container();
       final controller = await acceptedController(container);
       await _advanceToRoute(container, controller);
       controller.openStop(1);
-      controller.markArrived();
-      await controller.confirmDelivery();
+      controller.registerAutomaticArrivalByLocation(1);
+      await controller.confirmDeliveryManually();
       controller.retryQueuedSync();
       controller.continueBatch();
       final batch = container.read(batchControllerProvider).batch!;
@@ -329,7 +569,7 @@ void main() {
   });
 }
 
-Future<void> _advanceToRoute(
+Future<void> _verifyAll(
   ProviderContainer container,
   BatchController controller,
 ) async {
@@ -340,7 +580,15 @@ Future<void> _advanceToRoute(
   for (final order in batch.orders) {
     controller.verifyOrder(order.orderId);
   }
-  await controller.confirmPickup();
+}
+
+Future<void> _advanceToRoute(
+  ProviderContainer container,
+  BatchController controller,
+) async {
+  await _verifyAll(container, controller);
+  controller.openManualPickupConfirmation();
+  await controller.confirmPickupManually();
 }
 
 Future<void> _resolveAllOrders(
@@ -349,10 +597,10 @@ Future<void> _resolveAllOrders(
 ) async {
   await _advanceToRoute(container, controller);
   final batch = container.read(batchControllerProvider).batch!;
-  for (final order in batch.actionableStops) {
+  for (final order in List<BatchOrderViewData>.from(batch.actionableStops)) {
     controller.openStop(order.sequence);
-    controller.markArrived();
-    await controller.confirmDelivery();
+    controller.registerAutomaticArrivalByLocation(order.sequence);
+    await controller.confirmDeliveryManually();
     if (container.read(batchControllerProvider).routeStatus ==
         BatchRouteStatus.offlineQueue) {
       controller.retryQueuedSync();
