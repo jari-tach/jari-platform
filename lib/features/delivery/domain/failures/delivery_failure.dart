@@ -210,3 +210,23 @@ final class DeliveryAssignmentNotFound extends DeliveryFailure {
   @override
   String get code => 'delivery.assignment_not_found';
 }
+
+/// Missing or malformed local command identity.
+final class DeliveryInvalidCommandId extends DeliveryFailure {
+  const DeliveryInvalidCommandId([
+    super.message = 'A non-empty local command id is required.',
+  ]);
+
+  @override
+  String get code => 'delivery.invalid_command_id';
+}
+
+/// Completion cannot clear an aggregate while local commands await retry.
+final class DeliveryPendingSync extends DeliveryFailure {
+  const DeliveryPendingSync([
+    super.message = 'Delivery has local commands pending sync simulation.',
+  ]);
+
+  @override
+  String get code => 'delivery.pending_sync';
+}

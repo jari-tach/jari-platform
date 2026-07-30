@@ -23,6 +23,8 @@ String deliveryFailureMessage(DeliveryFailure failure, AppLocalizations l10n) {
     InvalidDeliveryWorkflowTransition() => l10n.deliveryWorkflowFailureMessage,
     DeliveryVerificationFailed() => l10n.deliveryVerificationFailureMessage,
     DeliveryAssignmentNotFound() => l10n.deliveryFailureOfferNotFound,
+    DeliveryInvalidCommandId() => l10n.deliveryFailureSecurityDenied,
+    DeliveryPendingSync() => l10n.deliveryPendingSyncMessage,
     DeliveryUnknownFailure() => l10n.deliveryFailureUnknown,
   };
 }

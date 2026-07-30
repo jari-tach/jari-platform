@@ -32,6 +32,16 @@ class IncomingDeliveryOfferPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    ref.listen(deliveryControllerProvider, (previous, next) {
+      final becameActive =
+          next.hasActiveAssignment &&
+          !next.hasOffer &&
+          previous?.activeAssignment?.assignmentId !=
+              next.activeAssignment?.assignmentId;
+      if (becameActive && context.mounted) {
+        _continueDelivery(context);
+      }
+    });
     final state = ref.watch(deliveryControllerProvider);
     final controller = ref.read(deliveryControllerProvider.notifier);
 

@@ -21,14 +21,17 @@ import '../../features/delivery/data/datasources/delivery_remote_data_source.dar
 import '../../features/delivery/data/datasources/drift_delivery_local_data_source.dart';
 import '../../features/delivery/data/fake/fake_delivery_remote_data_source.dart';
 import '../../features/delivery/data/repositories/local_delivery_assignment_repository.dart';
+import '../../features/delivery/data/repositories/drift_delivery_command_repository.dart';
 import '../../features/delivery/data/repositories/remote_delivery_offer_repository.dart';
 import '../../features/delivery/domain/repositories/delivery_assignment_repository.dart';
+import '../../features/delivery/domain/repositories/delivery_command_repository.dart';
 import '../../features/delivery/domain/repositories/delivery_offer_repository.dart';
 import '../../features/delivery/domain/usecases/accept_delivery_offer.dart';
 import '../../features/delivery/domain/usecases/advance_delivery_workflow.dart';
 import '../../features/delivery/domain/usecases/get_active_delivery.dart';
 import '../../features/delivery/domain/usecases/get_delivery_offers.dart';
 import '../../features/delivery/domain/usecases/reject_delivery_offer.dart';
+import '../../features/delivery/domain/usecases/record_local_delivery_command.dart';
 import '../../features/delivery/domain/usecases/verify_delivery_code.dart';
 import '../../features/driver/data/datasources/local/driver_database.dart';
 import '../../features/profile/data/repositories/fake_driver_profile_repository.dart';
@@ -214,13 +217,31 @@ final class AppServiceRegistry {
 
     final offerRepository = _deliveryOfferRepository;
     final assignmentRepository = _deliveryAssignmentRepository;
+    _deliveryCommandRepository = database == null
+        ? null
+        : await _safeInit<DeliveryCommandRepository>(
+            'DeliveryCommandRepository',
+            _logger,
+            () async => DriftDeliveryCommandRepository(database: database),
+          );
+    final commandRepository = _deliveryCommandRepository;
+    _recordLocalDeliveryCommand = commandRepository == null
+        ? null
+        : await _safeInit<RecordLocalDeliveryCommand>(
+            'RecordLocalDeliveryCommand',
+            _logger,
+            () async => RecordLocalDeliveryCommand(commandRepository),
+          );
 
     _getDeliveryOffers = offerRepository == null
         ? null
         : await _safeInit<GetDeliveryOffers>(
             'GetDeliveryOffers',
             _logger,
-            () async => GetDeliveryOffers(offerRepository),
+            () async => GetDeliveryOffers(
+              offerRepository,
+              commandRepository: commandRepository,
+            ),
           );
 
     _acceptDeliveryOffer =
@@ -229,8 +250,11 @@ final class AppServiceRegistry {
         : await _safeInit<AcceptDeliveryOffer>(
             'AcceptDeliveryOffer',
             _logger,
-            () async =>
-                AcceptDeliveryOffer(offerRepository, assignmentRepository),
+            () async => AcceptDeliveryOffer(
+              offerRepository,
+              assignmentRepository,
+              commandRepository: commandRepository,
+            ),
           );
 
     _rejectDeliveryOffer = offerRepository == null
@@ -238,7 +262,10 @@ final class AppServiceRegistry {
         : await _safeInit<RejectDeliveryOffer>(
             'RejectDeliveryOffer',
             _logger,
-            () async => RejectDeliveryOffer(offerRepository),
+            () async => RejectDeliveryOffer(
+              offerRepository,
+              commandRepository: commandRepository,
+            ),
           );
 
     _getActiveDelivery = assignmentRepository == null
@@ -368,6 +395,7 @@ final class AppServiceRegistry {
   DeliveryLocalDataSource? _deliveryLocalDataSource;
   DeliveryOfferRepository? _deliveryOfferRepository;
   DeliveryAssignmentRepository? _deliveryAssignmentRepository;
+  DeliveryCommandRepository? _deliveryCommandRepository;
   GetDeliveryOffers? _getDeliveryOffers;
   AcceptDeliveryOffer? _acceptDeliveryOffer;
   RejectDeliveryOffer? _rejectDeliveryOffer;
@@ -376,6 +404,7 @@ final class AppServiceRegistry {
   VerifyDeliveryCode? _verifyDeliveryCode;
   AcceptDeliveryOfferAndBindBusy? _acceptDeliveryOfferAndBindBusy;
   CompleteDeliveryAndReleaseBusy? _completeDeliveryAndReleaseBusy;
+  RecordLocalDeliveryCommand? _recordLocalDeliveryCommand;
 
   /// The application's logger service.
   static LoggerService get logger => _instance!._logger;
@@ -437,6 +466,10 @@ final class AppServiceRegistry {
   static DeliveryAssignmentRepository? get deliveryAssignmentRepository =>
       _instance!._deliveryAssignmentRepository;
 
+  /// STEP 3 local command ledger; never a Backend adapter.
+  static DeliveryCommandRepository? get deliveryCommandRepository =>
+      _instance!._deliveryCommandRepository;
+
   /// Use case: load offers (one-active enforced).
   static GetDeliveryOffers? get getDeliveryOffers =>
       _instance!._getDeliveryOffers;
@@ -468,6 +501,10 @@ final class AppServiceRegistry {
   /// Application coordinator: clear summary assignment + release busy.
   static CompleteDeliveryAndReleaseBusy? get completeDeliveryAndReleaseBusy =>
       _instance!._completeDeliveryAndReleaseBusy;
+
+  /// Records non-state-machine local commands such as form cancellation.
+  static RecordLocalDeliveryCommand? get recordLocalDeliveryCommand =>
+      _instance!._recordLocalDeliveryCommand;
 
   /// True once [init] has completed, regardless of whether every
   /// non-critical service succeeded.

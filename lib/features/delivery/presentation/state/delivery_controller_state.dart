@@ -29,6 +29,7 @@ class DeliveryControllerState {
     this.failure,
     this.processingAction = DeliveryProcessingAction.none,
     this.isInitialized = false,
+    this.isRestored = false,
     this.boundDriverId,
   });
 
@@ -44,6 +45,7 @@ class DeliveryControllerState {
     DeliveryAssignment? activeAssignment,
     DeliveryAssignment? lastAcceptedAssignment,
     String? boundDriverId,
+    bool isRestored = false,
   }) {
     final resolvedOffer = activeOffer ?? (offers.isEmpty ? null : offers.first);
     return DeliveryControllerState(
@@ -53,6 +55,7 @@ class DeliveryControllerState {
       activeAssignment: activeAssignment,
       lastAcceptedAssignment: lastAcceptedAssignment,
       isInitialized: true,
+      isRestored: isRestored,
       boundDriverId: boundDriverId,
       processingAction: DeliveryProcessingAction.none,
     );
@@ -109,6 +112,7 @@ class DeliveryControllerState {
   final DeliveryFailure? failure;
   final DeliveryProcessingAction processingAction;
   final bool isInitialized;
+  final bool isRestored;
   final String? boundDriverId;
 
   bool get isLoading => status == DeliveryViewStatus.loading;
@@ -150,6 +154,7 @@ class DeliveryControllerState {
     bool clearFailure = false,
     DeliveryProcessingAction? processingAction,
     bool? isInitialized,
+    bool? isRestored,
     String? boundDriverId,
     bool clearBoundDriverId = false,
   }) {
@@ -166,6 +171,7 @@ class DeliveryControllerState {
       failure: clearFailure ? null : (failure ?? this.failure),
       processingAction: processingAction ?? this.processingAction,
       isInitialized: isInitialized ?? this.isInitialized,
+      isRestored: isRestored ?? this.isRestored,
       boundDriverId: clearBoundDriverId
           ? null
           : (boundDriverId ?? this.boundDriverId),
@@ -184,6 +190,7 @@ class DeliveryControllerState {
           failure == other.failure &&
           processingAction == other.processingAction &&
           isInitialized == other.isInitialized &&
+          isRestored == other.isRestored &&
           boundDriverId == other.boundDriverId;
 
   @override
@@ -196,6 +203,7 @@ class DeliveryControllerState {
     failure,
     processingAction,
     isInitialized,
+    isRestored,
     boundDriverId,
   );
 

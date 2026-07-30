@@ -36,6 +36,8 @@ class VerifyDeliveryCode {
   Future<DeliveryResult<DeliveryAssignment>> call({
     required String driverId,
     required String code,
+    String? commandId,
+    bool simulateOffline = false,
   }) async {
     final expected = _expectedCodeReader().trim();
     if (code.trim() != expected) {
@@ -54,6 +56,22 @@ class VerifyDeliveryCode {
     if (current == null) {
       return const DeliveryFailureResult(DeliveryAssignmentNotFound());
     }
+    final normalizedCommandId = commandId?.trim();
+    if (commandId != null && normalizedCommandId!.isEmpty) {
+      return const DeliveryFailureResult(DeliveryInvalidCommandId());
+    }
+    final completeCommandId = normalizedCommandId == null
+        ? null
+        : '$normalizedCommandId:complete';
+    final summaryCommandId = normalizedCommandId == null
+        ? null
+        : '$normalizedCommandId:summary';
+    if (completeCommandId != null &&
+        summaryCommandId != null &&
+        current.completedCommandIds.contains(completeCommandId) &&
+        current.completedCommandIds.contains(summaryCommandId)) {
+      return DeliverySuccess(current);
+    }
     if (current.workflowStage != DriverWorkflowStage.verifying) {
       return const DeliveryFailureResult(
         InvalidDeliveryWorkflowTransition(
@@ -65,12 +83,16 @@ class VerifyDeliveryCode {
     final complete = await _advance(
       driverId: driverId,
       command: DriverWorkflowCommand.completeDelivery,
+      commandId: completeCommandId,
+      simulateOffline: simulateOffline,
     );
     if (complete.isFailure) return complete;
 
     return _advance(
       driverId: driverId,
       command: DriverWorkflowCommand.showSummary,
+      commandId: summaryCommandId,
+      simulateOffline: simulateOffline,
     );
   }
 }

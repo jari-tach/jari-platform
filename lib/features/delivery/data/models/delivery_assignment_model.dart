@@ -19,6 +19,8 @@ class DeliveryAssignmentModel {
     this.serverRevision,
     this.workflowStage = 'assigned',
     this.resumeAfterIssueStage,
+    this.completedCommandIds = const <String>[],
+    this.pendingSync = false,
   });
 
   final String assignmentId;
@@ -30,6 +32,8 @@ class DeliveryAssignmentModel {
   final String? serverRevision;
   final String workflowStage;
   final String? resumeAfterIssueStage;
+  final List<String> completedCommandIds;
+  final bool pendingSync;
 
   /// Maps a domain entity to this model.
   factory DeliveryAssignmentModel.fromEntity(DeliveryAssignment entity) {
@@ -43,6 +47,9 @@ class DeliveryAssignmentModel {
       serverRevision: entity.serverRevision,
       workflowStage: entity.workflowStage.name,
       resumeAfterIssueStage: entity.resumeAfterIssueStage?.name,
+      completedCommandIds: entity.completedCommandIds.toList(growable: false)
+        ..sort(),
+      pendingSync: entity.pendingSync,
     );
   }
 
@@ -62,6 +69,8 @@ class DeliveryAssignmentModel {
       resumeAfterIssueStage: resumeAfterIssueStage == null
           ? null
           : _parseWorkflowStage(resumeAfterIssueStage!),
+      completedCommandIds: completedCommandIds.toSet(),
+      pendingSync: pendingSync,
     );
   }
 
@@ -108,6 +117,19 @@ class DeliveryAssignmentModel {
     final resumeRaw = json['resumeAfterIssueStage'];
     final resumeAfterIssueStage =
         resumeRaw is String && resumeRaw.trim().isNotEmpty ? resumeRaw : null;
+    final completedRaw = json['completedCommandIds'];
+    final completedCommandIds = completedRaw == null
+        ? const <String>[]
+        : completedRaw is List &&
+              completedRaw.every(
+                (value) => value is String && value.trim().isNotEmpty,
+              )
+        ? completedRaw.cast<String>()
+        : throw const FormatException('completedCommandIds must be strings');
+    final pendingSyncRaw = json['pendingSync'];
+    if (pendingSyncRaw != null && pendingSyncRaw is! bool) {
+      throw const FormatException('pendingSync must be a boolean');
+    }
 
     return DeliveryAssignmentModel(
       assignmentId: assignmentId,
@@ -119,6 +141,8 @@ class DeliveryAssignmentModel {
       serverRevision: json['serverRevision'] as String?,
       workflowStage: workflowStage,
       resumeAfterIssueStage: resumeAfterIssueStage,
+      completedCommandIds: completedCommandIds,
+      pendingSync: pendingSyncRaw as bool? ?? false,
     );
   }
 
@@ -133,6 +157,8 @@ class DeliveryAssignmentModel {
     'serverRevision': serverRevision,
     'workflowStage': workflowStage,
     'resumeAfterIssueStage': resumeAfterIssueStage,
+    'completedCommandIds': completedCommandIds,
+    'pendingSync': pendingSync,
   };
 
   static DeliveryStatus _parseDeliveryStatus(String raw) {
@@ -161,7 +187,9 @@ class DeliveryAssignmentModel {
           acceptedAt == other.acceptedAt &&
           serverRevision == other.serverRevision &&
           workflowStage == other.workflowStage &&
-          resumeAfterIssueStage == other.resumeAfterIssueStage;
+          resumeAfterIssueStage == other.resumeAfterIssueStage &&
+          _listEquals(completedCommandIds, other.completedCommandIds) &&
+          pendingSync == other.pendingSync;
 
   @override
   int get hashCode => Object.hash(
@@ -174,5 +202,15 @@ class DeliveryAssignmentModel {
     serverRevision,
     workflowStage,
     resumeAfterIssueStage,
+    Object.hashAll(completedCommandIds),
+    pendingSync,
   );
+
+  static bool _listEquals(List<String> left, List<String> right) {
+    if (left.length != right.length) return false;
+    for (var index = 0; index < left.length; index++) {
+      if (left[index] != right[index]) return false;
+    }
+    return true;
+  }
 }

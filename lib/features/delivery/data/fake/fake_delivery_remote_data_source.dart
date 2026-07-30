@@ -292,11 +292,23 @@ class FakeDeliveryRemoteDataSource implements DeliveryRemoteDataSource {
     await _delay();
     final id = _requireDriverId(driverId);
     final oid = offerId.trim();
+    final key = idempotencyKey?.trim();
     if (oid.isEmpty) {
       throw const DeliveryOfferNotFound();
     }
 
     final state = _stateFor(id);
+    if (key != null && key.isNotEmpty) {
+      final rejectedOfferId = state.rejectByIdempotency[key];
+      if (rejectedOfferId != null) {
+        if (rejectedOfferId != oid) {
+          throw const DeliveryConflict(
+            'Idempotency key is bound to a different reject.',
+          );
+        }
+        return;
+      }
+    }
     final offer = state.activeOffer;
     if (offer == null || offer.offerId != oid) {
       throw const DeliveryOfferNotFound();
@@ -321,6 +333,9 @@ class FakeDeliveryRemoteDataSource implements DeliveryRemoteDataSource {
     _setOfferStatus(state, id, DeliveryOfferStatus.rejected);
 
     _assertTransition(DeliveryOfferStatus.rejected, DeliveryOfferStatus.none);
+    if (key != null && key.isNotEmpty) {
+      state.rejectByIdempotency[key] = oid;
+    }
     state.activeOffer = null;
     _armRejectCooldown(id);
     _emitWatch(id, null);
@@ -494,4 +509,5 @@ class _DriverRemoteState {
   DeliveryAssignmentModel? lastAssignment;
   int sequence = 0;
   final Map<String, DeliveryAssignmentModel> acceptByIdempotency = {};
+  final Map<String, String> rejectByIdempotency = {};
 }

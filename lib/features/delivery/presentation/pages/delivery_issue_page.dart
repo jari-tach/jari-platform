@@ -131,7 +131,12 @@ class _DeliveryIssuePageState extends ConsumerState<DeliveryIssuePage> {
               const SizedBox(height: AppTheme.spacingSM),
               SaeqSecondaryButton(
                 label: l10n.cancelAction,
-                onPressed: () => context.pop(),
+                onPressed: processing
+                    ? null
+                    : () async {
+                        await delivery.recordCancelCommand();
+                        if (context.mounted) context.pop();
+                      },
               ),
             ],
           ),
