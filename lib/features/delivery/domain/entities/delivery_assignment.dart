@@ -20,7 +20,9 @@ class DeliveryAssignment {
     this.serverRevision,
     this.workflowStage = DriverWorkflowStage.assigned,
     this.resumeAfterIssueStage,
-  }) {
+    Set<String> completedCommandIds = const <String>{},
+    this.pendingSync = false,
+  }) : completedCommandIds = Set<String>.unmodifiable(completedCommandIds) {
     final aid = assignmentId.trim();
     if (aid.isEmpty) {
       throw ArgumentError.value(
@@ -42,6 +44,13 @@ class DeliveryAssignment {
         serverRevision,
         'serverRevision',
         'when present must be non-empty',
+      );
+    }
+    if (completedCommandIds.any((id) => id.trim().isEmpty)) {
+      throw ArgumentError.value(
+        completedCommandIds,
+        'completedCommandIds',
+        'must not contain empty ids',
       );
     }
   }
@@ -73,6 +82,15 @@ class DeliveryAssignment {
   /// Stage to resume after [DriverWorkflowStage.issueOpen].
   final DriverWorkflowStage? resumeAfterIssueStage;
 
+  /// Local command ids already applied to this aggregate.
+  ///
+  /// Persisted with the assignment so a retry after process restart cannot
+  /// repeat a pickup/delivery/issue transition.
+  final Set<String> completedCommandIds;
+
+  /// Local-only STEP 3 simulation marker. This is not Backend sync state.
+  final bool pendingSync;
+
   /// Whether this assignment still owns the driver's active-delivery slot.
   ///
   /// Includes [DeliveryStatus.delivered] so the delivered/summary phase still:
@@ -102,6 +120,8 @@ class DeliveryAssignment {
     DriverWorkflowStage? workflowStage,
     DriverWorkflowStage? resumeAfterIssueStage,
     bool clearResumeAfterIssueStage = false,
+    Set<String>? completedCommandIds,
+    bool? pendingSync,
   }) {
     return DeliveryAssignment(
       assignmentId: assignmentId,
@@ -117,6 +137,8 @@ class DeliveryAssignment {
       resumeAfterIssueStage: clearResumeAfterIssueStage
           ? null
           : (resumeAfterIssueStage ?? this.resumeAfterIssueStage),
+      completedCommandIds: completedCommandIds ?? this.completedCommandIds,
+      pendingSync: pendingSync ?? this.pendingSync,
     );
   }
 
@@ -132,7 +154,9 @@ class DeliveryAssignment {
           acceptedAt == other.acceptedAt &&
           serverRevision == other.serverRevision &&
           workflowStage == other.workflowStage &&
-          resumeAfterIssueStage == other.resumeAfterIssueStage;
+          resumeAfterIssueStage == other.resumeAfterIssueStage &&
+          _setEquals(completedCommandIds, other.completedCommandIds) &&
+          pendingSync == other.pendingSync;
 
   @override
   int get hashCode => Object.hash(
@@ -145,10 +169,15 @@ class DeliveryAssignment {
     serverRevision,
     workflowStage,
     resumeAfterIssueStage,
+    Object.hashAllUnordered(completedCommandIds),
+    pendingSync,
   );
 
   @override
   String toString() =>
       'DeliveryAssignment(assignmentId: $assignmentId, '
       'driverId: $driverId, status: $status, stage: $workflowStage)';
+
+  static bool _setEquals(Set<String> left, Set<String> right) =>
+      left.length == right.length && left.containsAll(right);
 }

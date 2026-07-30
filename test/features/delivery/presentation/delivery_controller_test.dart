@@ -171,10 +171,13 @@ void main() {
           .acceptCurrentOffer();
 
       final state = container.read(deliveryControllerProvider);
+      final persisted = assignment.copyWith(
+        completedCommandIds: {'local:drv-1:off-1:accept'},
+      );
       expect(state.status, DeliveryViewStatus.ready);
       expect(state.activeOffer, isNull);
-      expect(state.activeAssignment, assignment);
-      expect(state.lastAcceptedAssignment, assignment);
+      expect(state.activeAssignment, persisted);
+      expect(state.lastAcceptedAssignment, persisted);
       expect(assignmentRepo.upsertCallCount, 1);
     });
 
@@ -261,23 +264,26 @@ void main() {
       expect(offerRepo.rejectCallCount, 1);
     });
 
-    test('offer watch stays active after reject and receives later offers', () async {
-      final offerRepo = FakeDeliveryOfferRepository(offers: [sampleOffer()]);
-      final container = await boot(offers: offerRepo);
-      final controller = container.read(deliveryControllerProvider.notifier);
+    test(
+      'offer watch stays active after reject and receives later offers',
+      () async {
+        final offerRepo = FakeDeliveryOfferRepository(offers: [sampleOffer()]);
+        final container = await boot(offers: offerRepo);
+        final controller = container.read(deliveryControllerProvider.notifier);
 
-      await controller.rejectCurrentOffer();
-      expect(container.read(deliveryControllerProvider).activeOffer, isNull);
+        await controller.rejectCurrentOffer();
+        expect(container.read(deliveryControllerProvider).activeOffer, isNull);
 
-      final later = sampleOffer(offerId: 'off-2', revision: 'rev-later');
-      offerRepo.offers = [later];
-      offerRepo.emitActive(later);
-      await Future<void>.delayed(Duration.zero);
+        final later = sampleOffer(offerId: 'off-2', revision: 'rev-later');
+        offerRepo.offers = [later];
+        offerRepo.emitActive(later);
+        await Future<void>.delayed(Duration.zero);
 
-      final state = container.read(deliveryControllerProvider);
-      expect(state.activeOffer?.offerId, 'off-2');
-      expect(state.hasOffer, isTrue);
-    });
+        final state = container.read(deliveryControllerProvider);
+        expect(state.activeOffer?.offerId, 'off-2');
+        expect(state.hasOffer, isTrue);
+      },
+    );
 
     test(
       'reject then immediate refresh does not orphan watch; later offer arrives',
@@ -292,7 +298,10 @@ void main() {
         // Immediate refresh (race path) — must not bump generation / orphan watch.
         await controller.refreshOffers();
         expect(container.read(deliveryControllerProvider).activeOffer, isNull);
-        expect(container.read(deliveryControllerProvider).isProcessing, isFalse);
+        expect(
+          container.read(deliveryControllerProvider).isProcessing,
+          isFalse,
+        );
 
         // Immediate second reject must no-op (no active offer).
         await controller.rejectCurrentOffer();
@@ -347,10 +356,7 @@ void main() {
 
       final pending = controller.acceptCurrentOffer();
       await Future<void>.delayed(Duration.zero);
-      expect(
-        container.read(deliveryControllerProvider).isProcessing,
-        isTrue,
-      );
+      expect(container.read(deliveryControllerProvider).isProcessing, isTrue);
 
       // Lifecycle boundary: bumps generation and replaces watch context.
       await controller.initialize();
@@ -365,22 +371,24 @@ void main() {
       expect(state.activeOffer?.offerId, 'off-1');
     });
 
-    test('stale reject completion is ignored after dispose generation bump',
-        () async {
-      final offerRepo = FakeDeliveryOfferRepository(offers: [sampleOffer()]);
-      final gate = Completer<void>();
-      offerRepo.rejectGate = gate.future;
-      final container = await boot(offers: offerRepo);
+    test(
+      'stale reject completion is ignored after dispose generation bump',
+      () async {
+        final offerRepo = FakeDeliveryOfferRepository(offers: [sampleOffer()]);
+        final gate = Completer<void>();
+        offerRepo.rejectGate = gate.future;
+        final container = await boot(offers: offerRepo);
 
-      final pending = container
-          .read(deliveryControllerProvider.notifier)
-          .rejectCurrentOffer();
-      await Future<void>.delayed(Duration.zero);
-      container.dispose();
-      gate.complete();
-      await pending;
-      // Must not throw; disposed controller ignores stale completion.
-    });
+        final pending = container
+            .read(deliveryControllerProvider.notifier)
+            .rejectCurrentOffer();
+        await Future<void>.delayed(Duration.zero);
+        container.dispose();
+        gate.complete();
+        await pending;
+        // Must not throw; disposed controller ignores stale completion.
+      },
+    );
 
     test('reject failure surfaces typed failure', () async {
       final offerRepo = FakeDeliveryOfferRepository(offers: [sampleOffer()])

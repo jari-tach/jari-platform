@@ -53,11 +53,11 @@ int deliveryWorkflowTimelineIndex(DriverWorkflowStage stage) {
 DriverWorkflowCommand? deliveryPrimaryCommand(DriverWorkflowStage stage) {
   return switch (stage) {
     DriverWorkflowStage.assigned => DriverWorkflowCommand.startTripPickup,
-    DriverWorkflowStage.navToPickup => DriverWorkflowCommand.arrivedPickup,
+    DriverWorkflowStage.navToPickup => null,
     DriverWorkflowStage.arrivedPickup => DriverWorkflowCommand.waitAtPickup,
     DriverWorkflowStage.waitingPickup => DriverWorkflowCommand.confirmPickup,
     DriverWorkflowStage.collected => DriverWorkflowCommand.startTripCustomer,
-    DriverWorkflowStage.navToCustomer => DriverWorkflowCommand.arrivedCustomer,
+    DriverWorkflowStage.navToCustomer => null,
     DriverWorkflowStage.delivered => DriverWorkflowCommand.showSummary,
     _ => null,
   };

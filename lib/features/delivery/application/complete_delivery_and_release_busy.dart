@@ -64,6 +64,9 @@ class CompleteDeliveryAndReleaseBusy {
         ),
       );
     }
+    if (current.pendingSync) {
+      return const DeliveryFailureResult(DeliveryPendingSync());
+    }
 
     final update = AuthoritativeAvailabilityUpdate(
       driverId: normalized,

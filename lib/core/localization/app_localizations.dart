@@ -140,6 +140,22 @@ class AppLocalizations {
   String get deliveryActionShowSummary => _t('View summary', 'عرض الملخص');
   String get deliveryWorkflowFailureMessage =>
       _t('This step is not available right now.', 'هذه الخطوة غير متاحة الآن.');
+  String get deliveryCustomerDetailsLocked => _t(
+    'Customer details are available only after pickup.',
+    'تظهر بيانات العميل بعد تأكيد الاستلام فقط.',
+  );
+  String get deliveryCustomerDetailsClosed => _t(
+    'Customer details were hidden after delivery.',
+    'تم إخفاء بيانات العميل بعد التسليم.',
+  );
+  String get deliveryPendingSyncMessage => _t(
+    'Saved locally. This update is pending sync simulation.',
+    'تم الحفظ محليًا. هذا التحديث بانتظار محاكاة المزامنة.',
+  );
+  String get deliveryRestoredMessage =>
+      _t('Restored from this device', 'تمت الاستعادة من هذا الجهاز');
+  String get deliveryRetrySync =>
+      _t('Retry local sync', 'إعادة المزامنة المحلية');
   String get deliveryVerificationFailureMessage => _t(
     'Invalid delivery code. Try again.',
     'رمز التسليم غير صالح. حاول مجددًا.',

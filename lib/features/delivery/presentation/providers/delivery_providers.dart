@@ -13,6 +13,7 @@ import '../../domain/usecases/advance_delivery_workflow.dart';
 import '../../domain/usecases/get_active_delivery.dart';
 import '../../domain/usecases/get_delivery_offers.dart';
 import '../../domain/usecases/reject_delivery_offer.dart';
+import '../../domain/usecases/record_local_delivery_command.dart';
 import '../../domain/usecases/verify_delivery_code.dart';
 import '../controllers/delivery_controller.dart';
 import '../state/delivery_controller_state.dart';
@@ -51,6 +52,11 @@ VerifyDeliveryCode? _readVerifyCode(Ref ref) => AppServiceRegistry.isInitialized
     ? AppServiceRegistry.verifyDeliveryCode
     : null;
 
+RecordLocalDeliveryCommand? _readRecordLocalCommand(Ref ref) =>
+    AppServiceRegistry.isInitialized
+    ? AppServiceRegistry.recordLocalDeliveryCommand
+    : null;
+
 CompleteDeliveryAndReleaseBusy? _readCompleteDelivery(Ref ref) =>
     AppServiceRegistry.isInitialized
     ? AppServiceRegistry.completeDeliveryAndReleaseBusy
@@ -74,7 +80,10 @@ DeliveryAcceptPreconditions _readAcceptPreconditions(Ref ref) {
   final online = AppServiceRegistry.isInitialized
       ? (AppServiceRegistry.networkMonitor?.isOnline ?? false)
       : false;
-  final availability = ref.watch(availabilityControllerProvider);
+  // Accept preconditions are a point-in-time command snapshot. Watching here
+  // makes a later availability refresh rebuild DeliveryController after it
+  // has already emitted the accepted assignment (STEP 3 Loading Offers bug).
+  final availability = ref.read(availabilityControllerProvider);
   var confirmed = availability.isConfirmedAvailable;
 
   if (!confirmed &&
@@ -109,6 +118,7 @@ final deliveryControllerProvider =
         getActiveReader: _readGetActiveDelivery,
         advanceWorkflowReader: _readAdvanceWorkflow,
         verifyCodeReader: _readVerifyCode,
+        recordLocalCommandReader: _readRecordLocalCommand,
         completeDeliveryReader: _readCompleteDelivery,
         offerRepositoryReader: _readDeliveryOfferRepository,
         driverIdReader: _readDriverId,

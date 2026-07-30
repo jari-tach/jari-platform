@@ -3,10 +3,12 @@ import '../entities/delivery_assignment.dart';
 import '../entities/delivery_offer.dart';
 import '../entities/delivery_offer_status.dart';
 import '../entities/delivery_result.dart';
+import '../entities/local_delivery_command.dart';
 import '../failures/delivery_failure.dart';
 import '../policies/delivery_offer_transition_decision.dart';
 import '../policies/delivery_offer_transition_policy.dart';
 import '../repositories/delivery_assignment_repository.dart';
+import '../repositories/delivery_command_repository.dart';
 import '../repositories/delivery_offer_repository.dart';
 
 /// Accepts a delivery offer under default-deny preconditions (ADR-022/024/025).
@@ -19,11 +21,15 @@ class AcceptDeliveryOffer {
     this._offerRepository,
     this._assignmentRepository, {
     this._transitionPolicy = const DeliveryOfferTransitionPolicy(),
-  });
+    this.commandRepository,
+    DateTime Function()? clock,
+  }) : _clock = clock ?? DateTime.now;
 
   final DeliveryOfferRepository _offerRepository;
   final DeliveryAssignmentRepository _assignmentRepository;
   final DeliveryOfferTransitionPolicy _transitionPolicy;
+  final DeliveryCommandRepository? commandRepository;
+  final DateTime Function() _clock;
 
   /// Validates preconditions, accepts via repository, then persists locally.
   Future<DeliveryResult<DeliveryAssignment>> call(
@@ -51,6 +57,10 @@ class AcceptDeliveryOffer {
     }
     final active = existing.valueOrNull;
     if (active != null && active.isActive) {
+      if (active.offerId == request.offerId &&
+          active.completedCommandIds.contains(request.idempotencyKey)) {
+        return DeliverySuccess(active);
+      }
       return const DeliveryFailureResult(DeliveryActiveAssignmentExists());
     }
 
@@ -107,13 +117,33 @@ class AcceptDeliveryOffer {
       );
     }
 
-    final persist = await _assignmentRepository.upsertAccepted(assignment);
+    final localAssignment = assignment.copyWith(
+      completedCommandIds: {
+        ...assignment.completedCommandIds,
+        request.idempotencyKey,
+      },
+    );
+    final persist = await _assignmentRepository.upsertAccepted(localAssignment);
     if (persist.isFailure) {
       return DeliveryFailureResult(
         persist.failureOrNull ?? const DeliveryPersistenceFailure(),
       );
     }
 
-    return DeliverySuccess(assignment);
+    // The assignment itself already persists the command id. This durable
+    // ledger additionally prevents the consumed Fake offer from reappearing
+    // after the completed assignment is cleared.
+    await commandRepository?.save(
+      LocalDeliveryCommand(
+        commandId: request.idempotencyKey,
+        driverId: request.driverId,
+        targetId: request.offerId,
+        type: LocalDeliveryCommandType.acceptOffer,
+        status: LocalDeliveryCommandStatus.completed,
+        recordedAt: _clock().toUtc(),
+      ),
+    );
+
+    return DeliverySuccess(localAssignment);
   }
 }

@@ -7,6 +7,8 @@ import '../../application/complete_delivery_and_release_busy.dart';
 import '../../domain/entities/accept_delivery_offer_request.dart';
 import '../../domain/entities/delivery_assignment.dart';
 import '../../domain/entities/delivery_offer.dart';
+import '../../domain/entities/delivery_result.dart';
+import '../../domain/entities/local_delivery_command.dart';
 import '../../domain/entities/reject_delivery_offer_request.dart';
 import '../../domain/failures/delivery_failure.dart';
 import '../../domain/policies/driver_workflow_transition_policy.dart';
@@ -16,6 +18,7 @@ import '../../domain/usecases/advance_delivery_workflow.dart';
 import '../../domain/usecases/get_active_delivery.dart';
 import '../../domain/usecases/get_delivery_offers.dart';
 import '../../domain/usecases/reject_delivery_offer.dart';
+import '../../domain/usecases/record_local_delivery_command.dart';
 import '../../domain/usecases/verify_delivery_code.dart';
 import '../state/delivery_controller_state.dart';
 
@@ -43,6 +46,7 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
     GetActiveDelivery? Function(Ref ref)? getActiveReader,
     AdvanceDeliveryWorkflow? Function(Ref ref)? advanceWorkflowReader,
     VerifyDeliveryCode? Function(Ref ref)? verifyCodeReader,
+    RecordLocalDeliveryCommand? Function(Ref ref)? recordLocalCommandReader,
     CompleteDeliveryAndReleaseBusy? Function(Ref ref)? completeDeliveryReader,
     DeliveryOfferRepository? Function(Ref ref)? offerRepositoryReader,
     String? Function(Ref ref)? driverIdReader,
@@ -57,6 +61,8 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
        _advanceWorkflowReader =
            advanceWorkflowReader ?? _defaultAdvanceWorkflowReader,
        _verifyCodeReader = verifyCodeReader ?? _defaultVerifyCodeReader,
+       _recordLocalCommandReader =
+           recordLocalCommandReader ?? _defaultRecordLocalCommandReader,
        _completeDeliveryReader =
            completeDeliveryReader ?? _defaultCompleteDeliveryReader,
        _offerRepositoryReader =
@@ -74,6 +80,8 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
   final GetActiveDelivery? Function(Ref ref) _getActiveReader;
   final AdvanceDeliveryWorkflow? Function(Ref ref) _advanceWorkflowReader;
   final VerifyDeliveryCode? Function(Ref ref) _verifyCodeReader;
+  final RecordLocalDeliveryCommand? Function(Ref ref)
+  _recordLocalCommandReader;
   final CompleteDeliveryAndReleaseBusy? Function(Ref ref)
   _completeDeliveryReader;
   final DeliveryOfferRepository? Function(Ref ref) _offerRepositoryReader;
@@ -91,6 +99,9 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
   static AdvanceDeliveryWorkflow? _defaultAdvanceWorkflowReader(Ref ref) =>
       null;
   static VerifyDeliveryCode? _defaultVerifyCodeReader(Ref ref) => null;
+  static RecordLocalDeliveryCommand? _defaultRecordLocalCommandReader(
+    Ref ref,
+  ) => null;
   static CompleteDeliveryAndReleaseBusy? _defaultCompleteDeliveryReader(
     Ref ref,
   ) => null;
@@ -106,7 +117,7 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
   static Future<void> _defaultAvailabilityRefreshReader(Ref ref) async {}
 
   int _generation = 0;
-  bool _initializeStarted = false;
+  int _buildEpoch = 0;
   bool _commandInFlight = false;
   StreamSubscription<DeliveryOffer?>? _watchSubscription;
 
@@ -118,17 +129,22 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
   GetActiveDelivery? get _getActive => _getActiveReader(ref);
   AdvanceDeliveryWorkflow? get _advanceWorkflow => _advanceWorkflowReader(ref);
   VerifyDeliveryCode? get _verifyCode => _verifyCodeReader(ref);
+  RecordLocalDeliveryCommand? get _recordLocalCommand =>
+      _recordLocalCommandReader(ref);
   CompleteDeliveryAndReleaseBusy? get _completeDelivery =>
       _completeDeliveryReader(ref);
   DeliveryOfferRepository? get _offerRepository => _offerRepositoryReader(ref);
 
   @override
   DeliveryControllerState build() {
+    final buildEpoch = ++_buildEpoch;
     ref.onDispose(_disposeResources);
-    if (!_initializeStarted) {
-      _initializeStarted = true;
-      Future.microtask(initialize);
-    }
+    Future.microtask(() async {
+      // A newer rebuild owns initialization. Never use a Ref from an
+      // invalidated provider lifecycle.
+      if (buildEpoch != _buildEpoch || !ref.mounted) return;
+      await initialize();
+    });
     return const DeliveryControllerState.initial();
   }
 
@@ -251,6 +267,7 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
       offers: offers,
       activeAssignment: assignment,
       boundDriverId: driverId,
+      isRestored: assignment != null,
     );
     await _subscribeWatch(driverId, generation);
   }
@@ -489,7 +506,11 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
       final request = AcceptDeliveryOfferRequest(
         driverId: driverId,
         offerId: offer.offerId,
-        idempotencyKey: _idempotencyKey(offer.offerId),
+        idempotencyKey: _commandId(
+          driverId: driverId,
+          targetId: offer.offerId,
+          action: 'accept',
+        ),
         connectivityOnline: preconditions.connectivityOnline,
         isConfirmedAvailable: preconditions.isConfirmedAvailable,
         revision: offer.revision,
@@ -523,7 +544,32 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
         return;
       }
 
-      final assignment = result.valueOrNull;
+      var assignment = result.valueOrNull;
+      if (assignment != null && _advanceWorkflow != null) {
+        final pickupReady = await _runWorkflowSequence(
+          driverId: driverId,
+          assignmentId: assignment.assignmentId,
+          commands: const [
+            DriverWorkflowCommand.startTripPickup,
+            DriverWorkflowCommand.arrivedPickup,
+            DriverWorkflowCommand.waitAtPickup,
+          ],
+          commandGroup: 'auto-pickup-arrival',
+        );
+        if (!_isCurrent(generation)) return;
+        if (pickupReady.isFailure) {
+          state = DeliveryControllerState.failure(
+            failure:
+                pickupReady.failureOrNull ?? const DeliveryUnknownFailure(),
+            offers: const [],
+            activeAssignment: assignment,
+            lastAcceptedAssignment: assignment,
+            boundDriverId: driverId,
+          );
+          return;
+        }
+        assignment = pickupReady.valueOrNull ?? assignment;
+      }
       state = DeliveryControllerState.ready(
         offers: const [],
         activeOffer: null,
@@ -590,6 +636,11 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
         RejectDeliveryOfferRequest(
           driverId: driverId,
           offerId: offer.offerId,
+          idempotencyKey: _commandId(
+            driverId: driverId,
+            targetId: offer.offerId,
+            action: 'reject',
+          ),
           reasonCode: reasonCode,
           correlationId: offer.correlationId,
           connectivityOnline: preconditions.connectivityOnline,
@@ -642,7 +693,10 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
   /// Advances the active assignment workflow (PHASE 2.6).
   ///
   /// Does **not** bump [_generation].
-  Future<void> advanceWorkflow(DriverWorkflowCommand command) async {
+  Future<void> advanceWorkflow(
+    DriverWorkflowCommand command, {
+    bool? simulateOffline,
+  }) async {
     if (_commandInFlight || state.isLoading) return;
     if (state.activeAssignment == null) return;
 
@@ -683,7 +737,30 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
     );
 
     try {
-      final result = await advance(driverId: driverId, command: command);
+      final assignmentId = state.activeAssignment!.assignmentId;
+      final commands = switch (command) {
+        DriverWorkflowCommand.startTripPickup => const [
+          DriverWorkflowCommand.startTripPickup,
+          DriverWorkflowCommand.arrivedPickup,
+          DriverWorkflowCommand.waitAtPickup,
+        ],
+        DriverWorkflowCommand.confirmPickup => const [
+          DriverWorkflowCommand.confirmPickup,
+          DriverWorkflowCommand.startTripCustomer,
+          DriverWorkflowCommand.arrivedCustomer,
+          DriverWorkflowCommand.startVerify,
+        ],
+        _ => [command],
+      };
+      final result = await _runWorkflowSequence(
+        driverId: driverId,
+        assignmentId: assignmentId,
+        commands: commands,
+        commandGroup: command.name,
+        simulateOffline:
+            simulateOffline ??
+            !_acceptPreconditionsReader(ref).connectivityOnline,
+      );
       if (!_isCurrent(generation)) return;
       if (result.isFailure) {
         state = DeliveryControllerState.failure(
@@ -708,8 +785,114 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
     }
   }
 
+  Future<DeliveryResult<DeliveryAssignment>> _runWorkflowSequence({
+    required String driverId,
+    required String assignmentId,
+    required List<DriverWorkflowCommand> commands,
+    required String commandGroup,
+    bool simulateOffline = false,
+  }) async {
+    final advance = _advanceWorkflow;
+    if (advance == null) {
+      return const DeliveryFailureResult(
+        DeliveryUnknownFailure('Delivery workflow service is unavailable.'),
+      );
+    }
+
+    DeliveryAssignment? assignment;
+    for (final command in commands) {
+      final result = await advance(
+        driverId: driverId,
+        command: command,
+        commandId: _commandId(
+          driverId: driverId,
+          targetId: assignmentId,
+          action: '$commandGroup:${command.name}',
+        ),
+        simulateOffline: simulateOffline,
+      );
+      if (result.isFailure) return result;
+      assignment = result.valueOrNull;
+    }
+    return assignment == null
+        ? const DeliveryFailureResult(DeliveryAssignmentNotFound())
+        : DeliverySuccess(assignment);
+  }
+
+  /// Clears the STEP 3 local pending-sync simulation without replaying any
+  /// completed command.
+  Future<void> retryPendingSync() async {
+    if (_commandInFlight || state.isLoading) return;
+    final assignment = state.activeAssignment;
+    final advance = _advanceWorkflow;
+    if (assignment == null || advance == null || !assignment.pendingSync) {
+      return;
+    }
+
+    final generation = _generation;
+    _commandInFlight = true;
+    state = DeliveryControllerState.processing(
+      action: DeliveryProcessingAction.refreshing,
+      offers: const [],
+      activeAssignment: assignment,
+      lastAcceptedAssignment: state.lastAcceptedAssignment,
+      boundDriverId: assignment.driverId,
+    );
+    try {
+      final result = await advance.clearPendingSync(
+        driverId: assignment.driverId,
+      );
+      if (!_isCurrent(generation)) return;
+      if (result.isFailure) {
+        state = DeliveryControllerState.failure(
+          failure: result.failureOrNull ?? const DeliveryPersistenceFailure(),
+          activeAssignment: assignment,
+          lastAcceptedAssignment: state.lastAcceptedAssignment,
+          boundDriverId: assignment.driverId,
+        );
+        return;
+      }
+      final synced = result.valueOrNull;
+      state = DeliveryControllerState.ready(
+        offers: const [],
+        activeAssignment: synced,
+        lastAcceptedAssignment: synced ?? state.lastAcceptedAssignment,
+        boundDriverId: assignment.driverId,
+      );
+    } finally {
+      if (_isCurrent(generation)) _commandInFlight = false;
+    }
+  }
+
+  /// Records a local form cancellation without changing delivery lifecycle.
+  Future<void> recordCancelCommand() async {
+    if (_commandInFlight || state.isLoading) return;
+    final assignment = state.activeAssignment;
+    final recorder = _recordLocalCommand;
+    if (assignment == null || recorder == null) return;
+
+    final result = await recorder(
+      commandId: _commandId(
+        driverId: assignment.driverId,
+        targetId: assignment.assignmentId,
+        action: 'cancel',
+      ),
+      driverId: assignment.driverId,
+      targetId: assignment.assignmentId,
+      type: LocalDeliveryCommandType.cancel,
+    );
+    if (result.isFailure) {
+      state = DeliveryControllerState.failure(
+        failure: result.failureOrNull ?? const DeliveryPersistenceFailure(),
+        activeAssignment: assignment,
+        lastAcceptedAssignment: state.lastAcceptedAssignment,
+        boundDriverId: assignment.driverId,
+      );
+    }
+  }
+
   /// Verifies Fake/Backend delivery code then moves to summary.
-  Future<void> verifyDeliveryCode(String code) async {
+  Future<void> verifyDeliveryCode(String code, {bool? simulateOffline}) async {
     if (_commandInFlight || state.isLoading) return;
     if (state.activeAssignment == null) return;
 
@@ -741,7 +924,19 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
     );
 
     try {
-      final result = await verify(driverId: driverId, code: code);
+      final assignmentId = state.activeAssignment!.assignmentId;
+      final result = await verify(
+        driverId: driverId,
+        code: code,
+        commandId: _commandId(
+          driverId: driverId,
+          targetId: assignmentId,
+          action: 'confirm-delivery',
+        ),
+        simulateOffline:
+            simulateOffline ??
+            !_acceptPreconditionsReader(ref).connectivityOnline,
+      );
       if (!_isCurrent(generation)) return;
       if (result.isFailure) {
         state = DeliveryControllerState.failure(
@@ -867,6 +1062,9 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
     return activeResult.valueOrNull;
   }
 
-  String _idempotencyKey(String offerId) =>
-      'idem-${DateTime.now().toUtc().microsecondsSinceEpoch}-$offerId';
+  String _commandId({
+    required String driverId,
+    required String targetId,
+    required String action,
+  }) => 'local:$driverId:$targetId:$action';
 }

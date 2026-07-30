@@ -18,6 +18,7 @@ import '../../../../shared/widgets/saeq_status_chip.dart';
 import '../../../../shared/widgets/saeq_success_button.dart';
 import '../../../../core/providers/home_ui_providers.dart';
 import '../../domain/entities/delivery_assignment.dart';
+import '../../domain/entities/delivery_status.dart';
 import '../../domain/entities/driver_workflow_stage.dart';
 import '../../domain/policies/driver_workflow_transition_policy.dart';
 import '../controllers/delivery_controller.dart';
@@ -33,6 +34,11 @@ class ActiveDeliveryPage extends ConsumerWidget {
 
   static const pageKey = Key('activeDeliveryPage');
   static const primaryActionKey = Key('activeDeliveryPrimaryAction');
+  static const customerDetailsKey = Key('activeDeliveryCustomerDetails');
+  static const customerDetailsHiddenKey = Key(
+    'activeDeliveryCustomerDetailsHidden',
+  );
+  static const pendingSyncKey = Key('activeDeliveryPendingSync');
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -90,6 +96,8 @@ class ActiveDeliveryPage extends ConsumerWidget {
     final processing = state.isProcessing;
     final failure = state.failure;
     final colors = SaeqSemanticColors.of(context);
+    final customerDetailsVisible = assignment.status == DeliveryStatus.pickedUp;
+    final customerDetailsClosed = assignment.status == DeliveryStatus.delivered;
 
     return Column(
       children: [
@@ -102,6 +110,25 @@ class ActiveDeliveryPage extends ConsumerWidget {
                   message: l10n.offlineBannerMessage,
                   visible: offline,
                 ),
+                SaeqOfflineBanner(
+                  key: pendingSyncKey,
+                  message: l10n.deliveryPendingSyncMessage,
+                  visible: assignment.pendingSync,
+                ),
+                if (assignment.pendingSync) ...[
+                  SaeqSecondaryButton(
+                    label: l10n.deliveryRetrySync,
+                    onPressed: processing ? null : controller.retryPendingSync,
+                  ),
+                  const SizedBox(height: AppTheme.spacingSM),
+                ],
+                if (state.isRestored) ...[
+                  SaeqStatusChip(
+                    label: l10n.deliveryRestoredMessage,
+                    tone: SaeqStatusTone.neutral,
+                  ),
+                  const SizedBox(height: AppTheme.spacingSM),
+                ],
                 SaeqStatusChip(
                   label: deliveryWorkflowStageLabel(l10n, stage),
                   tone: stage == DriverWorkflowStage.issueOpen
@@ -119,10 +146,22 @@ class ActiveDeliveryPage extends ConsumerWidget {
                   address: assignment.order.pickupLabel,
                 ),
                 const SizedBox(height: AppTheme.spacingMD),
-                SaeqAddressBlock(
-                  title: l10n.deliveryOfferDropoffLabel,
-                  address: assignment.order.dropoffLabel,
-                ),
+                if (customerDetailsVisible)
+                  SaeqAddressBlock(
+                    key: customerDetailsKey,
+                    title: l10n.deliveryOfferDropoffLabel,
+                    address: assignment.order.dropoffLabel,
+                  )
+                else
+                  Text(
+                    key: customerDetailsHiddenKey,
+                    customerDetailsClosed
+                        ? l10n.deliveryCustomerDetailsClosed
+                        : l10n.deliveryCustomerDetailsLocked,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: colors.textSecondary,
+                    ),
+                  ),
                 const SizedBox(height: AppTheme.spacingLG),
                 SaeqContactActionsRow(
                   mapsLabel: l10n.deliveryMapsAction,

@@ -118,12 +118,15 @@ void main() {
           request(),
         );
 
+        final persisted = assignment.copyWith(
+          completedCommandIds: {'idem-1'},
+        );
         expect(result.isSuccess, isTrue);
-        expect(result.valueOrNull, assignment);
+        expect(result.valueOrNull, persisted);
         expect(offers.acceptCallCount, 1);
         expect(assignments.upsertCallCount, 1);
-        expect(assignments.upserted.single, assignment);
-        expect(assignments.active, assignment);
+        expect(assignments.upserted.single, persisted);
+        expect(assignments.active, persisted);
         offers.dispose();
       },
     );
