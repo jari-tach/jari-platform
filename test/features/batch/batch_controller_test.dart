@@ -274,7 +274,11 @@ void main() {
       );
       expect(
         container.read(batchControllerProvider).currentContactVisibility,
-        BatchCustomerContactVisibility.locked,
+        BatchCustomerContactVisibility.revealed,
+      );
+      expect(
+        container.read(batchControllerProvider).canConfirmDeliveryManually,
+        isFalse,
       );
 
       controller.registerAutomaticArrivalByLocation(1);
@@ -342,43 +346,146 @@ void main() {
       );
     });
 
-    test('contact locked before pickup and while en route', () async {
+    // Contract 1 — nothing about the customer is disclosed before the driver
+    // confirmed the pickup manually, not even once every order is verified.
+    test('contact locked before manual pickup', () async {
       final container = _container();
       final controller = await acceptedController(container);
       expect(
         container.read(batchControllerProvider).currentContactVisibility,
         BatchCustomerContactVisibility.locked,
       );
-      await _advanceToRoute(container, controller);
-      controller.openStop(1);
+      await _verifyAll(container, controller);
+      controller.openManualPickupConfirmation();
+      final state = container.read(batchControllerProvider);
+      expect(state.canConfirmPickupManually, isTrue);
       expect(
-        container.read(batchControllerProvider).currentContactVisibility,
+        state.currentContactVisibility,
         BatchCustomerContactVisibility.locked,
       );
+      expect(state.currentContact.isRevealed, isFalse);
     });
 
-    test(
-      'contact revealed only after automatic arrival for current stop',
-      () async {
-        final container = _container();
-        final controller = await acceptedController(container);
-        await _advanceToRoute(container, controller);
-        controller.openStop(1);
-        controller.registerAutomaticArrivalByLocation(1);
-        final contact = container.read(batchControllerProvider).currentContact;
-        expect(contact.visibility, BatchCustomerContactVisibility.revealed);
-        expect(contact.labelIndex, 1);
-      },
-    );
+    // Contract 2 — the manual pickup alone reveals the current customer, with
+    // no stop opened and no arrival involved.
+    test('contact revealed immediately after manual pickup', () async {
+      final container = _container();
+      final controller = await acceptedController(container);
+      await _advanceToRoute(container, controller);
+      final state = container.read(batchControllerProvider);
+      expect(state.journeyStage, BatchJourneyStage.pickupConfirmedManually);
+      expect(state.routeStatus, BatchRouteStatus.overview);
+      expect(
+        state.currentOrder!.state,
+        BatchOrderState.pickedUp,
+        reason: 'reveal must not depend on the arrival',
+      );
+      expect(
+        state.currentContactVisibility,
+        BatchCustomerContactVisibility.revealed,
+      );
+      expect(state.currentContact.labelIndex, state.currentOrder!.labelIndex);
+    });
 
-    test('fake call and WhatsApp actions count attempts only', () async {
+    // Contract 3 + 4 — the reveal survives the transition to en route and
+    // always describes the current stop's customer.
+    test('contact revealed while en route to the current customer', () async {
+      final container = _container();
+      final controller = await acceptedController(container);
+      await _advanceToRoute(container, controller);
+      controller.openStop(1);
+      final state = container.read(batchControllerProvider);
+      expect(state.currentOrder!.state, BatchOrderState.headingToCustomer);
+      expect(
+        state.currentContactVisibility,
+        BatchCustomerContactVisibility.revealed,
+      );
+      expect(state.currentContact.isRevealed, isTrue);
+      expect(state.currentContact.labelIndex, 1);
+    });
+
+    // Contract 5 — the contact card is scoped to the current sequence only, so
+    // the next customer is never described by it.
+    test('contact never describes the next customer', () async {
+      final container = _container();
+      final controller = await acceptedController(container);
+      await _advanceToRoute(container, controller);
+      controller.openStop(1);
+      final state = container.read(batchControllerProvider);
+      final next = state.batch!.orderBySequence(state.nextActionableSequence!)!;
+      expect(next.sequence, 2);
+      expect(state.currentContact.labelIndex, isNot(next.labelIndex));
+      expect(state.currentContact.labelIndex, state.currentOrder!.labelIndex);
+    });
+
+    // Contract 6 + 8 + 9 — disclosure and the delivery gate are independent.
+    test('revealed contact does not arm manual delivery', () async {
+      final container = _container();
+      final controller = await acceptedController(container);
+      await _advanceToRoute(container, controller);
+      controller.openStop(1);
+      var state = container.read(batchControllerProvider);
+      expect(
+        state.currentContactVisibility,
+        BatchCustomerContactVisibility.revealed,
+      );
+      expect(state.canConfirmDeliveryManually, isFalse);
+      expect(state.hasArrivedAtCurrentStop, isFalse);
+
+      controller.registerAutomaticArrivalByLocation(1);
+      state = container.read(batchControllerProvider);
+      expect(
+        state.currentContactVisibility,
+        BatchCustomerContactVisibility.revealed,
+      );
+      expect(state.canConfirmDeliveryManually, isTrue);
+    });
+
+    // Contract 7 — arrival has no driver-triggered path: the manual delivery
+    // confirmation is the only driver action and it is refused before the
+    // automatic arrival.
+    test('no driver action can register the arrival', () async {
       final container = _container();
       final controller = await acceptedController(container);
       await _advanceToRoute(container, controller);
       controller.openStop(1);
       controller.recordCallAttempt();
+      controller.recordWhatsappAttempt();
+      await controller.confirmDeliveryManually();
+      final state = container.read(batchControllerProvider);
+      expect(state.currentOrder!.state, BatchOrderState.headingToCustomer);
+      expect(state.hasArrivedAtCurrentStop, isFalse);
+      expect(
+        state.stageHistory,
+        isNot(contains(BatchJourneyStage.arrivedAutomaticallyByLocation)),
+      );
+    });
+
+    // Contract 10 — a delivered stop closes its own contact.
+    test('contact closed for a delivered current stop', () async {
+      final container = _container();
+      final controller = await acceptedController(container);
+      await _resolveAllOrders(container, controller);
+      final state = container.read(batchControllerProvider);
+      expect(state.currentOrder!.isCompleted, isTrue);
+      expect(
+        state.currentContactVisibility,
+        BatchCustomerContactVisibility.closed,
+      );
+      expect(state.currentContact.isClosed, isTrue);
+    });
+
+    test('fake call and WhatsApp actions count attempts only', () async {
+      final container = _container();
+      final controller = await acceptedController(container);
+      // Locked before the manual pickup: the actions record nothing.
+      controller.recordCallAttempt();
+      controller.recordWhatsappAttempt();
       expect(container.read(batchControllerProvider).callAttempts, 0);
-      controller.registerAutomaticArrivalByLocation(1);
+      expect(container.read(batchControllerProvider).whatsappAttempts, 0);
+
+      await _advanceToRoute(container, controller);
+      controller.openStop(1);
       controller.recordCallAttempt();
       controller.recordWhatsappAttempt();
       final state = container.read(batchControllerProvider);
@@ -437,12 +544,47 @@ void main() {
       controller.openIssue(orderId);
       controller.selectIssueReason(BatchOrderIssueReason.merchantCancelled);
       await controller.submitIssue();
-      final cancelled = container
-          .read(batchControllerProvider)
-          .batch!
-          .orderBySequence(2)!;
+      final state = container.read(batchControllerProvider);
+      final cancelled = state.batch!.orderBySequence(2)!;
       expect(cancelled.state, BatchOrderState.cancelled);
       expect(cancelled.isResolved, isTrue);
+      // Contract 11 — the cancelled stop is the current one, and its contact
+      // is closed rather than merely locked.
+      expect(state.currentSequence, 2);
+      expect(
+        state.currentContactVisibility,
+        BatchCustomerContactVisibility.closed,
+      );
+    });
+
+    // Contract 12 — the disclosure change leaves both duplicate-tap guards in
+    // place: neither confirmation is recorded twice.
+    test('duplicate pickup and delivery taps stay blocked', () async {
+      final container = _container();
+      final controller = await acceptedController(container);
+      await _verifyAll(container, controller);
+      controller.openManualPickupConfirmation();
+
+      final pickup = controller.confirmPickupManually();
+      expect(container.read(batchControllerProvider).isProcessing, isTrue);
+      await controller.confirmPickupManually();
+      await pickup;
+      expect(
+        _stageCount(container, BatchJourneyStage.pickupConfirmedManually),
+        1,
+      );
+
+      controller.openStop(1);
+      controller.registerAutomaticArrivalByLocation(1);
+      final delivery = controller.confirmDeliveryManually();
+      expect(container.read(batchControllerProvider).isProcessing, isTrue);
+      await controller.confirmDeliveryManually();
+      await delivery;
+      expect(
+        _stageCount(container, BatchJourneyStage.deliveredConfirmedManually),
+        1,
+      );
+      expect(container.read(batchControllerProvider).batch!.completedCount, 1);
     });
 
     test('manual delivery refuses auto-complete before arrival', () async {
@@ -567,6 +709,14 @@ void main() {
       );
     });
   });
+}
+
+int _stageCount(ProviderContainer container, BatchJourneyStage stage) {
+  return container
+      .read(batchControllerProvider)
+      .stageHistory
+      .where((entry) => entry == stage)
+      .length;
 }
 
 Future<void> _verifyAll(

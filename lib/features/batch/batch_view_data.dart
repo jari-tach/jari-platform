@@ -37,7 +37,9 @@ enum BatchJourneyStage {
   /// The driver pressed the manual pickup confirmation and it succeeded.
   pickupConfirmedManually,
 
-  /// Driving to the current customer. Contact details stay locked.
+  /// Driving to the current customer. The current customer's contact details
+  /// are already revealed by the manual pickup; the delivery confirmation is
+  /// not.
   enRouteToCustomer,
 
   /// Arrival registered by the (fake) location signal. Read-only: there is no
