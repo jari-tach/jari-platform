@@ -18,6 +18,10 @@ DeliveryOrder sampleOrder({
   double? distanceMeters = 1200,
   int? etaMinutes = 15,
   String? notes = 'ring bell',
+  double? pickupLatitude,
+  double? pickupLongitude,
+  double? dropoffLatitude,
+  double? dropoffLongitude,
 }) => DeliveryOrder(
   orderId: orderId,
   pickupLabel: pickupLabel,
@@ -26,6 +30,10 @@ DeliveryOrder sampleOrder({
   distanceMeters: distanceMeters,
   etaMinutes: etaMinutes,
   notes: notes,
+  pickupLatitude: pickupLatitude,
+  pickupLongitude: pickupLongitude,
+  dropoffLatitude: dropoffLatitude,
+  dropoffLongitude: dropoffLongitude,
 );
 
 DeliveryOffer sampleOffer({

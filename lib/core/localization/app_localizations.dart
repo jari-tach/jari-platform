@@ -672,11 +672,23 @@ class AppLocalizations {
     'Turn on location services on this device, then retry.',
     'شغّل خدمات الموقع على هذا الجهاز ثم أعد المحاولة.',
   );
+  String get locationStaleTitle =>
+      _t('Saved location is out of date', 'الموقع المحفوظ قديم');
+  String get locationStaleMessage => _t(
+    'A previous location was restored for display only. It cannot confirm arrival. Move to an open area and retry.',
+    'تمت استعادة موقع سابق للعرض فقط، ولا يمكن استخدامه لتأكيد الوصول. انتقل إلى مكان مفتوح ثم أعد المحاولة.',
+  );
+  String get locationGnssUnavailableTitle =>
+      _t('Could not determine your location', 'تعذر تحديد موقعك');
+  String get locationGnssUnavailableMessage => _t(
+    'Keep location services on, move to an open area, then retry.',
+    'أبقِ خدمات الموقع مفعّلة، وانتقل إلى مكان مفتوح، ثم أعد المحاولة.',
+  );
   String get locationOfflineTitle =>
-      _t('Location unavailable offline', 'الموقع غير متاح دون اتصال');
+      _t('Could not determine your location', 'تعذر تحديد موقعك');
   String get locationOfflineMessage => _t(
-    'Connect to the internet to refresh your location.',
-    'اتصل بالإنترنت لتحديث موقعك.',
+    'Move to an open area, keep location services on, then retry. Internet is not required for a GPS fix.',
+    'انتقل إلى مكان مفتوح، وأبقِ خدمات الموقع مفعّلة، ثم أعد المحاولة. الإنترنت غير مطلوب للحصول على موقع GPS.',
   );
   String get locationUnavailableTitle =>
       _t('Location unavailable', 'الموقع غير متاح');

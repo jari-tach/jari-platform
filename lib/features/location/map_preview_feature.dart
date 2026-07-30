@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/config/app_config.dart';
+import 'data/external_navigation_gateway.dart';
+import 'domain/geo_point.dart';
 import 'location_feature.dart';
+import 'location_providers.dart';
 
 /// Fake map preview view states (STEP 2B Fake UI).
 enum MapPreviewStatus {
@@ -53,7 +55,6 @@ class MapPreviewOfflineException implements Exception {
 abstract interface class MapPreviewService {
   Future<FakeMapSnapshot> loadSnapshot(FakeMapScenario scenario);
 
-  /// Always false in this increment — no navigation handoff exists yet.
   Future<bool> canOpenExternalNavigation();
 }
 
@@ -61,6 +62,7 @@ class FakeMapPreviewService implements MapPreviewService {
   FakeMapPreviewService({
     this.latency = Duration.zero,
     this.recoverAfterFailures = 1,
+    this.externalNavigationAvailable = false,
   });
 
   static const defaultSnapshot = FakeMapSnapshot(
@@ -84,6 +86,9 @@ class FakeMapPreviewService implements MapPreviewService {
   /// Failed loads returned before the fake snapshot recovers. `0` keeps the
   /// failing state until the scenario changes.
   final int recoverAfterFailures;
+
+  /// When true, [canOpenExternalNavigation] reports available (STEP 4 Fake).
+  final bool externalNavigationAvailable;
 
   int _failedLoads = 0;
 
@@ -111,7 +116,7 @@ class FakeMapPreviewService implements MapPreviewService {
   @override
   Future<bool> canOpenExternalNavigation() async {
     await Future<void>.delayed(latency);
-    return false;
+    return externalNavigationAvailable;
   }
 }
 
@@ -149,12 +154,31 @@ class MapPreviewState {
 
 final mapPreviewServiceProvider = Provider<MapPreviewService?>((ref) {
   try {
-    if (AppConfig.isProduction) return null;
+    if (deviceLocationAdaptersEnabled) {
+      return DeviceMapPreviewService(
+        ref.watch(externalNavigationGatewayProvider),
+      );
+    }
   } catch (_) {
     // Widget tests may run before AppConfig initialization.
   }
   return FakeMapPreviewService();
 });
+
+/// Production map preview: keeps Fake placeholder geometry; real external nav.
+class DeviceMapPreviewService implements MapPreviewService {
+  DeviceMapPreviewService(this._navigation);
+
+  final ExternalNavigationGateway _navigation;
+
+  @override
+  Future<FakeMapSnapshot> loadSnapshot(FakeMapScenario scenario) async {
+    return FakeMapPreviewService.defaultSnapshot;
+  }
+
+  @override
+  Future<bool> canOpenExternalNavigation() => _navigation.canLaunch();
+}
 
 class MapPreviewController extends Notifier<MapPreviewState> {
   @override
@@ -171,8 +195,7 @@ class MapPreviewController extends Notifier<MapPreviewState> {
 
   Future<void> selectScenario(FakeMapScenario scenario) => _load(scenario);
 
-  /// Fake external navigation handoff — never leaves the app in this
-  /// increment, so it always reports the unavailable state.
+  /// External navigation handoff via [externalNavigationGatewayProvider].
   Future<void> openExternalNavigation() async {
     if (state.isProcessing) return;
     final service = _service;
@@ -184,8 +207,22 @@ class MapPreviewController extends Notifier<MapPreviewState> {
     try {
       final canOpen = await service.canOpenExternalNavigation();
       if (!ref.mounted) return;
+      if (!canOpen) {
+        state = state.copyWith(
+          status: MapPreviewStatus.externalNavigationUnavailable,
+          isProcessing: false,
+        );
+        return;
+      }
+      final launched = await ref
+          .read(externalNavigationGatewayProvider)
+          .openNavigation(
+            destination: const GeoPoint(latitude: 24.7136, longitude: 46.6753),
+            label: 'SAEQ',
+          );
+      if (!ref.mounted) return;
       state = state.copyWith(
-        status: canOpen
+        status: launched
             ? MapPreviewStatus.loadedPlaceholder
             : MapPreviewStatus.externalNavigationUnavailable,
         isProcessing: false,

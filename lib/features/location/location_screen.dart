@@ -50,6 +50,8 @@ class LocationScreen extends ConsumerWidget {
       LocationViewStatus.locating => l10n.locationLocatingTitle,
       LocationViewStatus.available => l10n.locationAvailableTitle,
       LocationViewStatus.weakAccuracy => l10n.locationWeakAccuracyTitle,
+      LocationViewStatus.stale => l10n.locationStaleTitle,
+      LocationViewStatus.unavailable => l10n.locationGnssUnavailableTitle,
       LocationViewStatus.offline => l10n.locationOfflineTitle,
     };
   }
@@ -245,6 +247,34 @@ class LocationScreen extends ConsumerWidget {
           key: mapPreviewKey,
           label: l10n.locationContinueWithoutNavigationAction,
           onPressed: () => context.push(AppRoutes.mapPreview),
+        ),
+      ],
+      LocationViewStatus.stale => [
+        P27Banner(
+          title: l10n.locationStaleTitle,
+          message: l10n.locationStaleMessage,
+          tone: P27BannerTone.warning,
+        ),
+        const P27FakeMap(height: 300),
+        _primary(
+          key: refreshKey,
+          label: l10n.locationRelocateAction,
+          icon: Icons.my_location,
+          onPressed: state.isProcessing ? null : controller.retry,
+        ),
+      ],
+      LocationViewStatus.unavailable => [
+        P27Banner(
+          title: l10n.locationGnssUnavailableTitle,
+          message: l10n.locationGnssUnavailableMessage,
+          tone: P27BannerTone.warning,
+        ),
+        const P27Skeleton(height: 430),
+        _primary(
+          key: blockedRetryKey,
+          label: l10n.profileRetry,
+          icon: Icons.refresh,
+          onPressed: state.isProcessing ? null : controller.retry,
         ),
       ],
       LocationViewStatus.offline => [

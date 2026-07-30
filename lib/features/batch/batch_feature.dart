@@ -11,6 +11,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/app_config.dart';
+import '../location/data/fake_location_gateway.dart';
+import '../location/domain/geo_point.dart';
+import '../location/domain/geofence_policy.dart';
+import '../location/domain/location_fix.dart';
+import '../location/location_providers.dart';
 import 'batch_view_data.dart';
 
 /// Offer surface states required by the P27 batch specification.
@@ -929,10 +934,10 @@ final batchControllerProvider = NotifierProvider<BatchController, BatchState>(
   BatchController.new,
 );
 
-/// Fake proximity signal for the current stop (STEP 2C).
+/// Fake proximity signal for the current stop (STEP 2C / STEP 4).
 ///
-/// This models what STEP 4 will later get from real tracking. Here it is a
-/// timer over in-memory data: no GPS, no geofence, no permissions, no plugin.
+/// STEP 4 drives this from [LocationGateway] + [GeofencePolicy]. Fake adapters
+/// remain the default outside production; Device GPS is used in production.
 enum FakeBatchLocationSignal { idle, approachingCustomer, atCustomer }
 
 class FakeBatchLocationState {
@@ -949,17 +954,18 @@ class FakeBatchLocationState {
   bool get isTracking => signal != FakeBatchLocationSignal.idle;
 }
 
-/// How long the fake signal takes to report arrival once a stop is opened.
+/// How long between Fake location samples while approaching a stop.
 ///
-/// Tests override this to drive the transition deterministically.
+/// Tests override this to drive geofence arrival deterministically. Prefer
+/// a short non-zero duration; `Duration.zero` is treated as 1ms.
 final fakeBatchArrivalDelayProvider = Provider<Duration>(
   (ref) => const Duration(seconds: 4),
 );
 
-/// Presentation-only location controller. The driver never triggers arrival:
-/// opening a stop starts the signal, and the signal reports the arrival.
+/// Presentation location controller. Arrival is geofence-driven (ADR-029);
+/// the driver never triggers arrival. Fake or Device fixes feed the policy.
 class FakeBatchLocationController extends Notifier<FakeBatchLocationState> {
-  Timer? _timer;
+  StreamSubscription<LocationFix>? _subscription;
 
   @override
   FakeBatchLocationState build() {
@@ -968,11 +974,11 @@ class FakeBatchLocationController extends Notifier<FakeBatchLocationState> {
   }
 
   void _cancel() {
-    _timer?.cancel();
-    _timer = null;
+    _subscription?.cancel();
+    _subscription = null;
   }
 
-  /// Starts tracking towards [sequence] and schedules the automatic arrival.
+  /// Starts tracking towards [sequence] and listens for geofence arrival.
   void startApproach(int sequence) {
     if (state.signal == FakeBatchLocationSignal.approachingCustomer &&
         state.sequence == sequence) {
@@ -983,9 +989,44 @@ class FakeBatchLocationController extends Notifier<FakeBatchLocationState> {
       signal: FakeBatchLocationSignal.approachingCustomer,
       sequence: sequence,
     );
-    _timer = Timer(ref.read(fakeBatchArrivalDelayProvider), () {
-      reportArrival(sequence);
-    });
+
+    final target = GeoPoint(
+      latitude: 24.7136 + (sequence * 0.001),
+      longitude: 46.6753 + (sequence * 0.001),
+    );
+    final gateway = ref.read(locationGatewayProvider);
+    if (gateway is FakeLocationGateway) {
+      gateway.anchorPoint = target;
+      gateway.clearFixes();
+    }
+
+    final policy = GeofencePolicy(
+      debouncer: LocationFixDebouncer(
+        requiredHits: 2,
+        minInterval: const Duration(milliseconds: 1),
+      ),
+    );
+    final configured = ref.read(fakeBatchArrivalDelayProvider);
+    final interval = configured <= Duration.zero
+        ? const Duration(milliseconds: 1)
+        : (configured < const Duration(milliseconds: 50)
+              ? configured
+              : configured ~/ 2);
+
+    _subscription = gateway
+        .watchFixes(interval: interval)
+        .listen(
+          (fix) {
+            final evaluation = policy.evaluate(fix: fix, target: target);
+            if (evaluation != GeofenceEvaluation.arrived) return;
+            reportArrival(sequence);
+          },
+          onError: (Object _, StackTrace _) {
+            // A provider error is neither arrival nor offline. Stop this watch;
+            // a later explicit approach/retry may create a fresh subscription.
+            _cancel();
+          },
+        );
   }
 
   /// Reports the arrival for [sequence]. Read-only from the driver's side.

@@ -13,6 +13,10 @@ class DeliveryOrderModel {
     this.distanceMeters,
     this.etaMinutes,
     this.notes,
+    this.pickupLatitude,
+    this.pickupLongitude,
+    this.dropoffLatitude,
+    this.dropoffLongitude,
   });
 
   final String orderId;
@@ -22,6 +26,10 @@ class DeliveryOrderModel {
   final double? distanceMeters;
   final int? etaMinutes;
   final String? notes;
+  final double? pickupLatitude;
+  final double? pickupLongitude;
+  final double? dropoffLatitude;
+  final double? dropoffLongitude;
 
   /// Maps a domain entity to this model.
   factory DeliveryOrderModel.fromEntity(DeliveryOrder entity) {
@@ -33,6 +41,10 @@ class DeliveryOrderModel {
       distanceMeters: entity.distanceMeters,
       etaMinutes: entity.etaMinutes,
       notes: entity.notes,
+      pickupLatitude: entity.pickupLatitude,
+      pickupLongitude: entity.pickupLongitude,
+      dropoffLatitude: entity.dropoffLatitude,
+      dropoffLongitude: entity.dropoffLongitude,
     );
   }
 
@@ -46,6 +58,10 @@ class DeliveryOrderModel {
       distanceMeters: distanceMeters,
       etaMinutes: etaMinutes,
       notes: notes,
+      pickupLatitude: pickupLatitude,
+      pickupLongitude: pickupLongitude,
+      dropoffLatitude: dropoffLatitude,
+      dropoffLongitude: dropoffLongitude,
     );
   }
 
@@ -86,7 +102,26 @@ class DeliveryOrderModel {
                       ? eta.toInt()
                       : throw const FormatException('etaMinutes invalid'))),
       notes: json['notes'] as String?,
+      pickupLatitude: _optionalDouble(json['pickupLatitude'], 'pickupLatitude'),
+      pickupLongitude: _optionalDouble(
+        json['pickupLongitude'],
+        'pickupLongitude',
+      ),
+      dropoffLatitude: _optionalDouble(
+        json['dropoffLatitude'],
+        'dropoffLatitude',
+      ),
+      dropoffLongitude: _optionalDouble(
+        json['dropoffLongitude'],
+        'dropoffLongitude',
+      ),
     );
+  }
+
+  static double? _optionalDouble(Object? value, String field) {
+    if (value == null) return null;
+    if (value is num) return value.toDouble();
+    throw FormatException('$field invalid');
   }
 
   /// Serializes this model to JSON.
@@ -98,6 +133,10 @@ class DeliveryOrderModel {
     'distanceMeters': distanceMeters,
     'etaMinutes': etaMinutes,
     'notes': notes,
+    if (pickupLatitude != null) 'pickupLatitude': pickupLatitude,
+    if (pickupLongitude != null) 'pickupLongitude': pickupLongitude,
+    if (dropoffLatitude != null) 'dropoffLatitude': dropoffLatitude,
+    if (dropoffLongitude != null) 'dropoffLongitude': dropoffLongitude,
   };
 
   @override
@@ -110,7 +149,11 @@ class DeliveryOrderModel {
           merchantDisplayName == other.merchantDisplayName &&
           distanceMeters == other.distanceMeters &&
           etaMinutes == other.etaMinutes &&
-          notes == other.notes;
+          notes == other.notes &&
+          pickupLatitude == other.pickupLatitude &&
+          pickupLongitude == other.pickupLongitude &&
+          dropoffLatitude == other.dropoffLatitude &&
+          dropoffLongitude == other.dropoffLongitude;
 
   @override
   int get hashCode => Object.hash(
@@ -121,5 +164,9 @@ class DeliveryOrderModel {
     distanceMeters,
     etaMinutes,
     notes,
+    pickupLatitude,
+    pickupLongitude,
+    dropoffLatitude,
+    dropoffLongitude,
   );
 }
