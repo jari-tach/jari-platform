@@ -136,8 +136,9 @@ remote implementation.
 | Routes wired to a real backend | **0** |
 | Device validation performed inside STEP 2D | **0 — NOT REQUIRED** (documentation-only step) |
 
-**Backend/Domain handoff status:** no `STEP2D_Backend_Domain_Handoff` document
-exists in this repository at `6164994`, therefore every “future remote” cell in
-this matrix is left as `NONE` / deferred and marked **PENDING HANDOFF** in
-[`fake_local_remote_boundaries.md`](./fake_local_remote_boundaries.md). No API
-path, verb or schema is invented here.
+**Backend/Domain handoff status:** Official handoff is recorded in
+[`backend_domain_handoff.md`](./backend_domain_handoff.md) (source package
+`STEP2D_Backend_Domain_Handoff.md` + draft contracts `0.1.0-draft`). Future-remote
+cells remain **DRAFT CONTRACT ONLY** — Backend server **NOT STARTED**, production
+**NOT CONNECTED**. No API path, verb, or production schema is approved for Flutter
+wiring here.
