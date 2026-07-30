@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/localization/app_localizations.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/saeq_semantic_colors.dart';
 
@@ -69,6 +70,7 @@ class _SaeqOtpInputState extends State<SaeqOtpInput> {
   @override
   Widget build(BuildContext context) {
     final colors = SaeqSemanticColors.of(context);
+    final l10n = AppLocalizations.of(context);
     final text = widget.controller.text;
     final hasFocus = _focusNode.hasFocus;
     // Figma Final Auth OTP cells are white in light and dark.
@@ -122,7 +124,7 @@ class _SaeqOtpInputState extends State<SaeqOtpInput> {
                     end: index == widget.length - 1 ? 0 : SaeqOtpInput.cellGap,
                   ),
                   child: Semantics(
-                    label: 'Digit ${index + 1} of ${widget.length}',
+                    label: l10n.otpDigitSemantics(index + 1, widget.length),
                     value: digit.isEmpty ? null : digit,
                     child: AnimatedContainer(
                       duration: AppTheme.durationFast,

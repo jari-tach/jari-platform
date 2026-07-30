@@ -304,10 +304,11 @@ class BatchMultiStopMap extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = SaeqSemanticColors.of(context);
+    final l10n = AppLocalizations.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Semantics(
       key: mapKey,
-      label: 'Batch stops preview',
+      label: l10n.batchSemanticsMap,
       child: Container(
         height: height,
         decoration: BoxDecoration(
