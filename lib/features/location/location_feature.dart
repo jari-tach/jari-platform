@@ -1,6 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/config/app_config.dart';
+import 'data/location_gateway.dart';
+import 'domain/location_accuracy_level.dart';
+import 'domain/location_fix.dart';
+import 'domain/location_probe.dart';
+import 'location_providers.dart';
+
+export 'domain/location_accuracy_level.dart';
+export 'domain/location_probe.dart';
 
 /// Driver location / GPS view states (STEP 2B Fake UI).
 ///
@@ -14,12 +21,10 @@ enum LocationViewStatus {
   locating,
   available,
   weakAccuracy,
+  stale,
+  unavailable,
   offline,
 }
-
-/// Accuracy bucket reported with a fake fix — shown as icon + text, never
-/// color alone.
-enum LocationAccuracyLevel { unknown, high, weak }
 
 /// Trial scenarios driving [FakeLocationService].
 enum FakeLocationScenario {
@@ -29,23 +34,6 @@ enum FakeLocationScenario {
   gpsDisabled,
   weakAccuracy,
   offline,
-}
-
-/// Outcome of a single fake location probe.
-enum LocationProbeOutcome {
-  available,
-  weakAccuracy,
-  permissionDenied,
-  permissionPermanentlyDenied,
-  gpsDisabled,
-  offline,
-}
-
-class LocationProbeResult {
-  const LocationProbeResult({required this.outcome, this.accuracyMeters});
-
-  final LocationProbeOutcome outcome;
-  final int? accuracyMeters;
 }
 
 abstract interface class LocationService {
@@ -114,6 +102,8 @@ class LocationState {
     this.scenario = FakeLocationScenario.permissionGranted,
     this.accuracy = LocationAccuracyLevel.unknown,
     this.accuracyMeters,
+    this.capturedAt,
+    this.source = LocationSampleSource.live,
     this.isProcessing = false,
     this.settingsGuidanceVisible = false,
     this.serviceUnavailable = false,
@@ -123,6 +113,8 @@ class LocationState {
   final FakeLocationScenario scenario;
   final LocationAccuracyLevel accuracy;
   final int? accuracyMeters;
+  final DateTime? capturedAt;
+  final LocationSampleSource source;
 
   /// In-flight guard — repeated taps must not re-trigger a transition.
   final bool isProcessing;
@@ -144,6 +136,9 @@ class LocationState {
     LocationAccuracyLevel? accuracy,
     int? accuracyMeters,
     bool clearAccuracyMeters = false,
+    DateTime? capturedAt,
+    bool clearCapturedAt = false,
+    LocationSampleSource? source,
     bool? isProcessing,
     bool? settingsGuidanceVisible,
     bool? serviceUnavailable,
@@ -155,6 +150,8 @@ class LocationState {
       accuracyMeters: clearAccuracyMeters
           ? null
           : (accuracyMeters ?? this.accuracyMeters),
+      capturedAt: clearCapturedAt ? null : (capturedAt ?? this.capturedAt),
+      source: source ?? this.source,
       isProcessing: isProcessing ?? this.isProcessing,
       settingsGuidanceVisible:
           settingsGuidanceVisible ?? this.settingsGuidanceVisible,
@@ -165,7 +162,7 @@ class LocationState {
 
 final locationServiceProvider = Provider<LocationService?>((ref) {
   try {
-    if (AppConfig.isProduction) return null;
+    if (deviceLocationAdaptersEnabled) return null;
   } catch (_) {
     // Widget tests may run before AppConfig initialization.
   }
@@ -178,13 +175,23 @@ class LocationController extends Notifier<LocationState> {
 
   LocationService? get _service => ref.read(locationServiceProvider);
 
-  /// Primary flow: fake permission grant, then locate.
-  Future<void> requestPermission() => _probe(state.scenario);
+  /// Primary flow: Fake scenario probe, or Device gateway in production.
+  Future<void> requestPermission() async {
+    if (_service == null) {
+      return _probeViaGateway(requestPermission: true);
+    }
+    return _probe(state.scenario);
+  }
 
-  /// Retry the current trial scenario.
-  Future<void> retry() => _probe(state.scenario);
+  /// Retry the current trial scenario / device probe.
+  Future<void> retry() async {
+    if (_service == null) {
+      return _probeViaGateway(requestPermission: false);
+    }
+    return _probe(state.scenario);
+  }
 
-  /// Switch trial scenario and probe again.
+  /// Switch trial scenario and probe again (Fake / non-production only).
   Future<void> selectScenario(FakeLocationScenario scenario) =>
       _probe(scenario);
 
@@ -192,6 +199,63 @@ class LocationController extends Notifier<LocationState> {
   void showSettingsGuidance() {
     if (state.status != LocationViewStatus.permissionPermanentlyDenied) return;
     state = state.copyWith(settingsGuidanceVisible: true);
+  }
+
+  Future<void> _probeViaGateway({required bool requestPermission}) async {
+    if (state.isProcessing) return;
+    state = state.copyWith(
+      status: LocationViewStatus.locating,
+      accuracy: LocationAccuracyLevel.unknown,
+      clearAccuracyMeters: true,
+      clearCapturedAt: true,
+      source: LocationSampleSource.live,
+      isProcessing: true,
+      settingsGuidanceVisible: false,
+      serviceUnavailable: false,
+    );
+    try {
+      final gateway = ref.read(locationGatewayProvider);
+      if (requestPermission) {
+        final status = await gateway.requestPermission();
+        if (!ref.mounted) return;
+        if (status == LocationPermissionStatus.denied) {
+          state = state.copyWith(
+            status: LocationViewStatus.permissionDenied,
+            isProcessing: false,
+          );
+          return;
+        }
+        if (status == LocationPermissionStatus.permanentlyDenied ||
+            status == LocationPermissionStatus.restricted) {
+          state = state.copyWith(
+            status: LocationViewStatus.permissionPermanentlyDenied,
+            isProcessing: false,
+          );
+          return;
+        }
+      }
+      final result = await gateway.probeCurrent();
+      if (!ref.mounted) return;
+      state = state.copyWith(
+        status: _statusFor(result.outcome),
+        accuracy: _accuracyFor(result.outcome),
+        accuracyMeters: result.accuracyMeters,
+        clearAccuracyMeters: result.accuracyMeters == null,
+        capturedAt: result.capturedAt,
+        clearCapturedAt: result.capturedAt == null,
+        source: result.source,
+        isProcessing: false,
+      );
+    } catch (_) {
+      if (ref.mounted) {
+        state = state.copyWith(
+          status: LocationViewStatus.gpsDisabled,
+          accuracy: LocationAccuracyLevel.unknown,
+          clearAccuracyMeters: true,
+          isProcessing: false,
+        );
+      }
+    }
   }
 
   Future<void> _probe(FakeLocationScenario scenario) async {
@@ -211,6 +275,8 @@ class LocationController extends Notifier<LocationState> {
       scenario: scenario,
       accuracy: LocationAccuracyLevel.unknown,
       clearAccuracyMeters: true,
+      clearCapturedAt: true,
+      source: LocationSampleSource.fake,
       isProcessing: true,
       settingsGuidanceVisible: false,
       serviceUnavailable: false,
@@ -223,6 +289,9 @@ class LocationController extends Notifier<LocationState> {
         accuracy: _accuracyFor(result.outcome),
         accuracyMeters: result.accuracyMeters,
         clearAccuracyMeters: result.accuracyMeters == null,
+        capturedAt: result.capturedAt,
+        clearCapturedAt: result.capturedAt == null,
+        source: LocationSampleSource.fake,
         isProcessing: false,
       );
     } catch (_) {
@@ -241,6 +310,8 @@ class LocationController extends Notifier<LocationState> {
     return switch (outcome) {
       LocationProbeOutcome.available => LocationViewStatus.available,
       LocationProbeOutcome.weakAccuracy => LocationViewStatus.weakAccuracy,
+      LocationProbeOutcome.stale => LocationViewStatus.stale,
+      LocationProbeOutcome.unavailable => LocationViewStatus.unavailable,
       LocationProbeOutcome.permissionDenied =>
         LocationViewStatus.permissionDenied,
       LocationProbeOutcome.permissionPermanentlyDenied =>
@@ -254,6 +325,8 @@ class LocationController extends Notifier<LocationState> {
     return switch (outcome) {
       LocationProbeOutcome.available => LocationAccuracyLevel.high,
       LocationProbeOutcome.weakAccuracy => LocationAccuracyLevel.weak,
+      LocationProbeOutcome.stale ||
+      LocationProbeOutcome.unavailable ||
       LocationProbeOutcome.permissionDenied ||
       LocationProbeOutcome.permissionPermanentlyDenied ||
       LocationProbeOutcome.gpsDisabled ||

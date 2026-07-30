@@ -128,13 +128,13 @@ void main() {
       expect(state.hasOffer, isFalse);
       expect(offers.acceptCallCount, 1);
 
-      // Manual pickup, then local automatic customer arrival. No manual
-      // arrival command is exposed to UI.
+      // Manual pickup, then geofence/local automatic customer arrival.
+      // No manual arrival command is exposed to UI.
       online = false;
       await container
           .read(deliveryControllerProvider.notifier)
           .advanceWorkflow(DriverWorkflowCommand.confirmPickup);
-      state = container.read(deliveryControllerProvider);
+      state = await _waitForStage(container, DriverWorkflowStage.verifying);
       expect(state.activeAssignment?.status, DeliveryStatus.pickedUp);
       expect(
         state.activeAssignment?.workflowStage,
@@ -201,4 +201,18 @@ Future<void> _settle() async {
   for (var index = 0; index < 10; index++) {
     await Future<void>.delayed(const Duration(milliseconds: 20));
   }
+}
+
+Future<DeliveryControllerState> _waitForStage(
+  ProviderContainer container,
+  DriverWorkflowStage stage,
+) async {
+  for (var index = 0; index < 50; index++) {
+    final state = container.read(deliveryControllerProvider);
+    if (state.activeAssignment?.workflowStage == stage) {
+      return state;
+    }
+    await Future<void>.delayed(const Duration(milliseconds: 40));
+  }
+  return container.read(deliveryControllerProvider);
 }

@@ -2,6 +2,11 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../location/data/fake_location_gateway.dart';
+import '../../../location/domain/geo_point.dart';
+import '../../../location/domain/geofence_policy.dart';
+import '../../../location/domain/location_fix.dart';
+import '../../../location/location_providers.dart';
 import '../../application/accept_delivery_offer_and_bind_busy.dart';
 import '../../application/complete_delivery_and_release_busy.dart';
 import '../../domain/entities/accept_delivery_offer_request.dart';
@@ -80,8 +85,7 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
   final GetActiveDelivery? Function(Ref ref) _getActiveReader;
   final AdvanceDeliveryWorkflow? Function(Ref ref) _advanceWorkflowReader;
   final VerifyDeliveryCode? Function(Ref ref) _verifyCodeReader;
-  final RecordLocalDeliveryCommand? Function(Ref ref)
-  _recordLocalCommandReader;
+  final RecordLocalDeliveryCommand? Function(Ref ref) _recordLocalCommandReader;
   final CompleteDeliveryAndReleaseBusy? Function(Ref ref)
   _completeDeliveryReader;
   final DeliveryOfferRepository? Function(Ref ref) _offerRepositoryReader;
@@ -120,6 +124,8 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
   int _buildEpoch = 0;
   bool _commandInFlight = false;
   StreamSubscription<DeliveryOffer?>? _watchSubscription;
+  StreamSubscription<LocationFix>? _arrivalSubscription;
+  bool _arrivalInFlight = false;
 
   GetDeliveryOffers? get _getOffers => _getOffersReader(ref);
   AcceptDeliveryOffer? get _accept => _acceptReader(ref);
@@ -153,6 +159,9 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
     _generation++;
     _watchSubscription?.cancel();
     _watchSubscription = null;
+    _arrivalSubscription?.cancel();
+    _arrivalSubscription = null;
+    _arrivalInFlight = false;
     _commandInFlight = false;
   }
 
@@ -161,6 +170,11 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
   Future<void> _cancelWatch() async {
     await _watchSubscription?.cancel();
     _watchSubscription = null;
+  }
+
+  Future<void> _cancelArrivalWatch() async {
+    await _arrivalSubscription?.cancel();
+    _arrivalSubscription = null;
   }
 
   /// Loads active assignment + offers and subscribes to the active-offer stream.
@@ -744,11 +758,10 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
           DriverWorkflowCommand.arrivedPickup,
           DriverWorkflowCommand.waitAtPickup,
         ],
+        // STEP 4: customer arrival is geofence-driven (ADR-029), not sequenced.
         DriverWorkflowCommand.confirmPickup => const [
           DriverWorkflowCommand.confirmPickup,
           DriverWorkflowCommand.startTripCustomer,
-          DriverWorkflowCommand.arrivedCustomer,
-          DriverWorkflowCommand.startVerify,
         ],
         _ => [command],
       };
@@ -778,11 +791,125 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
         lastAcceptedAssignment: assignment ?? state.lastAcceptedAssignment,
         boundDriverId: driverId,
       );
+      if (command == DriverWorkflowCommand.confirmPickup &&
+          assignment != null) {
+        unawaited(
+          _watchCustomerArrivalAndAdvance(
+            driverId: driverId,
+            assignment: assignment,
+            generation: generation,
+            simulateOffline:
+                simulateOffline ??
+                !_acceptPreconditionsReader(ref).connectivityOnline,
+          ),
+        );
+      }
     } finally {
       if (_isCurrent(generation)) {
         _commandInFlight = false;
       }
     }
+  }
+
+  /// Geofence-driven automatic customer arrival (no manual arrival button).
+  Future<void> _watchCustomerArrivalAndAdvance({
+    required String driverId,
+    required DeliveryAssignment assignment,
+    required int generation,
+    required bool simulateOffline,
+  }) async {
+    if (_arrivalInFlight) return;
+    await _cancelArrivalWatch();
+
+    final order = assignment.order;
+    Future<void> applyArrival() async {
+      if (!_isCurrent(generation) || _arrivalInFlight) {
+        return;
+      }
+      _arrivalInFlight = true;
+      try {
+        final result = await _runWorkflowSequence(
+          driverId: driverId,
+          assignmentId: assignment.assignmentId,
+          commands: const [
+            DriverWorkflowCommand.arrivedCustomer,
+            DriverWorkflowCommand.startVerify,
+          ],
+          commandGroup: 'geofenceArrival',
+          simulateOffline: simulateOffline,
+        );
+        if (!_isCurrent(generation)) return;
+        if (result.isFailure) {
+          state = DeliveryControllerState.failure(
+            failure: result.failureOrNull ?? const DeliveryUnknownFailure(),
+            activeAssignment: state.activeAssignment,
+            lastAcceptedAssignment: state.lastAcceptedAssignment,
+            boundDriverId: driverId,
+          );
+          return;
+        }
+        final next = result.valueOrNull;
+        state = DeliveryControllerState.ready(
+          offers: const [],
+          activeAssignment: next,
+          lastAcceptedAssignment: next ?? state.lastAcceptedAssignment,
+          boundDriverId: driverId,
+        );
+      } finally {
+        _arrivalInFlight = false;
+      }
+    }
+
+    if (!order.hasDropoffCoordinates) {
+      await applyArrival();
+      return;
+    }
+
+    final target = GeoPoint(
+      latitude: order.dropoffLatitude!,
+      longitude: order.dropoffLongitude!,
+    );
+    final gateway = ref.read(locationGatewayProvider);
+    if (gateway is FakeLocationGateway) {
+      gateway.anchorPoint = target;
+      gateway.clearFixes();
+    }
+
+    final policy = GeofencePolicy(
+      debouncer: LocationFixDebouncer(
+        requiredHits: 2,
+        minInterval: const Duration(milliseconds: 50),
+      ),
+    );
+    final interval = gateway is FakeLocationGateway
+        ? const Duration(milliseconds: 50)
+        : const Duration(seconds: 2);
+
+    final done = Completer<void>();
+    _arrivalSubscription = gateway
+        .watchFixes(interval: interval)
+        .listen(
+          (fix) async {
+            if (!_isCurrent(generation) || done.isCompleted) return;
+            final evaluation = policy.evaluate(fix: fix, target: target);
+            if (evaluation != GeofenceEvaluation.arrived) return;
+            await _cancelArrivalWatch();
+            await applyArrival();
+            if (!done.isCompleted) done.complete();
+          },
+          onError: (Object _, StackTrace _) async {
+            await _cancelArrivalWatch();
+            if (!done.isCompleted) done.complete();
+          },
+        );
+
+    // Fake path should complete quickly; Device path returns after cancel/dispose.
+    await done.future.timeout(
+      gateway is FakeLocationGateway
+          ? const Duration(seconds: 5)
+          : const Duration(hours: 12),
+      onTimeout: () {},
+    );
   }
 
   Future<DeliveryResult<DeliveryAssignment>> _runWorkflowSequence({
@@ -1011,6 +1138,7 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
     );
 
     try {
+      await _cancelArrivalWatch();
       final result = await complete(driverId: driverId);
       if (!_isCurrent(generation)) return;
       if (result.isFailure) {

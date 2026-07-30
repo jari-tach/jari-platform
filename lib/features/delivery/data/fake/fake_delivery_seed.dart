@@ -60,6 +60,11 @@ class FakeDeliverySeed {
     final distanceMeters = 500.0 + (numeric % 4500);
     final etaMinutes = 5 + (numeric % 40);
 
+    // Synthetic Riyadh-area coordinates for STEP 4 Fake geofence (ADR-029).
+    // Offset by sequence so multi-offer seeds stay distinct but nearby.
+    final lat = 24.7136 + (sequence * 0.0008);
+    final lon = 46.6753 + (sequence * 0.0008);
+
     return DeliveryOfferModel(
       offerId: offerId,
       driverId: driverId,
@@ -72,6 +77,10 @@ class FakeDeliverySeed {
         distanceMeters: distanceMeters,
         etaMinutes: etaMinutes,
         notes: 'fake-seed:$key',
+        pickupLatitude: lat,
+        pickupLongitude: lon,
+        dropoffLatitude: lat,
+        dropoffLongitude: lon,
       ),
       issuedAt: issuedAt,
       expiresAt: expiresAt,
