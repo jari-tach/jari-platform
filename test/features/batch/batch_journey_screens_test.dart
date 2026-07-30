@@ -236,7 +236,63 @@ void main() {
     expect(find.text('العودة للمراجعة'), findsOneWidget);
   });
 
-  testWidgets('en-route stop: no arrived button, contact locked', (
+  testWidgets('contact locked before the manual pickup', (tester) async {
+    await _pumpStop(
+      tester,
+      BatchState(
+        batch: _verifiedBatch(),
+        offerStatus: BatchOfferViewStatus.accepted,
+        pickupStatus: BatchPickupStatus.awaitingManualConfirmation,
+        journeyStage: BatchJourneyStage.pickupAwaitingManualConfirmation,
+        routeStatus: BatchRouteStatus.activeStop1,
+        tripStarted: true,
+        currentSequence: 1,
+      ),
+    );
+    expect(find.byKey(BatchStopScreen.pageKey), findsOneWidget);
+    expect(find.byKey(BatchStopScreen.figmaLockedKey), findsOneWidget);
+    expect(find.byKey(BatchCustomerContactCard.phoneKey), findsOneWidget);
+    expect(find.text('05• ••• ••••'), findsOneWidget);
+    expect(find.text('055 123 4567'), findsNothing);
+    expect(find.byKey(BatchCustomerContactCard.addressKey), findsNothing);
+    expect(find.byKey(BatchCustomerContactCard.notesKey), findsNothing);
+    expect(find.byKey(BatchCustomerContactCard.callKey), findsNothing);
+    expect(find.byKey(BatchCustomerContactCard.whatsappKey), findsNothing);
+    expect(find.byKey(BatchStopScreen.deliverKey), findsNothing);
+  });
+
+  testWidgets('contact revealed immediately after the manual pickup', (
+    tester,
+  ) async {
+    await _pumpStop(
+      tester,
+      BatchState(
+        batch: _pickedBatch(stop1: BatchOrderState.pickedUp),
+        offerStatus: BatchOfferViewStatus.accepted,
+        pickupStatus: BatchPickupStatus.pickupConfirmed,
+        journeyStage: BatchJourneyStage.pickupConfirmedManually,
+        routeStatus: BatchRouteStatus.activeStop1,
+        tripStarted: true,
+        currentSequence: 1,
+      ),
+    );
+    expect(find.byKey(BatchStopScreen.figmaLockedKey), findsNothing);
+    expect(find.text('055 123 4567'), findsOneWidget);
+    expect(find.byKey(BatchCustomerContactCard.addressKey), findsOneWidget);
+    expect(find.text('حي النخيل، شارع التحلية، مبنى 14'), findsOneWidget);
+    expect(find.byKey(BatchCustomerContactCard.notesKey), findsOneWidget);
+    expect(find.text('الرجاء الاتصال عند الوصول.'), findsOneWidget);
+    expect(find.byKey(BatchCustomerContactCard.callKey), findsOneWidget);
+    expect(find.byKey(BatchCustomerContactCard.whatsappKey), findsOneWidget);
+    // Revealing the contact must not unlock the delivery.
+    expect(find.byKey(BatchStopScreen.deliverKey), findsNothing);
+    // Next customer stays hidden.
+    expect(find.text('055 123 4568'), findsNothing);
+    expect(find.textContaining('فيصل'), findsNothing);
+    expect(find.text('حي الروضة، شارع الأمير، مبنى 27'), findsNothing);
+  });
+
+  testWidgets('en-route stop: contact revealed, delivery still locked', (
     tester,
   ) async {
     await _pumpStop(
@@ -252,19 +308,28 @@ void main() {
       ),
     );
     expect(find.byKey(BatchStopScreen.pageKey), findsOneWidget);
-    expect(find.byKey(BatchStopScreen.figmaLockedKey), findsOneWidget);
+    expect(find.byKey(BatchStopScreen.figmaLockedKey), findsNothing);
     expect(find.byKey(BatchAutomaticArrivalStatus.statusKey), findsOneWidget);
     expect(find.byKey(BatchCustomerContactCard.cardKey), findsOneWidget);
     expect(find.byKey(BatchCustomerContactCard.phoneKey), findsOneWidget);
-    expect(find.text('05• ••• ••••'), findsOneWidget);
-    expect(find.text('055 123 4567'), findsNothing);
-    expect(find.byKey(BatchCustomerContactCard.callKey), findsNothing);
+    expect(find.text('055 123 4567'), findsOneWidget);
+    expect(find.text('05• ••• ••••'), findsNothing);
+    expect(find.byKey(BatchCustomerContactCard.addressKey), findsOneWidget);
+    expect(find.byKey(BatchCustomerContactCard.notesKey), findsOneWidget);
+    expect(find.byKey(BatchCustomerContactCard.callKey), findsOneWidget);
+    expect(find.byKey(BatchCustomerContactCard.whatsappKey), findsOneWidget);
+    // The delivery confirmation is still unavailable before the automatic
+    // arrival, and the driver is told why.
     expect(find.byKey(BatchStopScreen.deliverKey), findsNothing);
+    expect(find.text('تأكيد التسليم يدويًا'), findsNothing);
     // No interactive "arrived" control anywhere.
     expect(find.text('لقد وصلت'), findsNothing);
     expect(find.text('I have arrived'), findsNothing);
     expect(find.text('وصلت إلى العميل'), findsNothing);
     expect(find.byKey(const Key('batchStopArrive')), findsNothing);
+    // Next customer PII stays absent while en route.
+    expect(find.text('055 123 4568'), findsNothing);
+    expect(find.textContaining('فيصل'), findsNothing);
   });
 
   testWidgets('Figma 125:402 arrived automatically reveals current contact', (
@@ -295,6 +360,13 @@ void main() {
     );
     expect(find.byKey(BatchStopScreen.deliverKey), findsOneWidget);
     expect(find.text('تأكيد التسليم يدويًا'), findsOneWidget);
+    // The automatic arrival is what enables the manual delivery.
+    expect(
+      tester
+          .widget<SaeqPrimaryButton>(find.byKey(BatchStopScreen.deliverKey))
+          .onPressed,
+      isNotNull,
+    );
     expect(find.byKey(BatchStopScreen.nextStopKey), findsOneWidget);
     // Next customer PII must stay absent from the current stop.
     expect(find.text('055 123 4568'), findsNothing);
@@ -319,6 +391,8 @@ void main() {
     expect(find.byKey(BatchStopScreen.figmaUnavailableKey), findsOneWidget);
     expect(find.text('055 123 4567'), findsOneWidget);
     expect(find.byKey(BatchCustomerContactCard.callKey), findsOneWidget);
+    expect(find.byKey(BatchCustomerContactCard.addressKey), findsOneWidget);
+    expect(find.byKey(BatchCustomerContactCard.notesKey), findsOneWidget);
     expect(find.text('055 123 4568'), findsNothing);
   });
 
@@ -338,7 +412,10 @@ void main() {
     expect(find.byKey(BatchStopScreen.figmaClosedKey), findsOneWidget);
     expect(find.text('••••••••••'), findsOneWidget);
     expect(find.text('055 123 4567'), findsNothing);
+    expect(find.byKey(BatchCustomerContactCard.addressKey), findsNothing);
+    expect(find.byKey(BatchCustomerContactCard.notesKey), findsNothing);
     expect(find.byKey(BatchCustomerContactCard.callKey), findsNothing);
+    expect(find.byKey(BatchCustomerContactCard.whatsappKey), findsNothing);
     expect(find.byKey(BatchStopScreen.deliverKey), findsNothing);
   });
 

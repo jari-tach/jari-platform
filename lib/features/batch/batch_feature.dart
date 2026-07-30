@@ -280,21 +280,35 @@ class BatchState {
       (journeyStage == BatchJourneyStage.arrivedAutomaticallyByLocation ||
           journeyStage == BatchJourneyStage.deliveryAwaitingManualConfirmation);
 
-  /// Journey rules 6–8: locked before pickup and en route, revealed for the
-  /// current stop after the automatic arrival, closed once the order is
-  /// delivered or cancelled. A customer who did not answer keeps their
-  /// contact visible until the outcome is recorded.
+  /// Journey rules 6–8: locked before the manual pickup, revealed for the
+  /// current stop from the moment the driver confirmed the pickup, closed once
+  /// the order is delivered or cancelled. A customer who did not answer keeps
+  /// their contact visible until the outcome is recorded.
+  ///
+  /// Disclosure is independent of the arrival: revealing the contact never
+  /// arms the delivery confirmation, which still waits for the automatic
+  /// arrival ([canConfirmDeliveryManually]).
   BatchCustomerContactVisibility get currentContactVisibility {
     final order = currentOrder;
     if (order == null) return BatchCustomerContactVisibility.locked;
-    if (order.state == BatchOrderState.customerUnavailable) {
-      return BatchCustomerContactVisibility.revealed;
+    // States in which the stop is the driver's current customer. Read before
+    // [BatchOrderViewData.isResolved] so an unavailable customer stays visible
+    // until the outcome is recorded.
+    final isCurrentCustomer = switch (order.state) {
+      BatchOrderState.pickedUp ||
+      BatchOrderState.headingToCustomer ||
+      BatchOrderState.arrived ||
+      BatchOrderState.customerUnavailable => true,
+      _ => false,
+    };
+    if (!isCurrentCustomer) {
+      return order.isResolved
+          ? BatchCustomerContactVisibility.closed
+          : BatchCustomerContactVisibility.locked;
     }
-    if (order.isResolved) return BatchCustomerContactVisibility.closed;
-    if (order.state == BatchOrderState.arrived) {
-      return BatchCustomerContactVisibility.revealed;
-    }
-    return BatchCustomerContactVisibility.locked;
+    return isPickedUp
+        ? BatchCustomerContactVisibility.revealed
+        : BatchCustomerContactVisibility.locked;
   }
 
   BatchCustomerContactViewData get currentContact =>
