@@ -351,6 +351,10 @@ class AppLocalizations {
       _t('We sent a code to $maskedPhone', 'أرسلنا رمزاً إلى $maskedPhone');
   String get otpCodeLabel => _t('Verification code', 'رمز التحقق');
   String get otpCodeHint => _t('6-digit code', 'رمز من 6 أرقام');
+
+  /// Accessibility label for a single OTP cell (1-based [index]).
+  String otpDigitSemantics(int index, int length) =>
+      _t('Digit $index of $length', 'الرقم $index من $length');
   String get otpVerifyAction => _t('Verify', 'تحقق');
   String get otpResendAction => _t('Resend', 'إعادة الإرسال');
   String otpResendCooldown(int seconds) =>
