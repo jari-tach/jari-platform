@@ -129,8 +129,15 @@ class _DeliveryVerifyPageState extends ConsumerState<DeliveryVerifyPage> {
                 onPressed: processing
                     ? null
                     : () async {
-                        await delivery.recordCancelCommand();
-                        if (context.mounted) context.pop();
+                        await delivery.cancelActiveDelivery();
+                        if (context.mounted) {
+                          final next = ref.read(deliveryControllerProvider);
+                          if (next.activeAssignment == null) {
+                            context.go(AppRoutes.home);
+                          } else {
+                            context.pop();
+                          }
+                        }
                       },
               ),
             ],

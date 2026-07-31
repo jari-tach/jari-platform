@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../shared/services/app_service_registry.dart';
 import '../../domain/entities/auth_error.dart';
 import '../../domain/repositories/authentication_repository.dart';
 import 'auth_controller_state.dart';
@@ -229,6 +230,7 @@ class AuthController extends Notifier<AuthControllerState> {
     state = const AuthControllerState.signingOut();
     final repository = _repository;
     if (repository == null) {
+      _clearCustomerContactMemory();
       state = const AuthControllerState.unauthenticated();
       return;
     }
@@ -236,6 +238,7 @@ class AuthController extends Notifier<AuthControllerState> {
     try {
       await repository.signOut();
       repository.clearOtpChallenge();
+      _clearCustomerContactMemory();
       state = const AuthControllerState.unauthenticated();
     } on SecureStorageFailureError catch (error) {
       if (previousSession != null) {
@@ -247,9 +250,18 @@ class AuthController extends Notifier<AuthControllerState> {
       if (previousSession != null) {
         state = AuthControllerState.authenticated(previousSession);
       } else {
+        _clearCustomerContactMemory();
         state = const AuthControllerState.unauthenticated();
       }
     }
+  }
+
+  /// Clears memory-only customer contact on logout / session expiration.
+  void _clearCustomerContactMemory() {
+    if (!AppServiceRegistry.isInitialized) return;
+    AppServiceRegistry.deliveryLifecycleRepository?.clearCustomerContact();
+    AppServiceRegistry.customerContactMemoryCache?.clear();
+    AppServiceRegistry.deliveryLifecycleRemote?.onLogoutOrSessionExpired();
   }
 
   Future<void> refreshSession() async {
@@ -325,6 +337,7 @@ class AuthController extends Notifier<AuthControllerState> {
 
   AuthControllerState _stateForAuthError(AuthError error) {
     if (error is SessionExpiredError) {
+      _clearCustomerContactMemory();
       return AuthControllerState.expired(error);
     }
     return AuthControllerState.failure(error);

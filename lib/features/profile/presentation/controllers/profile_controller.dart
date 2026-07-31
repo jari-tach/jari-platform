@@ -1,10 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../data/repositories/remote_driver_profile_repository.dart';
 import '../../domain/entities/profile_error.dart';
 import '../../domain/repositories/driver_profile_repository.dart';
 import 'profile_controller_state.dart';
 
-/// Loads and refreshes the current driver profile (PHASE 2.3).
+/// Loads and refreshes the current driver profile (PHASE 2.3 / STEP 5D-1).
 class ProfileController extends Notifier<ProfileControllerState> {
   ProfileController({
     DriverProfileRepository? Function(Ref ref)? repositoryReader,
@@ -39,7 +40,16 @@ class ProfileController extends Notifier<ProfileControllerState> {
 
     try {
       final profile = await repository.getCurrentProfile();
-      state = ProfileControllerState.success(profile);
+      DriverComplianceSnapshot? compliance;
+      if (repository is RemoteDriverProfileRepository) {
+        try {
+          compliance = await repository.getCompliance();
+        } catch (_) {
+          // Compliance is non-blocking for profile presentation.
+          compliance = repository.lastCompliance;
+        }
+      }
+      state = ProfileControllerState.success(profile, compliance: compliance);
     } on ProfileUnauthenticatedError catch (error) {
       state = ProfileControllerState.error(error);
     } on ProfileSessionExpiredError catch (error) {
@@ -73,13 +83,22 @@ class ProfileController extends Notifier<ProfileControllerState> {
 
     try {
       final updated = await repository.updateCurrentProfile(update);
-      state = ProfileControllerState.success(updated);
+      state = ProfileControllerState.success(
+        updated,
+        compliance: state.compliance,
+      );
       return true;
     } on ProfileError {
-      state = ProfileControllerState.success(priorProfile);
+      state = ProfileControllerState.success(
+        priorProfile,
+        compliance: state.compliance,
+      );
       return false;
     } catch (_) {
-      state = ProfileControllerState.success(priorProfile);
+      state = ProfileControllerState.success(
+        priorProfile,
+        compliance: state.compliance,
+      );
       return false;
     } finally {
       _updateInProgress = false;

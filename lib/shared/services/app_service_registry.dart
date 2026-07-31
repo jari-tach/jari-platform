@@ -29,22 +29,33 @@ import '../../features/delivery/application/complete_delivery_and_release_busy.d
 import '../../features/delivery/data/datasources/delivery_local_data_source.dart';
 import '../../features/delivery/data/datasources/delivery_remote_data_source.dart';
 import '../../features/delivery/data/datasources/drift_delivery_local_data_source.dart';
+import '../../features/delivery/data/fake/fake_delivery_lifecycle_repository.dart';
 import '../../features/delivery/data/fake/fake_delivery_remote_data_source.dart';
 import '../../features/delivery/data/remote/customer_contact_memory_cache.dart';
 import '../../features/delivery/data/remote/http_delivery_lifecycle_remote.dart';
 import '../../features/delivery/data/remote/http_delivery_remote_data_source.dart';
 import '../../features/delivery/data/repositories/local_delivery_assignment_repository.dart';
 import '../../features/delivery/data/repositories/drift_delivery_command_repository.dart';
+import '../../features/delivery/data/repositories/remote_delivery_lifecycle_repository.dart';
 import '../../features/delivery/data/repositories/remote_delivery_offer_repository.dart';
 import '../../features/delivery/domain/repositories/delivery_assignment_repository.dart';
 import '../../features/delivery/domain/repositories/delivery_command_repository.dart';
+import '../../features/delivery/domain/repositories/delivery_lifecycle_repository.dart';
 import '../../features/delivery/domain/repositories/delivery_offer_repository.dart';
 import '../../features/delivery/domain/usecases/accept_delivery_offer.dart';
 import '../../features/delivery/domain/usecases/advance_delivery_workflow.dart';
+import '../../features/delivery/domain/usecases/cancel_delivery_remote.dart';
+import '../../features/delivery/domain/usecases/confirm_delivery_remote.dart';
+import '../../features/delivery/domain/usecases/confirm_pickup_remote.dart';
+import '../../features/delivery/domain/usecases/get_active_batch.dart';
 import '../../features/delivery/domain/usecases/get_active_delivery.dart';
+import '../../features/delivery/domain/usecases/get_customer_contact.dart';
 import '../../features/delivery/domain/usecases/get_delivery_offers.dart';
 import '../../features/delivery/domain/usecases/reject_delivery_offer.dart';
 import '../../features/delivery/domain/usecases/record_local_delivery_command.dart';
+import '../../features/delivery/domain/usecases/replay_pending_delivery_commands.dart';
+import '../../features/delivery/domain/usecases/report_automatic_arrival_remote.dart';
+import '../../features/delivery/domain/usecases/report_delivery_issue_remote.dart';
 import '../../features/delivery/domain/usecases/verify_delivery_code.dart';
 import '../../features/driver/data/datasources/local/driver_database.dart';
 import '../../features/profile/data/remote/http_driver_profile_remote_data_source.dart';
@@ -190,6 +201,9 @@ final class AppServiceRegistry {
         api: api,
         contactCache: _customerContactMemoryCache!,
       );
+      _deliveryLifecycleRepository = RemoteDeliveryLifecycleRepository(
+        remote: _deliveryLifecycleRemote!,
+      );
       _logger.info(
         'AppServiceRegistry: HttpDeliveryRemoteDataSource + lifecycle initialized',
       );
@@ -201,6 +215,14 @@ final class AppServiceRegistry {
           isProductionEnvironment: () => AppConfig.isProduction,
         ),
       );
+      _deliveryLifecycleRepository =
+          await _safeInit<DeliveryLifecycleRepository>(
+            'FakeDeliveryLifecycleRepository',
+            _logger,
+            () async => FakeDeliveryLifecycleRepository(
+              isProductionEnvironment: () => AppConfig.isProduction,
+            ),
+          );
     } else {
       _deliveryRemoteDataSource = null;
       _logger.info(
@@ -311,6 +333,120 @@ final class AppServiceRegistry {
             'VerifyDeliveryCode',
             _logger,
             () async => VerifyDeliveryCode(assignmentRepository),
+          );
+
+    // STEP 5D-1 — Backend-authoritative lifecycle use cases.
+    final lifecycleRepository = _deliveryLifecycleRepository;
+    _confirmPickupRemote =
+        (lifecycleRepository == null ||
+            assignmentRepository == null ||
+            commandRepository == null)
+        ? null
+        : await _safeInit<ConfirmPickupRemote>(
+            'ConfirmPickupRemote',
+            _logger,
+            () async => ConfirmPickupRemote(
+              lifecycleRepository: lifecycleRepository,
+              assignmentRepository: assignmentRepository,
+              commandRepository: commandRepository,
+              advanceWorkflow: _advanceDeliveryWorkflow,
+            ),
+          );
+    _reportAutomaticArrivalRemote =
+        (lifecycleRepository == null ||
+            assignmentRepository == null ||
+            commandRepository == null)
+        ? null
+        : await _safeInit<ReportAutomaticArrivalRemote>(
+            'ReportAutomaticArrivalRemote',
+            _logger,
+            () async => ReportAutomaticArrivalRemote(
+              lifecycleRepository: lifecycleRepository,
+              assignmentRepository: assignmentRepository,
+              commandRepository: commandRepository,
+              advanceWorkflow: _advanceDeliveryWorkflow,
+            ),
+          );
+    _confirmDeliveryRemote =
+        (lifecycleRepository == null ||
+            assignmentRepository == null ||
+            commandRepository == null)
+        ? null
+        : await _safeInit<ConfirmDeliveryRemote>(
+            'ConfirmDeliveryRemote',
+            _logger,
+            () async => ConfirmDeliveryRemote(
+              lifecycleRepository: lifecycleRepository,
+              assignmentRepository: assignmentRepository,
+              commandRepository: commandRepository,
+              advanceWorkflow: _advanceDeliveryWorkflow,
+            ),
+          );
+    _cancelDeliveryRemote =
+        (lifecycleRepository == null ||
+            assignmentRepository == null ||
+            commandRepository == null)
+        ? null
+        : await _safeInit<CancelDeliveryRemote>(
+            'CancelDeliveryRemote',
+            _logger,
+            () async => CancelDeliveryRemote(
+              lifecycleRepository: lifecycleRepository,
+              assignmentRepository: assignmentRepository,
+              commandRepository: commandRepository,
+            ),
+          );
+    _reportDeliveryIssueRemote =
+        (lifecycleRepository == null ||
+            assignmentRepository == null ||
+            commandRepository == null)
+        ? null
+        : await _safeInit<ReportDeliveryIssueRemote>(
+            'ReportDeliveryIssueRemote',
+            _logger,
+            () async => ReportDeliveryIssueRemote(
+              lifecycleRepository: lifecycleRepository,
+              assignmentRepository: assignmentRepository,
+              commandRepository: commandRepository,
+              advanceWorkflow: _advanceDeliveryWorkflow,
+            ),
+          );
+    _getCustomerContact =
+        (lifecycleRepository == null || assignmentRepository == null)
+        ? null
+        : await _safeInit<GetCustomerContact>(
+            'GetCustomerContact',
+            _logger,
+            () async => GetCustomerContact(
+              lifecycleRepository: lifecycleRepository,
+              assignmentRepository: assignmentRepository,
+            ),
+          );
+    _getActiveBatch = lifecycleRepository == null
+        ? null
+        : await _safeInit<GetActiveBatch>(
+            'GetActiveBatch',
+            _logger,
+            () async => GetActiveBatch(lifecycleRepository),
+          );
+    _replayPendingDeliveryCommands =
+        (_confirmPickupRemote == null ||
+            _reportAutomaticArrivalRemote == null ||
+            _confirmDeliveryRemote == null ||
+            assignmentRepository == null ||
+            commandRepository == null)
+        ? null
+        : await _safeInit<ReplayPendingDeliveryCommands>(
+            'ReplayPendingDeliveryCommands',
+            _logger,
+            () async => ReplayPendingDeliveryCommands(
+              commandRepository: commandRepository,
+              assignmentRepository: assignmentRepository,
+              confirmPickup: _confirmPickupRemote!,
+              reportArrival: _reportAutomaticArrivalRemote!,
+              confirmDelivery: _confirmDeliveryRemote!,
+              advanceWorkflow: _advanceDeliveryWorkflow,
+            ),
           );
 
     // ADR-025 — accept + busy binding coordinator (application layer).
@@ -534,6 +670,7 @@ final class AppServiceRegistry {
   DeliveryRemoteDataSource? _deliveryRemoteDataSource;
   CustomerContactMemoryCache? _customerContactMemoryCache;
   HttpDeliveryLifecycleRemote? _deliveryLifecycleRemote;
+  DeliveryLifecycleRepository? _deliveryLifecycleRepository;
   DeliveryLocalDataSource? _deliveryLocalDataSource;
   DeliveryOfferRepository? _deliveryOfferRepository;
   DeliveryAssignmentRepository? _deliveryAssignmentRepository;
@@ -544,6 +681,14 @@ final class AppServiceRegistry {
   GetActiveDelivery? _getActiveDelivery;
   AdvanceDeliveryWorkflow? _advanceDeliveryWorkflow;
   VerifyDeliveryCode? _verifyDeliveryCode;
+  ConfirmPickupRemote? _confirmPickupRemote;
+  ReportAutomaticArrivalRemote? _reportAutomaticArrivalRemote;
+  ConfirmDeliveryRemote? _confirmDeliveryRemote;
+  CancelDeliveryRemote? _cancelDeliveryRemote;
+  ReportDeliveryIssueRemote? _reportDeliveryIssueRemote;
+  GetCustomerContact? _getCustomerContact;
+  GetActiveBatch? _getActiveBatch;
+  ReplayPendingDeliveryCommands? _replayPendingDeliveryCommands;
   AcceptDeliveryOfferAndBindBusy? _acceptDeliveryOfferAndBindBusy;
   CompleteDeliveryAndReleaseBusy? _completeDeliveryAndReleaseBusy;
   RecordLocalDeliveryCommand? _recordLocalDeliveryCommand;
@@ -626,6 +771,10 @@ final class AppServiceRegistry {
   static CustomerContactMemoryCache? get customerContactMemoryCache =>
       _instance!._customerContactMemoryCache;
 
+  /// STEP 5D-1 domain lifecycle port (remote or Fake).
+  static DeliveryLifecycleRepository? get deliveryLifecycleRepository =>
+      _instance!._deliveryLifecycleRepository;
+
   /// PHASE 2.5/2.6 Drift local assignment port, or `null` if DB unavailable.
   static DeliveryLocalDataSource? get deliveryLocalDataSource =>
       _instance!._deliveryLocalDataSource;
@@ -665,6 +814,37 @@ final class AppServiceRegistry {
   /// Use case: Fake/Backend delivery code verification (PHASE 2.6).
   static VerifyDeliveryCode? get verifyDeliveryCode =>
       _instance!._verifyDeliveryCode;
+
+  /// STEP 5D-1: Backend pickup confirmation.
+  static ConfirmPickupRemote? get confirmPickupRemote =>
+      _instance!._confirmPickupRemote;
+
+  /// STEP 5D-1: automatic geofence arrival report.
+  static ReportAutomaticArrivalRemote? get reportAutomaticArrivalRemote =>
+      _instance!._reportAutomaticArrivalRemote;
+
+  /// STEP 5D-1: Backend delivery confirmation.
+  static ConfirmDeliveryRemote? get confirmDeliveryRemote =>
+      _instance!._confirmDeliveryRemote;
+
+  /// STEP 5D-1: Backend delivery cancellation.
+  static CancelDeliveryRemote? get cancelDeliveryRemote =>
+      _instance!._cancelDeliveryRemote;
+
+  /// STEP 5D-1: Backend issue report.
+  static ReportDeliveryIssueRemote? get reportDeliveryIssueRemote =>
+      _instance!._reportDeliveryIssueRemote;
+
+  /// STEP 5D-1: current customer contact (memory-only after Backend ack).
+  static GetCustomerContact? get getCustomerContact =>
+      _instance!._getCustomerContact;
+
+  /// STEP 5D-1: active batch summary.
+  static GetActiveBatch? get getActiveBatch => _instance!._getActiveBatch;
+
+  /// STEP 5D-1: replay pending lifecycle commands with the same keys.
+  static ReplayPendingDeliveryCommands? get replayPendingDeliveryCommands =>
+      _instance!._replayPendingDeliveryCommands;
 
   /// ADR-025 application coordinator: accept + persist + busy bind.
   static AcceptDeliveryOfferAndBindBusy? get acceptDeliveryOfferAndBindBusy =>

@@ -96,8 +96,14 @@ class ActiveDeliveryPage extends ConsumerWidget {
     final processing = state.isProcessing;
     final failure = state.failure;
     final colors = SaeqSemanticColors.of(context);
-    final customerDetailsVisible = assignment.status == DeliveryStatus.pickedUp;
-    final customerDetailsClosed = assignment.status == DeliveryStatus.delivered;
+    final customerDetailsVisible =
+        state.isCustomerContactVisible ||
+        (assignment.status == DeliveryStatus.pickedUp &&
+            !assignment.pendingSync);
+    final customerDetailsClosed =
+        assignment.status == DeliveryStatus.delivered ||
+        assignment.workflowStage == DriverWorkflowStage.summary;
+    final contact = state.customerContact;
 
     return Column(
       children: [
@@ -147,10 +153,32 @@ class ActiveDeliveryPage extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppTheme.spacingMD),
                 if (customerDetailsVisible)
-                  SaeqAddressBlock(
+                  Column(
                     key: customerDetailsKey,
-                    title: l10n.deliveryOfferDropoffLabel,
-                    address: assignment.order.dropoffLabel,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SaeqAddressBlock(
+                        title: l10n.deliveryOfferDropoffLabel,
+                        address: assignment.order.dropoffLabel,
+                      ),
+                      if (contact != null) ...[
+                        const SizedBox(height: AppTheme.spacingSM),
+                        Text(
+                          key: const Key('activeDeliveryCustomerContactName'),
+                          contact.name,
+                          style: AppTextStyles.bodyLarge.copyWith(
+                            color: colors.textPrimary,
+                          ),
+                        ),
+                        Text(
+                          key: const Key('activeDeliveryCustomerContactPhone'),
+                          contact.phoneNumber,
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: colors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ],
                   )
                 else
                   Text(
@@ -162,6 +190,14 @@ class ActiveDeliveryPage extends ConsumerWidget {
                       color: colors.textSecondary,
                     ),
                   ),
+                if (state.activeBatch?.currentStop != null) ...[
+                  const SizedBox(height: AppTheme.spacingMD),
+                  SaeqStatusChip(
+                    key: const Key('activeDeliveryBatchCurrentStop'),
+                    label: state.activeBatch!.currentStop!.label,
+                    tone: SaeqStatusTone.neutral,
+                  ),
+                ],
                 const SizedBox(height: AppTheme.spacingLG),
                 SaeqContactActionsRow(
                   mapsLabel: l10n.deliveryMapsAction,
@@ -178,6 +214,7 @@ class ActiveDeliveryPage extends ConsumerWidget {
                       ? () => context.push(AppRoutes.deliveryIssue)
                       : null,
                 ),
+                // Manual arrival is forbidden — automatic geofence only (STEP 5D-1).
                 if (failure != null) ...[
                   const SizedBox(height: AppTheme.spacingMD),
                   Text(

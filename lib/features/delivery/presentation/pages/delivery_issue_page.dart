@@ -11,7 +11,6 @@ import '../../../../shared/widgets/saeq_bottom_sheet_scaffold.dart';
 import '../../../../shared/widgets/saeq_primary_button.dart';
 import '../../../../shared/widgets/saeq_secondary_button.dart';
 import '../../domain/entities/driver_workflow_stage.dart';
-import '../../domain/policies/driver_workflow_transition_policy.dart';
 import '../mappers/delivery_failure_messages.dart';
 import '../providers/delivery_providers.dart';
 
@@ -114,9 +113,7 @@ class _DeliveryIssuePageState extends ConsumerState<DeliveryIssuePage> {
                 onPressed: processing || _category == null
                     ? null
                     : () async {
-                        await delivery.advanceWorkflow(
-                          DriverWorkflowCommand.reportIssue,
-                        );
+                        await delivery.reportIssueRemote(code: _category!);
                         if (!context.mounted) return;
                         final next = ref.read(deliveryControllerProvider);
                         final reported =
@@ -134,8 +131,15 @@ class _DeliveryIssuePageState extends ConsumerState<DeliveryIssuePage> {
                 onPressed: processing
                     ? null
                     : () async {
-                        await delivery.recordCancelCommand();
-                        if (context.mounted) context.pop();
+                        await delivery.cancelActiveDelivery();
+                        if (context.mounted) {
+                          final next = ref.read(deliveryControllerProvider);
+                          if (next.activeAssignment == null) {
+                            context.go(AppRoutes.home);
+                          } else {
+                            context.pop();
+                          }
+                        }
                       },
               ),
             ],

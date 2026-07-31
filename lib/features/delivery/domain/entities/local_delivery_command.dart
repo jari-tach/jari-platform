@@ -3,6 +3,7 @@ enum LocalDeliveryCommandType {
   acceptOffer,
   rejectOffer,
   confirmPickup,
+  reportArrival,
   confirmDelivery,
   reportIssue,
   cancel,
@@ -19,6 +20,7 @@ class LocalDeliveryCommand {
     required this.type,
     required this.status,
     required this.recordedAt,
+    this.payload,
   });
 
   final String commandId;
@@ -27,6 +29,9 @@ class LocalDeliveryCommand {
   final LocalDeliveryCommandType type;
   final LocalDeliveryCommandStatus status;
   final DateTime recordedAt;
+
+  /// Optional replay payload (STEP 5D-1). Must never contain PII or tokens.
+  final Map<String, Object?>? payload;
 
   bool matches({
     required String driverId,
@@ -45,5 +50,6 @@ class LocalDeliveryCommand {
         type: type,
         status: status ?? this.status,
         recordedAt: recordedAt,
+        payload: payload,
       );
 }

@@ -230,3 +230,66 @@ final class DeliveryPendingSync extends DeliveryFailure {
   @override
   String get code => 'delivery.pending_sync';
 }
+
+/// Device network is unavailable — the command was kept pending for retry
+/// with the same idempotency key (STEP 5D-1).
+final class DeliveryNetworkUnavailable extends DeliveryFailure {
+  const DeliveryNetworkUnavailable([
+    super.message =
+        'Network is unavailable; the delivery command is pending sync.',
+  ]);
+
+  @override
+  String get code => 'delivery.network_unavailable';
+}
+
+/// Backend is unreachable or returned a 5xx — retryable without a new key.
+final class DeliveryBackendUnavailable extends DeliveryFailure {
+  const DeliveryBackendUnavailable([
+    super.message = 'Backend is temporarily unavailable.',
+  ]);
+
+  @override
+  String get code => 'delivery.backend_unavailable';
+}
+
+/// Backend rejected the request payload (422 VALIDATION_ERROR).
+final class DeliveryValidationFailure extends DeliveryFailure {
+  const DeliveryValidationFailure([
+    super.message = 'Delivery request was rejected by Backend validation.',
+  ]);
+
+  @override
+  String get code => 'delivery.validation';
+}
+
+/// Backend rate limit reached (429 RATE_LIMITED).
+final class DeliveryRateLimited extends DeliveryFailure {
+  const DeliveryRateLimited([
+    super.message = 'Too many delivery requests; try again later.',
+  ]);
+
+  @override
+  String get code => 'delivery.rate_limited';
+}
+
+/// Customer contact is not available for the current delivery state.
+final class DeliveryContactNotAvailable extends DeliveryFailure {
+  const DeliveryContactNotAvailable([
+    super.message =
+        'Customer contact is not available before pickup acknowledgment.',
+  ]);
+
+  @override
+  String get code => 'delivery.contact_not_available';
+}
+
+/// Backend response violated the canonical contract shape.
+final class DeliveryContractViolation extends DeliveryFailure {
+  const DeliveryContractViolation([
+    super.message = 'Backend response violated the canonical contract.',
+  ]);
+
+  @override
+  String get code => 'delivery.contract_violation';
+}

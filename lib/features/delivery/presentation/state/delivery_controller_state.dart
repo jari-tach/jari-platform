@@ -1,3 +1,5 @@
+import '../../domain/entities/batch_summary.dart';
+import '../../domain/entities/customer_contact.dart';
 import '../../domain/entities/delivery_assignment.dart';
 import '../../domain/entities/delivery_offer.dart';
 import '../../domain/failures/delivery_failure.dart';
@@ -31,6 +33,8 @@ class DeliveryControllerState {
     this.isInitialized = false,
     this.isRestored = false,
     this.boundDriverId,
+    this.customerContact,
+    this.activeBatch,
   });
 
   const DeliveryControllerState.initial()
@@ -46,6 +50,8 @@ class DeliveryControllerState {
     DeliveryAssignment? lastAcceptedAssignment,
     String? boundDriverId,
     bool isRestored = false,
+    CustomerContact? customerContact,
+    BatchSummary? activeBatch,
   }) {
     final resolvedOffer = activeOffer ?? (offers.isEmpty ? null : offers.first);
     return DeliveryControllerState(
@@ -58,6 +64,8 @@ class DeliveryControllerState {
       isRestored: isRestored,
       boundDriverId: boundDriverId,
       processingAction: DeliveryProcessingAction.none,
+      customerContact: customerContact,
+      activeBatch: activeBatch,
     );
   }
 
@@ -68,6 +76,8 @@ class DeliveryControllerState {
     DeliveryAssignment? activeAssignment,
     DeliveryAssignment? lastAcceptedAssignment,
     String? boundDriverId,
+    CustomerContact? customerContact,
+    BatchSummary? activeBatch,
   }) {
     final resolvedOffer = activeOffer ?? (offers.isEmpty ? null : offers.first);
     return DeliveryControllerState(
@@ -79,6 +89,8 @@ class DeliveryControllerState {
       isInitialized: true,
       boundDriverId: boundDriverId,
       processingAction: action,
+      customerContact: customerContact,
+      activeBatch: activeBatch,
     );
   }
 
@@ -90,6 +102,8 @@ class DeliveryControllerState {
     DeliveryAssignment? lastAcceptedAssignment,
     bool isInitialized = true,
     String? boundDriverId,
+    CustomerContact? customerContact,
+    BatchSummary? activeBatch,
   }) {
     final resolvedOffer = activeOffer ?? (offers.isEmpty ? null : offers.first);
     return DeliveryControllerState(
@@ -101,6 +115,8 @@ class DeliveryControllerState {
       lastAcceptedAssignment: lastAcceptedAssignment,
       isInitialized: isInitialized,
       boundDriverId: boundDriverId,
+      customerContact: customerContact,
+      activeBatch: activeBatch,
     );
   }
 
@@ -114,6 +130,12 @@ class DeliveryControllerState {
   final bool isInitialized;
   final bool isRestored;
   final String? boundDriverId;
+
+  /// Memory-only current-customer contact (STEP 5D-1). Never persisted.
+  final CustomerContact? customerContact;
+
+  /// Active batch summary when the driver is on a multi-stop batch.
+  final BatchSummary? activeBatch;
 
   bool get isLoading => status == DeliveryViewStatus.loading;
 
@@ -129,6 +151,13 @@ class DeliveryControllerState {
   bool get hasOffer => activeOffer != null;
 
   bool get hasActiveAssignment => activeAssignment != null;
+
+  /// Whether the memory-only customer contact may be shown (STEP 5D-1).
+  ///
+  /// Requires a Backend-acknowledged contact and no pending-sync assignment —
+  /// PII stays hidden until the pickup command is acknowledged and synced.
+  bool get isCustomerContactVisible =>
+      customerContact != null && activeAssignment?.pendingSync != true;
 
   bool get canAccept =>
       isInitialized &&
@@ -157,6 +186,10 @@ class DeliveryControllerState {
     bool? isRestored,
     String? boundDriverId,
     bool clearBoundDriverId = false,
+    CustomerContact? customerContact,
+    bool clearCustomerContact = false,
+    BatchSummary? activeBatch,
+    bool clearActiveBatch = false,
   }) {
     return DeliveryControllerState(
       status: status ?? this.status,
@@ -175,6 +208,10 @@ class DeliveryControllerState {
       boundDriverId: clearBoundDriverId
           ? null
           : (boundDriverId ?? this.boundDriverId),
+      customerContact: clearCustomerContact
+          ? null
+          : (customerContact ?? this.customerContact),
+      activeBatch: clearActiveBatch ? null : (activeBatch ?? this.activeBatch),
     );
   }
 
@@ -191,7 +228,9 @@ class DeliveryControllerState {
           processingAction == other.processingAction &&
           isInitialized == other.isInitialized &&
           isRestored == other.isRestored &&
-          boundDriverId == other.boundDriverId;
+          boundDriverId == other.boundDriverId &&
+          customerContact == other.customerContact &&
+          activeBatch == other.activeBatch;
 
   @override
   int get hashCode => Object.hash(
@@ -205,6 +244,8 @@ class DeliveryControllerState {
     isInitialized,
     isRestored,
     boundDriverId,
+    customerContact,
+    activeBatch,
   );
 
   static bool _listEquals(List<DeliveryOffer> a, List<DeliveryOffer> b) {
