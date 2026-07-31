@@ -18,7 +18,9 @@ import '../../features/auth/data/repositories/remote_authentication_repository.d
 import '../../features/auth/data/session/auth_session_storage.dart';
 import '../../features/auth/domain/repositories/authentication_repository.dart';
 import '../../features/availability/data/datasources/shared_preferences_driver_availability_local_data_source.dart';
+import '../../features/availability/data/remote/http_driver_availability_remote_data_source.dart';
 import '../../features/availability/data/repositories/local_driver_availability_repository.dart';
+import '../../features/availability/data/repositories/remote_driver_availability_repository.dart';
 import '../../features/availability/domain/repositories/driver_availability_repository.dart';
 import '../../features/availability/domain/usecases/apply_authoritative_availability.dart';
 import '../../features/availability/domain/usecases/get_driver_availability.dart';
@@ -28,6 +30,7 @@ import '../../features/delivery/data/datasources/delivery_local_data_source.dart
 import '../../features/delivery/data/datasources/delivery_remote_data_source.dart';
 import '../../features/delivery/data/datasources/drift_delivery_local_data_source.dart';
 import '../../features/delivery/data/fake/fake_delivery_remote_data_source.dart';
+import '../../features/delivery/data/remote/http_delivery_remote_data_source.dart';
 import '../../features/delivery/data/repositories/local_delivery_assignment_repository.dart';
 import '../../features/delivery/data/repositories/drift_delivery_command_repository.dart';
 import '../../features/delivery/data/repositories/remote_delivery_offer_repository.dart';
@@ -42,7 +45,9 @@ import '../../features/delivery/domain/usecases/reject_delivery_offer.dart';
 import '../../features/delivery/domain/usecases/record_local_delivery_command.dart';
 import '../../features/delivery/domain/usecases/verify_delivery_code.dart';
 import '../../features/driver/data/datasources/local/driver_database.dart';
+import '../../features/profile/data/remote/http_driver_profile_remote_data_source.dart';
 import '../../features/profile/data/repositories/fake_driver_profile_repository.dart';
+import '../../features/profile/data/repositories/remote_driver_profile_repository.dart';
 import '../../features/profile/domain/repositories/driver_profile_repository.dart';
 
 /// Central service registry for the application.
@@ -143,37 +148,19 @@ final class AppServiceRegistry {
             authSessionStorage: authSessionStorage,
           );
 
-    // PHASE 2.3 — Driver Identity and Profile.
+    // PHASE 2.3 / STEP 5C-2 — Driver Identity and Profile.
     final authenticationRepository = registry._authenticationRepository;
     registry._driverProfileRepository = authenticationRepository == null
         ? null
-        : await _safeInit<DriverProfileRepository>(
-            'DriverProfileRepository',
-            registry._logger,
-            () async => FakeDriverProfileRepository(
-              authenticationRepository: authenticationRepository,
-              logger: registry._logger,
-              database: registry._database,
-            ),
+        : await _initDriverProfileRepository(
+            registry: registry,
+            authenticationRepository: authenticationRepository,
           );
 
-    // PHASE 2.4 — Driver Availability (local persistence).
+    // PHASE 2.4 / STEP 5C-2 — Driver Availability.
     registry._driverAvailabilityRepository = authenticationRepository == null
         ? null
-        : await _safeInit<DriverAvailabilityRepository>(
-            'DriverAvailabilityRepository',
-            registry._logger,
-            () async => LocalDriverAvailabilityRepository(
-              localDataSource:
-                  SharedPreferencesDriverAvailabilityLocalDataSource(),
-              currentDriverIdReader: () =>
-                  registry
-                      ._authenticationRepository
-                      ?.currentSession
-                      ?.driverId ??
-                  '',
-            ),
-          );
+        : await _initDriverAvailabilityRepository(registry: registry);
 
     // PHASE 2.5 / 2.6 — Delivery Request Lifecycle DI wiring.
     // Remote: Fake only outside production (ADR-027). Production leaves the
@@ -188,12 +175,22 @@ final class AppServiceRegistry {
 
   /// Wires Delivery datasources → repositories → use cases.
   Future<void> _initDeliveryStack() async {
-    if (!AppConfig.isProduction) {
+    if (_backendConfiguration.isRemote) {
+      final api = _saeqApiClient;
+      if (api == null) {
+        throw StateError(
+          'SaeqApiClient is required for remote delivery offers.',
+        );
+      }
+      _deliveryRemoteDataSource = HttpDeliveryRemoteDataSource(api: api);
+      _logger.info(
+        'AppServiceRegistry: HttpDeliveryRemoteDataSource initialized',
+      );
+    } else if (!AppConfig.isProduction) {
       _deliveryRemoteDataSource = await _safeInit<DeliveryRemoteDataSource>(
         'FakeDeliveryRemoteDataSource',
         _logger,
         () async => FakeDeliveryRemoteDataSource(
-          // Fake constructor also enforces Release/Production policy (ADR-027).
           isProductionEnvironment: () => AppConfig.isProduction,
         ),
       );
@@ -426,6 +423,65 @@ final class AppServiceRegistry {
       'AppServiceRegistry: RemoteAuthenticationRepository initialized',
     );
     return remoteRepo;
+  }
+
+  static Future<DriverProfileRepository?> _initDriverProfileRepository({
+    required AppServiceRegistry registry,
+    required AuthenticationRepository authenticationRepository,
+  }) async {
+    if (registry._backendConfiguration.isFake) {
+      return _safeInit<DriverProfileRepository>(
+        'FakeDriverProfileRepository',
+        registry._logger,
+        () async => FakeDriverProfileRepository(
+          authenticationRepository: authenticationRepository,
+          logger: registry._logger,
+          database: registry._database,
+        ),
+      );
+    }
+    final api = registry._saeqApiClient;
+    if (api == null) {
+      throw StateError('SaeqApiClient is required for remote profile.');
+    }
+    final repo = RemoteDriverProfileRepository(
+      remote: HttpDriverProfileRemoteDataSource(api: api),
+    );
+    registry._logger.info(
+      'AppServiceRegistry: RemoteDriverProfileRepository initialized',
+    );
+    return repo;
+  }
+
+  static Future<DriverAvailabilityRepository?>
+  _initDriverAvailabilityRepository({
+    required AppServiceRegistry registry,
+  }) async {
+    String driverIdReader() =>
+        registry._authenticationRepository?.currentSession?.driverId ?? '';
+
+    if (registry._backendConfiguration.isFake) {
+      return _safeInit<DriverAvailabilityRepository>(
+        'LocalDriverAvailabilityRepository',
+        registry._logger,
+        () async => LocalDriverAvailabilityRepository(
+          localDataSource: SharedPreferencesDriverAvailabilityLocalDataSource(),
+          currentDriverIdReader: driverIdReader,
+        ),
+      );
+    }
+    final api = registry._saeqApiClient;
+    if (api == null) {
+      throw StateError('SaeqApiClient is required for remote availability.');
+    }
+    final repo = RemoteDriverAvailabilityRepository(
+      remote: HttpDriverAvailabilityRemoteDataSource(api: api),
+      currentDriverIdReader: driverIdReader,
+    );
+    registry._logger.info(
+      'AppServiceRegistry: RemoteDriverAvailabilityRepository initialized',
+    );
+    return repo;
   }
 
   /// Runs [create], returning its result. If it throws, the failure is
