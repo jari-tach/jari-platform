@@ -54,14 +54,6 @@ class ConfirmPickupRemote {
     if (current == null || !current.isActive) {
       return const DeliveryFailureResult(DeliveryAssignmentNotFound());
     }
-    if (current.workflowStage != DriverWorkflowStage.waitingPickup &&
-        current.workflowStage != DriverWorkflowStage.arrivedPickup) {
-      return const DeliveryFailureResult(
-        InvalidDeliveryWorkflowTransition(
-          'Pickup confirmation is not allowed in the current stage.',
-        ),
-      );
-    }
 
     final existing = await _commands.getById(commandId: id);
     if (existing.isFailure) {
@@ -73,6 +65,15 @@ class ConfirmPickupRemote {
     if (recorded != null &&
         recorded.status == LocalDeliveryCommandStatus.completed) {
       return DeliverySuccess(current);
+    }
+
+    if (current.workflowStage != DriverWorkflowStage.waitingPickup &&
+        current.workflowStage != DriverWorkflowStage.arrivedPickup) {
+      return const DeliveryFailureResult(
+        InvalidDeliveryWorkflowTransition(
+          'Pickup confirmation is not allowed in the current stage.',
+        ),
+      );
     }
 
     final version = int.tryParse(current.serverRevision ?? '') ?? 0;

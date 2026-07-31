@@ -53,13 +53,6 @@ class ConfirmDeliveryRemote {
     if (current == null || !current.isActive) {
       return const DeliveryFailureResult(DeliveryAssignmentNotFound());
     }
-    if (current.workflowStage != DriverWorkflowStage.verifying) {
-      return const DeliveryFailureResult(
-        InvalidDeliveryWorkflowTransition(
-          'Delivery confirmation is only allowed after automatic arrival.',
-        ),
-      );
-    }
 
     final existing = await _commands.getById(commandId: id);
     if (existing.isFailure) {
@@ -71,6 +64,14 @@ class ConfirmDeliveryRemote {
     if (recorded != null &&
         recorded.status == LocalDeliveryCommandStatus.completed) {
       return DeliverySuccess(current);
+    }
+
+    if (current.workflowStage != DriverWorkflowStage.verifying) {
+      return const DeliveryFailureResult(
+        InvalidDeliveryWorkflowTransition(
+          'Delivery confirmation is only allowed after automatic arrival.',
+        ),
+      );
     }
 
     final version = int.tryParse(current.serverRevision ?? '') ?? 0;
