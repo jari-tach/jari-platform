@@ -1,12 +1,20 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 
+import '../../core/auth_session/access_token_memory_cache.dart';
+import '../../core/auth_session/auth_token_store.dart';
+import '../../core/auth_session/session_repository.dart';
+import '../../core/backend_configuration/backend_configuration.dart';
 import '../../core/config/app_config.dart';
+import '../../core/network/authenticated_request_executor.dart';
 import '../../core/network/network_monitor.dart';
+import '../../core/network/saeq_api_client.dart';
 import '../../core/services/api/api_client.dart';
 import '../../core/services/error/app_error_handler.dart';
 import '../../core/services/logger/logger_service.dart';
 import '../../core/services/storage/secure_storage_service.dart';
+import '../../features/auth/data/remote/http_auth_remote_data_source.dart';
 import '../../features/auth/data/repositories/fake_authentication_repository.dart';
+import '../../features/auth/data/repositories/remote_authentication_repository.dart';
 import '../../features/auth/data/session/auth_session_storage.dart';
 import '../../features/auth/domain/repositories/authentication_repository.dart';
 import '../../features/availability/data/datasources/shared_preferences_driver_availability_local_data_source.dart';
@@ -56,11 +64,22 @@ final class AppServiceRegistry {
     registry._errorHandler = AppErrorHandler(logger: registry._logger);
     registry._storage = SecureStorageServiceImpl(logger: registry._logger);
     await registry._storage.init();
+
+    // STEP 5C-1 — build-time backend mode (fake|remote). Fake is forbidden
+    // in profile/release; failure here is intentional and must not soft-fail.
+    registry._backendConfiguration = BackendConfiguration.resolve();
+    registry._accessTokenCache = AccessTokenMemoryCache();
+    registry._authTokenStore = SecureAuthTokenStore(storage: registry._storage);
+    registry._sessionRepository = SessionRepository(
+      tokenStore: registry._authTokenStore,
+      accessTokenCache: registry._accessTokenCache,
+    );
+
+    // Protected ApiClient keeps its sync tokenProvider contract without
+    // editing api_client.dart — memory cache supplies the access token.
     registry._apiClient = ApiClient(
       logger: registry._logger,
-      // Token provider must be synchronous (see AuthInterceptor), while
-      // getAccessToken() is async; no synchronous token cache exists yet.
-      tokenProvider: () => null,
+      tokenProvider: () => registry._accessTokenCache.accessToken,
     );
 
     // Non-critical service activation policy (PHASE 2.1):
@@ -110,20 +129,18 @@ final class AppServiceRegistry {
       ),
     );
 
-    // FakeAuthenticationRepository's constructor enforces the
-    // production guard (throws if AppConfig.isProduction is true). That
-    // failure — like any other non-critical bootstrap failure — is
-    // logged loudly here and degrades to `null`, never silently.
+    // STEP 5C-1 — AuthenticationRepository: Fake or Remote per
+    // BackendConfiguration. Remote wiring must not soft-fail into Fake.
+    // FakeAuthenticationRepository's constructor enforces the production
+    // guard (throws if AppConfig.isProduction is true). That failure —
+    // like any other non-critical bootstrap failure for Fake — is logged
+    // and degrades to null, never silently.
     final authSessionStorage = registry._authSessionStorage;
     registry._authenticationRepository = authSessionStorage == null
         ? null
-        : await _safeInit<AuthenticationRepository>(
-            'AuthenticationRepository',
-            registry._logger,
-            () async => FakeAuthenticationRepository(
-              sessionStorage: authSessionStorage,
-              logger: registry._logger,
-            ),
+        : await _initAuthenticationRepository(
+            registry: registry,
+            authSessionStorage: authSessionStorage,
           );
 
     // PHASE 2.3 — Driver Identity and Profile.
@@ -359,6 +376,58 @@ final class AppServiceRegistry {
     _instance = null;
   }
 
+  /// STEP 5C-1 auth wiring. Fake uses [_safeInit]; remote fails hard so a
+  /// misconfigured remote build never silently falls back to Fake.
+  static Future<AuthenticationRepository?> _initAuthenticationRepository({
+    required AppServiceRegistry registry,
+    required AuthSessionStorage authSessionStorage,
+  }) async {
+    final config = registry._backendConfiguration;
+    if (config.isFake) {
+      return _safeInit<AuthenticationRepository>(
+        'FakeAuthenticationRepository',
+        registry._logger,
+        () async => FakeAuthenticationRepository(
+          sessionStorage: authSessionStorage,
+          logger: registry._logger,
+          // Mirrors AppConfig.isProduction for the Fake ctor production gate.
+          isProductionEnvironment: () => AppConfig.isProduction,
+        ),
+      );
+    }
+
+    final baseUrl = config.apiBaseUrl;
+    if (baseUrl == null || baseUrl.isEmpty) {
+      throw StateError(
+        'SAEQ_API_BASE_URL is required for remote authentication.',
+      );
+    }
+
+    late final RemoteAuthenticationRepository remoteRepo;
+    final apiClient = SaeqApiClient(
+      baseUrl: baseUrl,
+      accessTokenCache: registry._accessTokenCache,
+      logger: registry._logger,
+      onUnauthorizedRefresh: () => remoteRepo.refreshTokensForClient(),
+    );
+    registry._saeqApiClient = apiClient;
+    registry._authenticatedRequestExecutor = AuthenticatedRequestExecutor(
+      api: apiClient,
+    );
+
+    remoteRepo = RemoteAuthenticationRepository(
+      remote: HttpAuthRemoteDataSource(api: apiClient),
+      sessionStorage: authSessionStorage,
+      tokenStore: registry._authTokenStore,
+      accessTokenCache: registry._accessTokenCache,
+      logger: registry._logger,
+    );
+    registry._logger.info(
+      'AppServiceRegistry: RemoteAuthenticationRepository initialized',
+    );
+    return remoteRepo;
+  }
+
   /// Runs [create], returning its result. If it throws, the failure is
   /// logged via [logger] and `null` is returned instead of rethrowing, so
   /// a non-critical service failure never crashes bootstrap.
@@ -385,6 +454,12 @@ final class AppServiceRegistry {
   late final AppErrorHandler _errorHandler;
   late final SecureStorageService _storage;
   late final ApiClient _apiClient;
+  late final BackendConfiguration _backendConfiguration;
+  late final AccessTokenMemoryCache _accessTokenCache;
+  late final AuthTokenStore _authTokenStore;
+  late final SessionRepository _sessionRepository;
+  SaeqApiClient? _saeqApiClient;
+  AuthenticatedRequestExecutor? _authenticatedRequestExecutor;
   DriverDatabase? _database;
   NetworkMonitor? _networkMonitor;
   AuthSessionStorage? _authSessionStorage;
@@ -417,6 +492,28 @@ final class AppServiceRegistry {
 
   /// The application's API client.
   static ApiClient get apiClient => _instance!._apiClient;
+
+  /// STEP 5C build-time backend configuration.
+  static BackendConfiguration get backendConfiguration =>
+      _instance!._backendConfiguration;
+
+  /// In-memory access token cache (never SharedPreferences).
+  static AccessTokenMemoryCache get accessTokenCache =>
+      _instance!._accessTokenCache;
+
+  /// Secure refresh-token store (Keystore / Keychain via SecureStorage).
+  static AuthTokenStore get authTokenStore => _instance!._authTokenStore;
+
+  /// Session boundary for tokens.
+  static SessionRepository get sessionRepository =>
+      _instance!._sessionRepository;
+
+  /// STEP 5C SAEQ HTTP client (null when Fake mode).
+  static SaeqApiClient? get saeqApiClient => _instance!._saeqApiClient;
+
+  /// Authenticated request executor over [saeqApiClient].
+  static AuthenticatedRequestExecutor? get authenticatedRequestExecutor =>
+      _instance!._authenticatedRequestExecutor;
 
   /// The application's offline-first local database, or `null` if it
   /// failed to initialize. See [init] for the non-critical failure policy.

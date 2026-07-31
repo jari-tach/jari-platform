@@ -79,6 +79,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       // Full-screen states handled separately.
       SecureStorageFailureError() ||
       OtpRateLimitedError() ||
+      NetworkUnavailableAuthError() ||
+      RequestTimeoutAuthError() ||
+      ServerUnavailableAuthError() ||
+      ForbiddenAuthError() ||
+      ConflictAuthError() ||
+      RateLimitedAuthError() ||
+      ContractViolationAuthError() ||
       UnexpectedAuthError() => null,
     };
   }
@@ -92,12 +99,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         title: l10n.secureStorageFailureTitle,
         message: l10n.secureStorageFailureMessage,
       ),
-      OtpRateLimitedError() => (
+      OtpRateLimitedError() || RateLimitedAuthError() => (
         title: l10n.rateLimitTitle,
         message: l10n.otpRateLimitedMessage,
       ),
-      // Fake Alpha has no dedicated network error; Unexpected maps to
-      // Final/Auth/Network Failure for presentation only.
+      NetworkUnavailableAuthError() ||
+      RequestTimeoutAuthError() ||
+      ServerUnavailableAuthError() ||
+      ContractViolationAuthError() ||
+      ForbiddenAuthError() ||
+      ConflictAuthError() ||
       UnexpectedAuthError() => (
         title: l10n.networkFailureTitle,
         message: l10n.networkFailureMessage,
