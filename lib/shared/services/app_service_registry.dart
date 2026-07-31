@@ -30,6 +30,8 @@ import '../../features/delivery/data/datasources/delivery_local_data_source.dart
 import '../../features/delivery/data/datasources/delivery_remote_data_source.dart';
 import '../../features/delivery/data/datasources/drift_delivery_local_data_source.dart';
 import '../../features/delivery/data/fake/fake_delivery_remote_data_source.dart';
+import '../../features/delivery/data/remote/customer_contact_memory_cache.dart';
+import '../../features/delivery/data/remote/http_delivery_lifecycle_remote.dart';
 import '../../features/delivery/data/remote/http_delivery_remote_data_source.dart';
 import '../../features/delivery/data/repositories/local_delivery_assignment_repository.dart';
 import '../../features/delivery/data/repositories/drift_delivery_command_repository.dart';
@@ -183,8 +185,13 @@ final class AppServiceRegistry {
         );
       }
       _deliveryRemoteDataSource = HttpDeliveryRemoteDataSource(api: api);
+      _customerContactMemoryCache = CustomerContactMemoryCache();
+      _deliveryLifecycleRemote = HttpDeliveryLifecycleRemote(
+        api: api,
+        contactCache: _customerContactMemoryCache!,
+      );
       _logger.info(
-        'AppServiceRegistry: HttpDeliveryRemoteDataSource initialized',
+        'AppServiceRegistry: HttpDeliveryRemoteDataSource + lifecycle initialized',
       );
     } else if (!AppConfig.isProduction) {
       _deliveryRemoteDataSource = await _safeInit<DeliveryRemoteDataSource>(
@@ -361,6 +368,8 @@ final class AppServiceRegistry {
     await registry._networkMonitor?.dispose();
     await registry._database?.close();
     await registry._authenticationRepository?.dispose();
+    registry._deliveryLifecycleRemote?.onLogoutOrSessionExpired();
+    registry._customerContactMemoryCache?.clear();
     final availability = registry._driverAvailabilityRepository;
     if (availability is LocalDriverAvailabilityRepository) {
       availability.dispose();
@@ -523,6 +532,8 @@ final class AppServiceRegistry {
   DriverProfileRepository? _driverProfileRepository;
   DriverAvailabilityRepository? _driverAvailabilityRepository;
   DeliveryRemoteDataSource? _deliveryRemoteDataSource;
+  CustomerContactMemoryCache? _customerContactMemoryCache;
+  HttpDeliveryLifecycleRemote? _deliveryLifecycleRemote;
   DeliveryLocalDataSource? _deliveryLocalDataSource;
   DeliveryOfferRepository? _deliveryOfferRepository;
   DeliveryAssignmentRepository? _deliveryAssignmentRepository;
@@ -606,6 +617,14 @@ final class AppServiceRegistry {
   /// PHASE 2.5/2.6 remote delivery port (Fake outside production), or `null`.
   static DeliveryRemoteDataSource? get deliveryRemoteDataSource =>
       _instance!._deliveryRemoteDataSource;
+
+  /// STEP 5C-3 delivery lifecycle REST (pickup/arrival/confirm/batch/contact).
+  static HttpDeliveryLifecycleRemote? get deliveryLifecycleRemote =>
+      _instance!._deliveryLifecycleRemote;
+
+  /// Memory-only customer contact cache (cleared on logout/completion).
+  static CustomerContactMemoryCache? get customerContactMemoryCache =>
+      _instance!._customerContactMemoryCache;
 
   /// PHASE 2.5/2.6 Drift local assignment port, or `null` if DB unavailable.
   static DeliveryLocalDataSource? get deliveryLocalDataSource =>
