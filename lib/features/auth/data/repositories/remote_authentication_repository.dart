@@ -23,22 +23,16 @@ String? _toE164(String local05) {
 /// Remote [AuthenticationRepository] against contracts-v0.1.0.
 final class RemoteAuthenticationRepository implements AuthenticationRepository {
   RemoteAuthenticationRepository({
-    required AuthRemoteDataSource remote,
-    required AuthSessionStorage sessionStorage,
-    required AuthTokenStore tokenStore,
-    required AccessTokenMemoryCache accessTokenCache,
-    required LoggerService logger,
+    required this._remote,
+    required this._sessionStorage,
+    required this._tokenStore,
+    required this._accessTokenCache,
+    required this._logger,
     IdempotencyKeyFactory? idempotencyKeyFactory,
     RemoteErrorMapper? errorMapper,
-    String locale = 'ar-SA',
-  }) : _remote = remote,
-       _sessionStorage = sessionStorage,
-       _tokenStore = tokenStore,
-       _accessTokenCache = accessTokenCache,
-       _logger = logger,
-       _idempotencyKeys = idempotencyKeyFactory ?? IdempotencyKeyFactory(),
-       _errorMapper = errorMapper ?? const RemoteErrorMapper(),
-       _locale = locale;
+    this._locale = 'ar-SA',
+  }) : _idempotencyKeys = idempotencyKeyFactory ?? IdempotencyKeyFactory(),
+       _errorMapper = errorMapper ?? const RemoteErrorMapper();
 
   final AuthRemoteDataSource _remote;
   final AuthSessionStorage _sessionStorage;

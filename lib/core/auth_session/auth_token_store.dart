@@ -9,8 +9,7 @@ abstract interface class AuthTokenStore {
 }
 
 final class SecureAuthTokenStore implements AuthTokenStore {
-  SecureAuthTokenStore({required SecureStorageService storage})
-    : _storage = storage;
+  SecureAuthTokenStore({required this._storage});
 
   static const _refreshKey = 'saeq_refresh_token_v1';
 

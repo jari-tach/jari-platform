@@ -13,16 +13,13 @@ typedef TokenRefreshCallback = Future<bool> Function();
 final class SaeqApiClient {
   SaeqApiClient({
     required String baseUrl,
-    required AccessTokenMemoryCache accessTokenCache,
-    required LoggerService logger,
+    required this._accessTokenCache,
+    required this._logger,
     RequestIdFactory? requestIdFactory,
-    TokenRefreshCallback? onUnauthorizedRefresh,
+    this._onUnauthorizedRefresh,
     Dio? dio,
     HttpLogRedactor? redactor,
-  }) : _accessTokenCache = accessTokenCache,
-       _logger = logger,
-       _requestIdFactory = requestIdFactory ?? RequestIdFactory(),
-       _onUnauthorizedRefresh = onUnauthorizedRefresh,
+  }) : _requestIdFactory = requestIdFactory ?? RequestIdFactory(),
        _redactor = redactor ?? HttpLogRedactor(),
        _dio =
            dio ??
@@ -144,7 +141,7 @@ final class SaeqApiClient {
       options: Options(
         method: method,
         headers: {
-          if (idempotencyKey != null) 'Idempotency-Key': idempotencyKey,
+          'Idempotency-Key': ?idempotencyKey,
           if (!authenticated) 'Authorization': null,
         },
         extra: {if (!authenticated) 'skip_auth': true},

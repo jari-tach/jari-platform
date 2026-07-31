@@ -412,11 +412,11 @@ final class AppServiceRegistry {
     );
     registry._saeqApiClient = apiClient;
     registry._authenticatedRequestExecutor = AuthenticatedRequestExecutor(
-      apiClient: apiClient,
+      api: apiClient,
     );
 
     remoteRepo = RemoteAuthenticationRepository(
-      remote: HttpAuthRemoteDataSource(apiClient: apiClient),
+      remote: HttpAuthRemoteDataSource(api: apiClient),
       sessionStorage: authSessionStorage,
       tokenStore: registry._authTokenStore,
       accessTokenCache: registry._accessTokenCache,

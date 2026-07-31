@@ -7,8 +7,7 @@ import 'saeq_api_client.dart';
 /// Controllers and use cases must not call Dio / parse JSON via this type —
 /// feature remote data sources sit between repositories and this executor.
 final class AuthenticatedRequestExecutor {
-  AuthenticatedRequestExecutor({required SaeqApiClient apiClient})
-    : _api = apiClient;
+  AuthenticatedRequestExecutor({required this._api});
 
   final SaeqApiClient _api;
 

@@ -6,10 +6,9 @@ import 'auth_token_store.dart';
 /// Presentation must never touch [AuthTokenStore] or the memory cache directly.
 final class SessionRepository {
   SessionRepository({
-    required AuthTokenStore tokenStore,
-    required AccessTokenMemoryCache accessTokenCache,
-  }) : _tokenStore = tokenStore,
-       _accessTokenCache = accessTokenCache;
+    required this._tokenStore,
+    required this._accessTokenCache,
+  });
 
   final AuthTokenStore _tokenStore;
   final AccessTokenMemoryCache _accessTokenCache;

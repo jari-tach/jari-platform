@@ -115,11 +115,7 @@ Map<String, dynamic> _tokenJson({
 typedef _Responder = Response Function();
 
 class _AuthAdapter implements HttpClientAdapter {
-  _AuthAdapter({
-    this.onOtpRequest,
-    this.onOtpVerify,
-    this.onLogout,
-  });
+  _AuthAdapter({this.onOtpRequest, this.onOtpVerify, this.onLogout});
 
   final _Responder? onOtpRequest;
   final _Responder? onOtpVerify;
@@ -203,7 +199,7 @@ void main() {
     );
 
     remoteRepo = RemoteAuthenticationRepository(
-      remote: HttpAuthRemoteDataSource(apiClient: api),
+      remote: HttpAuthRemoteDataSource(api: api),
       sessionStorage: AuthSessionStorage(
         storage: _MemSecureStorage(),
         logger: _SilentLogger(),

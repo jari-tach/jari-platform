@@ -5,8 +5,7 @@ import '../models/token_response_wire.dart';
 import 'auth_remote_data_source.dart';
 
 final class HttpAuthRemoteDataSource implements AuthRemoteDataSource {
-  HttpAuthRemoteDataSource({required SaeqApiClient apiClient})
-    : _api = apiClient;
+  HttpAuthRemoteDataSource({required this._api});
 
   final SaeqApiClient _api;
 
@@ -34,11 +33,7 @@ final class HttpAuthRemoteDataSource implements AuthRemoteDataSource {
   }) async {
     final response = await _api.post<Map<String, dynamic>>(
       DriverApiPaths.otpVerify,
-      data: {
-        'challengeId': challengeId,
-        'otpCode': otpCode,
-        if (device != null) 'device': device,
-      },
+      data: {'challengeId': challengeId, 'otpCode': otpCode, 'device': ?device},
       idempotencyKey: idempotencyKey,
       authenticated: false,
     );
