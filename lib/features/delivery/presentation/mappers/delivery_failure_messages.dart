@@ -25,6 +25,14 @@ String deliveryFailureMessage(DeliveryFailure failure, AppLocalizations l10n) {
     DeliveryAssignmentNotFound() => l10n.deliveryFailureOfferNotFound,
     DeliveryInvalidCommandId() => l10n.deliveryFailureSecurityDenied,
     DeliveryPendingSync() => l10n.deliveryPendingSyncMessage,
+    // STEP 5D-1 remote lifecycle failures — reuse existing safe copy until
+    // dedicated strings land.
+    DeliveryNetworkUnavailable() => l10n.offlineBannerMessage,
+    DeliveryBackendUnavailable() => l10n.deliveryPendingSyncMessage,
+    DeliveryValidationFailure() => l10n.deliveryFailureUnknown,
+    DeliveryRateLimited() => l10n.deliveryFailureConflict,
+    DeliveryContactNotAvailable() => l10n.deliveryFailureSecurityDenied,
+    DeliveryContractViolation() => l10n.deliveryFailureUnknown,
     DeliveryUnknownFailure() => l10n.deliveryFailureUnknown,
   };
 }

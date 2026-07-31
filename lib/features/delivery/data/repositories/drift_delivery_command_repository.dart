@@ -67,6 +67,7 @@ class DriftDeliveryCommandRepository implements DeliveryCommandRepository {
                   'driverId': command.driverId,
                   'targetId': command.targetId,
                   'type': command.type.name,
+                  if (command.payload != null) 'payload': command.payload,
                 }),
                 status: Value(
                   command.status == LocalDeliveryCommandStatus.completed
@@ -120,6 +121,32 @@ class DriftDeliveryCommandRepository implements DeliveryCommandRepository {
     }
   }
 
+  @override
+  Future<DeliveryResult<List<LocalDeliveryCommand>>> listPending({
+    required String driverId,
+  }) async {
+    try {
+      final query = database.select(database.offlineQueue)
+        ..where(
+          (row) =>
+              row.entityType.equals(_entityType) &
+              row.status.equals(_pendingStatus),
+        )
+        ..orderBy([(row) => OrderingTerm.asc(row.createdAt)]);
+      final rows = await query.get();
+      final commands = <LocalDeliveryCommand>[];
+      for (final row in rows) {
+        final command = _decode(row);
+        if (command.driverId == driverId) commands.add(command);
+      }
+      return DeliverySuccess(List.unmodifiable(commands));
+    } catch (error) {
+      return DeliveryFailureResult(
+        DeliveryPersistenceFailure(error.toString()),
+      );
+    }
+  }
+
   LocalDeliveryCommand _decode(OfflineQueueData row) {
     final decoded = jsonDecode(row.payload);
     if (decoded is! Map) {
@@ -141,6 +168,7 @@ class DriftDeliveryCommandRepository implements DeliveryCommandRepository {
       orElse: () =>
           throw const FormatException('local command type is invalid'),
     );
+    final payloadRaw = json['payload'];
     return LocalDeliveryCommand(
       commandId: row.entityId,
       driverId: driverId,
@@ -150,6 +178,7 @@ class DriftDeliveryCommandRepository implements DeliveryCommandRepository {
           ? LocalDeliveryCommandStatus.completed
           : LocalDeliveryCommandStatus.pendingSync,
       recordedAt: row.createdAt.toUtc(),
+      payload: payloadRaw is Map ? Map<String, Object?>.from(payloadRaw) : null,
     );
   }
 }

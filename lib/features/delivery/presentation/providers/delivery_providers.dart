@@ -10,10 +10,18 @@ import '../../application/complete_delivery_and_release_busy.dart';
 import '../../domain/repositories/delivery_offer_repository.dart';
 import '../../domain/usecases/accept_delivery_offer.dart';
 import '../../domain/usecases/advance_delivery_workflow.dart';
+import '../../domain/usecases/cancel_delivery_remote.dart';
+import '../../domain/usecases/confirm_delivery_remote.dart';
+import '../../domain/usecases/confirm_pickup_remote.dart';
+import '../../domain/usecases/get_active_batch.dart';
 import '../../domain/usecases/get_active_delivery.dart';
+import '../../domain/usecases/get_customer_contact.dart';
 import '../../domain/usecases/get_delivery_offers.dart';
 import '../../domain/usecases/reject_delivery_offer.dart';
+import '../../domain/usecases/replay_pending_delivery_commands.dart';
 import '../../domain/usecases/record_local_delivery_command.dart';
+import '../../domain/usecases/report_automatic_arrival_remote.dart';
+import '../../domain/usecases/report_delivery_issue_remote.dart';
 import '../../domain/usecases/verify_delivery_code.dart';
 import '../controllers/delivery_controller.dart';
 import '../state/delivery_controller_state.dart';
@@ -66,6 +74,51 @@ DeliveryOfferRepository? _readDeliveryOfferRepository(Ref ref) =>
     AppServiceRegistry.isInitialized
     ? AppServiceRegistry.deliveryOfferRepository
     : null;
+
+ConfirmPickupRemote? _readConfirmPickupRemote(Ref ref) =>
+    AppServiceRegistry.isInitialized
+    ? AppServiceRegistry.confirmPickupRemote
+    : null;
+
+ReportAutomaticArrivalRemote? _readReportArrivalRemote(Ref ref) =>
+    AppServiceRegistry.isInitialized
+    ? AppServiceRegistry.reportAutomaticArrivalRemote
+    : null;
+
+ConfirmDeliveryRemote? _readConfirmDeliveryRemote(Ref ref) =>
+    AppServiceRegistry.isInitialized
+    ? AppServiceRegistry.confirmDeliveryRemote
+    : null;
+
+CancelDeliveryRemote? _readCancelDeliveryRemote(Ref ref) =>
+    AppServiceRegistry.isInitialized
+    ? AppServiceRegistry.cancelDeliveryRemote
+    : null;
+
+ReportDeliveryIssueRemote? _readReportDeliveryIssueRemote(Ref ref) =>
+    AppServiceRegistry.isInitialized
+    ? AppServiceRegistry.reportDeliveryIssueRemote
+    : null;
+
+GetCustomerContact? _readGetCustomerContact(Ref ref) =>
+    AppServiceRegistry.isInitialized
+    ? AppServiceRegistry.getCustomerContact
+    : null;
+
+GetActiveBatch? _readGetActiveBatch(Ref ref) =>
+    AppServiceRegistry.isInitialized ? AppServiceRegistry.getActiveBatch : null;
+
+ReplayPendingDeliveryCommands? _readReplayPendingDeliveryCommands(Ref ref) =>
+    AppServiceRegistry.isInitialized
+    ? AppServiceRegistry.replayPendingDeliveryCommands
+    : null;
+
+void _clearCustomerContact(Ref ref, {String? deliveryId}) {
+  if (!AppServiceRegistry.isInitialized) return;
+  AppServiceRegistry.deliveryLifecycleRepository?.clearCustomerContact(
+    deliveryId: deliveryId,
+  );
+}
 
 String? _readDriverId(Ref ref) {
   if (!AppServiceRegistry.isInitialized) return null;
@@ -124,5 +177,14 @@ final deliveryControllerProvider =
         driverIdReader: _readDriverId,
         acceptPreconditionsReader: _readAcceptPreconditions,
         availabilityRefreshReader: _refreshAvailability,
+        confirmPickupReader: _readConfirmPickupRemote,
+        reportArrivalReader: _readReportArrivalRemote,
+        confirmDeliveryReader: _readConfirmDeliveryRemote,
+        cancelDeliveryReader: _readCancelDeliveryRemote,
+        reportIssueReader: _readReportDeliveryIssueRemote,
+        getCustomerContactReader: _readGetCustomerContact,
+        getActiveBatchReader: _readGetActiveBatch,
+        replayPendingReader: _readReplayPendingDeliveryCommands,
+        clearCustomerContactReader: _clearCustomerContact,
       ),
     );

@@ -107,6 +107,15 @@ class ProfileScreen extends ConsumerWidget {
                 email: profile.email,
               ),
             ),
+            if (state.compliance != null) ...[
+              const SizedBox(height: AppTheme.spacingSM),
+              SaeqInfoCard(
+                child: Text(
+                  key: const Key('profileComplianceStatus'),
+                  state.compliance!.overallStatus,
+                ),
+              ),
+            ],
             const SizedBox(height: AppTheme.spacingSM),
             SaeqProfileNavigationRow(
               key: editRowKey,

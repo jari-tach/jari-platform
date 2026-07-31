@@ -20,6 +20,7 @@ class AdvanceDeliveryWorkflow {
     required DriverWorkflowCommand command,
     String? commandId,
     bool simulateOffline = false,
+    String? serverRevision,
   }) async {
     final currentResult = await _assignmentRepository.getActiveAssignment(
       driverId: driverId,
@@ -66,6 +67,39 @@ class AdvanceDeliveryWorkflow {
         pendingSync: updated.pendingSync || simulateOffline,
       );
     }
+    if (serverRevision != null && serverRevision.trim().isNotEmpty) {
+      updated = updated.copyWith(serverRevision: serverRevision.trim());
+    }
+    final persist = await _assignmentRepository.upsertAccepted(updated);
+    if (persist.isFailure) {
+      return DeliveryFailureResult(
+        persist.failureOrNull ?? const DeliveryPersistenceFailure(),
+      );
+    }
+    return DeliverySuccess(updated);
+  }
+
+  /// Marks the active assignment pending-sync without a stage transition
+  /// (STEP 5D-1 remote mode: a Backend command failed retryably and awaits
+  /// replay with the same idempotency key).
+  Future<DeliveryResult<DeliveryAssignment>> markPendingSync({
+    required String driverId,
+  }) async {
+    final currentResult = await _assignmentRepository.getActiveAssignment(
+      driverId: driverId,
+    );
+    if (currentResult.isFailure) {
+      return DeliveryFailureResult(
+        currentResult.failureOrNull ?? const DeliveryUnknownFailure(),
+      );
+    }
+    final current = currentResult.valueOrNull;
+    if (current == null || !current.isActive) {
+      return const DeliveryFailureResult(DeliveryAssignmentNotFound());
+    }
+    if (current.pendingSync) return DeliverySuccess(current);
+
+    final updated = current.copyWith(pendingSync: true);
     final persist = await _assignmentRepository.upsertAccepted(updated);
     if (persist.isFailure) {
       return DeliveryFailureResult(

@@ -42,4 +42,22 @@ class FakeDeliveryCommandRepository implements DeliveryCommandRepository {
     commands[command.commandId] = command;
     return DeliverySuccess.unit();
   }
+
+  @override
+  Future<DeliveryResult<List<LocalDeliveryCommand>>> listPending({
+    required String driverId,
+  }) async {
+    final failure = nextFailure;
+    if (failure != null) return DeliveryFailureResult(failure);
+    final pending =
+        commands.values
+            .where(
+              (command) =>
+                  command.driverId == driverId &&
+                  command.status == LocalDeliveryCommandStatus.pendingSync,
+            )
+            .toList()
+          ..sort((a, b) => a.recordedAt.compareTo(b.recordedAt));
+    return DeliverySuccess(List.unmodifiable(pending));
+  }
 }

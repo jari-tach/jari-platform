@@ -17,4 +17,9 @@ abstract interface class DeliveryCommandRepository {
     required String driverId,
     required String offerId,
   });
+
+  /// Restart-safe pending commands for [driverId], oldest first (STEP 5D-1).
+  Future<DeliveryResult<List<LocalDeliveryCommand>>> listPending({
+    required String driverId,
+  });
 }

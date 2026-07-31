@@ -11,8 +11,10 @@ import '../../application/accept_delivery_offer_and_bind_busy.dart';
 import '../../application/complete_delivery_and_release_busy.dart';
 import '../../domain/entities/accept_delivery_offer_request.dart';
 import '../../domain/entities/delivery_assignment.dart';
+import '../../domain/entities/delivery_lifecycle_ack.dart';
 import '../../domain/entities/delivery_offer.dart';
 import '../../domain/entities/delivery_result.dart';
+import '../../domain/entities/driver_workflow_stage.dart';
 import '../../domain/entities/local_delivery_command.dart';
 import '../../domain/entities/reject_delivery_offer_request.dart';
 import '../../domain/failures/delivery_failure.dart';
@@ -20,10 +22,18 @@ import '../../domain/policies/driver_workflow_transition_policy.dart';
 import '../../domain/repositories/delivery_offer_repository.dart';
 import '../../domain/usecases/accept_delivery_offer.dart';
 import '../../domain/usecases/advance_delivery_workflow.dart';
+import '../../domain/usecases/cancel_delivery_remote.dart';
+import '../../domain/usecases/confirm_delivery_remote.dart';
+import '../../domain/usecases/confirm_pickup_remote.dart';
+import '../../domain/usecases/get_active_batch.dart';
 import '../../domain/usecases/get_active_delivery.dart';
+import '../../domain/usecases/get_customer_contact.dart';
 import '../../domain/usecases/get_delivery_offers.dart';
 import '../../domain/usecases/reject_delivery_offer.dart';
+import '../../domain/usecases/replay_pending_delivery_commands.dart';
 import '../../domain/usecases/record_local_delivery_command.dart';
+import '../../domain/usecases/report_automatic_arrival_remote.dart';
+import '../../domain/usecases/report_delivery_issue_remote.dart';
 import '../../domain/usecases/verify_delivery_code.dart';
 import '../state/delivery_controller_state.dart';
 
@@ -57,6 +67,15 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
     String? Function(Ref ref)? driverIdReader,
     DeliveryAcceptPreconditions Function(Ref ref)? acceptPreconditionsReader,
     Future<void> Function(Ref ref)? availabilityRefreshReader,
+    ConfirmPickupRemote? Function(Ref ref)? confirmPickupReader,
+    ReportAutomaticArrivalRemote? Function(Ref ref)? reportArrivalReader,
+    ConfirmDeliveryRemote? Function(Ref ref)? confirmDeliveryReader,
+    CancelDeliveryRemote? Function(Ref ref)? cancelDeliveryReader,
+    ReportDeliveryIssueRemote? Function(Ref ref)? reportIssueReader,
+    GetCustomerContact? Function(Ref ref)? getCustomerContactReader,
+    GetActiveBatch? Function(Ref ref)? getActiveBatchReader,
+    ReplayPendingDeliveryCommands? Function(Ref ref)? replayPendingReader,
+    void Function(Ref ref, {String? deliveryId})? clearCustomerContactReader,
   }) : _getOffersReader = getOffersReader ?? _defaultGetOffersReader,
        _acceptReader = acceptReader ?? _defaultAcceptReader,
        _acceptAndBindReader =
@@ -76,7 +95,24 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
        _acceptPreconditionsReader =
            acceptPreconditionsReader ?? _defaultAcceptPreconditionsReader,
        _availabilityRefreshReader =
-           availabilityRefreshReader ?? _defaultAvailabilityRefreshReader;
+           availabilityRefreshReader ?? _defaultAvailabilityRefreshReader,
+       _confirmPickupReader =
+           confirmPickupReader ?? _defaultConfirmPickupReader,
+       _reportArrivalReader =
+           reportArrivalReader ?? _defaultReportArrivalReader,
+       _confirmDeliveryReader =
+           confirmDeliveryReader ?? _defaultConfirmDeliveryReader,
+       _cancelDeliveryReader =
+           cancelDeliveryReader ?? _defaultCancelDeliveryReader,
+       _reportIssueReader = reportIssueReader ?? _defaultReportIssueReader,
+       _getCustomerContactReader =
+           getCustomerContactReader ?? _defaultGetCustomerContactReader,
+       _getActiveBatchReader =
+           getActiveBatchReader ?? _defaultGetActiveBatchReader,
+       _replayPendingReader =
+           replayPendingReader ?? _defaultReplayPendingReader,
+       _clearCustomerContactReader =
+           clearCustomerContactReader ?? _defaultClearCustomerContactReader;
 
   final GetDeliveryOffers? Function(Ref ref) _getOffersReader;
   final AcceptDeliveryOffer? Function(Ref ref) _acceptReader;
@@ -93,6 +129,16 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
   final DeliveryAcceptPreconditions Function(Ref ref)
   _acceptPreconditionsReader;
   final Future<void> Function(Ref ref) _availabilityRefreshReader;
+  final ConfirmPickupRemote? Function(Ref ref) _confirmPickupReader;
+  final ReportAutomaticArrivalRemote? Function(Ref ref) _reportArrivalReader;
+  final ConfirmDeliveryRemote? Function(Ref ref) _confirmDeliveryReader;
+  final CancelDeliveryRemote? Function(Ref ref) _cancelDeliveryReader;
+  final ReportDeliveryIssueRemote? Function(Ref ref) _reportIssueReader;
+  final GetCustomerContact? Function(Ref ref) _getCustomerContactReader;
+  final GetActiveBatch? Function(Ref ref) _getActiveBatchReader;
+  final ReplayPendingDeliveryCommands? Function(Ref ref) _replayPendingReader;
+  final void Function(Ref ref, {String? deliveryId})
+  _clearCustomerContactReader;
 
   static GetDeliveryOffers? _defaultGetOffersReader(Ref ref) => null;
   static AcceptDeliveryOffer? _defaultAcceptReader(Ref ref) => null;
@@ -119,6 +165,20 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
     isConfirmedAvailable: false,
   );
   static Future<void> _defaultAvailabilityRefreshReader(Ref ref) async {}
+  static ConfirmPickupRemote? _defaultConfirmPickupReader(Ref ref) => null;
+  static ReportAutomaticArrivalRemote? _defaultReportArrivalReader(Ref ref) =>
+      null;
+  static ConfirmDeliveryRemote? _defaultConfirmDeliveryReader(Ref ref) => null;
+  static CancelDeliveryRemote? _defaultCancelDeliveryReader(Ref ref) => null;
+  static ReportDeliveryIssueRemote? _defaultReportIssueReader(Ref ref) => null;
+  static GetCustomerContact? _defaultGetCustomerContactReader(Ref ref) => null;
+  static GetActiveBatch? _defaultGetActiveBatchReader(Ref ref) => null;
+  static ReplayPendingDeliveryCommands? _defaultReplayPendingReader(Ref ref) =>
+      null;
+  static void _defaultClearCustomerContactReader(
+    Ref ref, {
+    String? deliveryId,
+  }) {}
 
   int _generation = 0;
   int _buildEpoch = 0;
@@ -140,6 +200,17 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
   CompleteDeliveryAndReleaseBusy? get _completeDelivery =>
       _completeDeliveryReader(ref);
   DeliveryOfferRepository? get _offerRepository => _offerRepositoryReader(ref);
+  ConfirmPickupRemote? get _confirmPickupRemote => _confirmPickupReader(ref);
+  ReportAutomaticArrivalRemote? get _reportArrivalRemote =>
+      _reportArrivalReader(ref);
+  ConfirmDeliveryRemote? get _confirmDeliveryRemote =>
+      _confirmDeliveryReader(ref);
+  CancelDeliveryRemote? get _cancelDeliveryRemote => _cancelDeliveryReader(ref);
+  ReportDeliveryIssueRemote? get _reportIssueRemote => _reportIssueReader(ref);
+  GetCustomerContact? get _getCustomerContact => _getCustomerContactReader(ref);
+  GetActiveBatch? get _getActiveBatch => _getActiveBatchReader(ref);
+  ReplayPendingDeliveryCommands? get _replayPending =>
+      _replayPendingReader(ref);
 
   @override
   DeliveryControllerState build() {
@@ -163,6 +234,13 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
     _arrivalSubscription = null;
     _arrivalInFlight = false;
     _commandInFlight = false;
+    // PII hygiene: memory-only customer contact must not outlive the
+    // controller lifecycle (logout / provider teardown).
+    try {
+      _clearCustomerContactReader(ref);
+    } catch (_) {
+      // Disposal must never throw — registry may already be torn down.
+    }
   }
 
   bool _isCurrent(int generation) => generation == _generation;
@@ -284,6 +362,46 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
       isRestored: assignment != null,
     );
     await _subscribeWatch(driverId, generation);
+
+    // Soft remote refresh — read-side failures must not fail initialize.
+    if (assignment != null) {
+      await _refreshCustomerContactSoft(
+        driverId: driverId,
+        generation: generation,
+      );
+      await _refreshActiveBatchSoft(generation);
+    }
+  }
+
+  /// Best-effort contact refresh; only mutates [DeliveryControllerState.customerContact].
+  Future<void> _refreshCustomerContactSoft({
+    required String driverId,
+    required int generation,
+  }) async {
+    final getContact = _getCustomerContact;
+    if (getContact == null) return;
+    final result = await getContact(driverId: driverId);
+    if (!_isCurrent(generation) || !ref.mounted) return;
+    if (result.isFailure) {
+      if (result.failureOrNull is DeliveryContactNotAvailable) {
+        state = state.copyWith(clearCustomerContact: true);
+      }
+      return;
+    }
+    state = state.copyWith(customerContact: result.valueOrNull);
+  }
+
+  /// Best-effort batch refresh; only mutates [DeliveryControllerState.activeBatch].
+  Future<void> _refreshActiveBatchSoft(int generation) async {
+    final getBatch = _getActiveBatch;
+    if (getBatch == null) return;
+    final result = await getBatch();
+    if (!_isCurrent(generation) || !ref.mounted) return;
+    if (result.isFailure) return;
+    final batch = result.valueOrNull;
+    state = batch == null
+        ? state.copyWith(clearActiveBatch: true)
+        : state.copyWith(activeBatch: batch);
   }
 
   Future<void> _subscribeWatch(String driverId, int generation) async {
@@ -313,6 +431,8 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
               activeAssignment: state.activeAssignment,
               lastAcceptedAssignment: state.lastAcceptedAssignment,
               boundDriverId: state.boundDriverId ?? driverId,
+              customerContact: state.customerContact,
+              activeBatch: state.activeBatch,
             );
           },
           onError: (_) {
@@ -325,6 +445,8 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
               lastAcceptedAssignment: state.lastAcceptedAssignment,
               isInitialized: state.isInitialized,
               boundDriverId: state.boundDriverId,
+              customerContact: state.customerContact,
+              activeBatch: state.activeBatch,
             );
           },
         );
@@ -356,6 +478,8 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
         activeAssignment: state.activeAssignment,
         lastAcceptedAssignment: state.lastAcceptedAssignment,
         boundDriverId: driverId,
+        customerContact: state.customerContact,
+        activeBatch: state.activeBatch,
       );
       return;
     }
@@ -370,6 +494,8 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
       activeAssignment: state.activeAssignment,
       lastAcceptedAssignment: state.lastAcceptedAssignment,
       boundDriverId: driverId,
+      customerContact: state.customerContact,
+      activeBatch: state.activeBatch,
     );
 
     try {
@@ -383,6 +509,8 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
           activeAssignment: state.activeAssignment,
           lastAcceptedAssignment: state.lastAcceptedAssignment,
           boundDriverId: driverId,
+          customerContact: state.customerContact,
+          activeBatch: state.activeBatch,
         );
         return;
       }
@@ -393,6 +521,8 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
         activeAssignment: state.activeAssignment,
         lastAcceptedAssignment: state.lastAcceptedAssignment,
         boundDriverId: driverId,
+        customerContact: state.customerContact,
+        activeBatch: state.activeBatch,
       );
     } finally {
       if (_isCurrent(generation)) {
@@ -425,6 +555,8 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
         activeAssignment: state.activeAssignment,
         lastAcceptedAssignment: state.lastAcceptedAssignment,
         boundDriverId: driverId,
+        customerContact: state.customerContact,
+        activeBatch: state.activeBatch,
       );
       return;
     }
@@ -439,6 +571,8 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
       activeAssignment: state.activeAssignment,
       lastAcceptedAssignment: state.lastAcceptedAssignment,
       boundDriverId: driverId,
+      customerContact: state.customerContact,
+      activeBatch: state.activeBatch,
     );
 
     try {
@@ -452,6 +586,8 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
           activeAssignment: state.activeAssignment,
           lastAcceptedAssignment: state.lastAcceptedAssignment,
           boundDriverId: driverId,
+          customerContact: state.customerContact,
+          activeBatch: state.activeBatch,
         );
         return;
       }
@@ -461,6 +597,8 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
         activeAssignment: result.valueOrNull,
         lastAcceptedAssignment: state.lastAcceptedAssignment,
         boundDriverId: driverId,
+        customerContact: state.customerContact,
+        activeBatch: state.activeBatch,
       );
     } finally {
       if (_isCurrent(generation)) {
@@ -514,6 +652,8 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
       activeAssignment: state.activeAssignment,
       lastAcceptedAssignment: state.lastAcceptedAssignment,
       boundDriverId: driverId,
+      customerContact: state.customerContact,
+      activeBatch: state.activeBatch,
     );
 
     try {
@@ -551,6 +691,8 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
           lastAcceptedAssignment:
               preservedAssignment ?? state.lastAcceptedAssignment,
           boundDriverId: driverId,
+          customerContact: state.customerContact,
+          activeBatch: state.activeBatch,
         );
         if (preservedAssignment != null) {
           await _availabilityRefreshReader(ref);
@@ -579,6 +721,8 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
             activeAssignment: assignment,
             lastAcceptedAssignment: assignment,
             boundDriverId: driverId,
+            customerContact: state.customerContact,
+            activeBatch: state.activeBatch,
           );
           return;
         }
@@ -590,6 +734,8 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
         activeAssignment: assignment,
         lastAcceptedAssignment: assignment,
         boundDriverId: driverId,
+        customerContact: state.customerContact,
+        activeBatch: state.activeBatch,
       );
       await _availabilityRefreshReader(ref);
     } finally {
@@ -643,6 +789,8 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
       activeAssignment: state.activeAssignment,
       lastAcceptedAssignment: state.lastAcceptedAssignment,
       boundDriverId: driverId,
+      customerContact: state.customerContact,
+      activeBatch: state.activeBatch,
     );
 
     try {
@@ -670,6 +818,8 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
           activeAssignment: state.activeAssignment,
           lastAcceptedAssignment: state.lastAcceptedAssignment,
           boundDriverId: driverId,
+          customerContact: state.customerContact,
+          activeBatch: state.activeBatch,
         );
         return;
       }
@@ -680,6 +830,8 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
         activeAssignment: state.activeAssignment,
         lastAcceptedAssignment: state.lastAcceptedAssignment,
         boundDriverId: driverId,
+        customerContact: state.customerContact,
+        activeBatch: state.activeBatch,
       );
     } finally {
       if (_isCurrent(generation)) {
@@ -701,6 +853,8 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
       activeAssignment: state.activeAssignment,
       lastAcceptedAssignment: state.lastAcceptedAssignment,
       boundDriverId: state.boundDriverId,
+      customerContact: state.customerContact,
+      activeBatch: state.activeBatch,
     );
   }
 
@@ -722,12 +876,17 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
         activeAssignment: state.activeAssignment,
         lastAcceptedAssignment: state.lastAcceptedAssignment,
         boundDriverId: state.boundDriverId,
+        customerContact: state.customerContact,
+        activeBatch: state.activeBatch,
       );
       return;
     }
 
     final advance = _advanceWorkflow;
-    if (advance == null) {
+    final hasRemoteConfirmPickup =
+        command == DriverWorkflowCommand.confirmPickup &&
+        _confirmPickupRemote != null;
+    if (advance == null && !hasRemoteConfirmPickup) {
       state = DeliveryControllerState.failure(
         failure: const DeliveryUnknownFailure(
           'Delivery workflow service is unavailable.',
@@ -735,6 +894,8 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
         activeAssignment: state.activeAssignment,
         lastAcceptedAssignment: state.lastAcceptedAssignment,
         boundDriverId: driverId,
+        customerContact: state.customerContact,
+        activeBatch: state.activeBatch,
       );
       return;
     }
@@ -748,10 +909,81 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
       activeAssignment: state.activeAssignment,
       lastAcceptedAssignment: state.lastAcceptedAssignment,
       boundDriverId: driverId,
+      customerContact: state.customerContact,
+      activeBatch: state.activeBatch,
     );
 
     try {
       final assignmentId = state.activeAssignment!.assignmentId;
+      final offline =
+          simulateOffline ??
+          !_acceptPreconditionsReader(ref).connectivityOnline;
+
+      // Remote mode (STEP 5D-1): confirmPickup goes to Backend first. The
+      // local confirmPickup + startTripCustomer sequence is owned by the use
+      // case — never run it here as well.
+      final confirmPickupRemote = command == DriverWorkflowCommand.confirmPickup
+          ? _confirmPickupRemote
+          : null;
+      if (confirmPickupRemote != null) {
+        final result = await confirmPickupRemote(
+          driverId: driverId,
+          commandId: _commandId(
+            driverId: driverId,
+            targetId: assignmentId,
+            action: 'confirmPickup',
+          ),
+          connectivityOnline: !offline,
+        );
+        if (!_isCurrent(generation)) return;
+        if (result.isFailure) {
+          final failure =
+              result.failureOrNull ?? const DeliveryUnknownFailure();
+          final retryable =
+              failure is DeliveryNetworkUnavailable ||
+              failure is DeliveryBackendUnavailable;
+          // Retryable Backend failures keep the assignment pending-sync so
+          // the driver can replay with the same idempotency key.
+          final assignment = retryable
+              ? state.activeAssignment?.copyWith(pendingSync: true)
+              : state.activeAssignment;
+          state = DeliveryControllerState.failure(
+            failure: failure,
+            activeAssignment: assignment,
+            lastAcceptedAssignment: state.lastAcceptedAssignment,
+            boundDriverId: driverId,
+            customerContact: state.customerContact,
+            activeBatch: state.activeBatch,
+          );
+          return;
+        }
+        final assignment = result.valueOrNull;
+        state = DeliveryControllerState.ready(
+          offers: const [],
+          activeAssignment: assignment,
+          lastAcceptedAssignment: assignment ?? state.lastAcceptedAssignment,
+          boundDriverId: driverId,
+          customerContact: state.customerContact,
+          activeBatch: state.activeBatch,
+        );
+        await _refreshCustomerContactSoft(
+          driverId: driverId,
+          generation: generation,
+        );
+        if (!_isCurrent(generation)) return;
+        if (assignment != null) {
+          unawaited(
+            _watchCustomerArrivalAndAdvance(
+              driverId: driverId,
+              assignment: assignment,
+              generation: generation,
+              simulateOffline: offline,
+            ),
+          );
+        }
+        return;
+      }
+
       final commands = switch (command) {
         DriverWorkflowCommand.startTripPickup => const [
           DriverWorkflowCommand.startTripPickup,
@@ -770,9 +1002,7 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
         assignmentId: assignmentId,
         commands: commands,
         commandGroup: command.name,
-        simulateOffline:
-            simulateOffline ??
-            !_acceptPreconditionsReader(ref).connectivityOnline,
+        simulateOffline: offline,
       );
       if (!_isCurrent(generation)) return;
       if (result.isFailure) {
@@ -781,6 +1011,8 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
           activeAssignment: state.activeAssignment,
           lastAcceptedAssignment: state.lastAcceptedAssignment,
           boundDriverId: driverId,
+          customerContact: state.customerContact,
+          activeBatch: state.activeBatch,
         );
         return;
       }
@@ -790,6 +1022,8 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
         activeAssignment: assignment,
         lastAcceptedAssignment: assignment ?? state.lastAcceptedAssignment,
         boundDriverId: driverId,
+        customerContact: state.customerContact,
+        activeBatch: state.activeBatch,
       );
       if (command == DriverWorkflowCommand.confirmPickup &&
           assignment != null) {
@@ -798,9 +1032,7 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
             driverId: driverId,
             assignment: assignment,
             generation: generation,
-            simulateOffline:
-                simulateOffline ??
-                !_acceptPreconditionsReader(ref).connectivityOnline,
+            simulateOffline: offline,
           ),
         );
       }
@@ -822,12 +1054,72 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
     await _cancelArrivalWatch();
 
     final order = assignment.order;
-    Future<void> applyArrival() async {
+    Future<void> applyArrival(LocationFix? fix) async {
       if (!_isCurrent(generation) || _arrivalInFlight) {
         return;
       }
       _arrivalInFlight = true;
       try {
+        final reportArrival = _reportArrivalRemote;
+        if (reportArrival != null) {
+          // Remote mode: Backend must acknowledge the automatic arrival
+          // before any local stage advances (ADR-029 / STEP 5D-1).
+          // Fake paths without coordinates synthesize zeroed evidence.
+          final evidence = ArrivalEvidence(
+            clientEventId: 'arrival:${assignment.assignmentId}',
+            capturedAt: (fix?.recordedAt ?? DateTime.now()).toUtc(),
+            latitude: fix?.point.latitude ?? 0,
+            longitude: fix?.point.longitude ?? 0,
+            accuracyMeters: fix?.accuracyMeters ?? 0,
+            policyVersion: 'geofence-v1',
+          );
+          final result = await reportArrival(
+            driverId: driverId,
+            commandId: _commandId(
+              driverId: driverId,
+              targetId: assignment.assignmentId,
+              action: 'reportArrival',
+            ),
+            evidence: evidence,
+            connectivityOnline: !simulateOffline,
+          );
+          if (!_isCurrent(generation)) return;
+          if (result.isFailure) {
+            final failure =
+                result.failureOrNull ?? const DeliveryUnknownFailure();
+            final retryable =
+                failure is DeliveryNetworkUnavailable ||
+                failure is DeliveryBackendUnavailable;
+            // Stay locked on navToCustomer/pendingSync until Backend ack.
+            final pending = retryable
+                ? state.activeAssignment?.copyWith(pendingSync: true)
+                : state.activeAssignment;
+            state = DeliveryControllerState.failure(
+              failure: failure,
+              activeAssignment: pending,
+              lastAcceptedAssignment: state.lastAcceptedAssignment,
+              boundDriverId: driverId,
+              customerContact: state.customerContact,
+              activeBatch: state.activeBatch,
+            );
+            return;
+          }
+          final next = result.valueOrNull;
+          state = DeliveryControllerState.ready(
+            offers: const [],
+            activeAssignment: next,
+            lastAcceptedAssignment: next ?? state.lastAcceptedAssignment,
+            boundDriverId: driverId,
+            customerContact: state.customerContact,
+            activeBatch: state.activeBatch,
+          );
+          await _refreshCustomerContactSoft(
+            driverId: driverId,
+            generation: generation,
+          );
+          return;
+        }
+
         final result = await _runWorkflowSequence(
           driverId: driverId,
           assignmentId: assignment.assignmentId,
@@ -845,6 +1137,8 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
             activeAssignment: state.activeAssignment,
             lastAcceptedAssignment: state.lastAcceptedAssignment,
             boundDriverId: driverId,
+            customerContact: state.customerContact,
+            activeBatch: state.activeBatch,
           );
           return;
         }
@@ -854,6 +1148,8 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
           activeAssignment: next,
           lastAcceptedAssignment: next ?? state.lastAcceptedAssignment,
           boundDriverId: driverId,
+          customerContact: state.customerContact,
+          activeBatch: state.activeBatch,
         );
       } finally {
         _arrivalInFlight = false;
@@ -861,7 +1157,7 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
     }
 
     if (!order.hasDropoffCoordinates) {
-      await applyArrival();
+      await applyArrival(null);
       return;
     }
 
@@ -894,7 +1190,7 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
             final evaluation = policy.evaluate(fix: fix, target: target);
             if (evaluation != GeofenceEvaluation.arrived) return;
             await _cancelArrivalWatch();
-            await applyArrival();
+            await applyArrival(fix);
             if (!done.isCompleted) done.complete();
           },
           onError: (Object _, StackTrace _) async {
@@ -946,15 +1242,15 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
         : DeliverySuccess(assignment);
   }
 
-  /// Clears the STEP 3 local pending-sync simulation without replaying any
-  /// completed command.
+  /// Replays pending Backend lifecycle commands (remote mode) or clears the
+  /// STEP 3 local pending-sync simulation (Fake mode).
   Future<void> retryPendingSync() async {
     if (_commandInFlight || state.isLoading) return;
     final assignment = state.activeAssignment;
+    final replay = _replayPending;
     final advance = _advanceWorkflow;
-    if (assignment == null || advance == null || !assignment.pendingSync) {
-      return;
-    }
+    if (assignment == null || !assignment.pendingSync) return;
+    if (replay == null && advance == null) return;
 
     final generation = _generation;
     _commandInFlight = true;
@@ -964,11 +1260,18 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
       activeAssignment: assignment,
       lastAcceptedAssignment: state.lastAcceptedAssignment,
       boundDriverId: assignment.driverId,
+      customerContact: state.customerContact,
+      activeBatch: state.activeBatch,
     );
     try {
-      final result = await advance.clearPendingSync(
-        driverId: assignment.driverId,
-      );
+      final result = replay != null
+          ? await replay(
+              driverId: assignment.driverId,
+              connectivityOnline: _acceptPreconditionsReader(
+                ref,
+              ).connectivityOnline,
+            )
+          : await advance!.clearPendingSync(driverId: assignment.driverId);
       if (!_isCurrent(generation)) return;
       if (result.isFailure) {
         state = DeliveryControllerState.failure(
@@ -976,6 +1279,8 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
           activeAssignment: assignment,
           lastAcceptedAssignment: state.lastAcceptedAssignment,
           boundDriverId: assignment.driverId,
+          customerContact: state.customerContact,
+          activeBatch: state.activeBatch,
         );
         return;
       }
@@ -985,7 +1290,15 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
         activeAssignment: synced,
         lastAcceptedAssignment: synced ?? state.lastAcceptedAssignment,
         boundDriverId: assignment.driverId,
+        customerContact: state.customerContact,
+        activeBatch: state.activeBatch,
       );
+      if (replay != null) {
+        await _refreshCustomerContactSoft(
+          driverId: assignment.driverId,
+          generation: generation,
+        );
+      }
     } finally {
       if (_isCurrent(generation)) _commandInFlight = false;
     }
@@ -1014,8 +1327,156 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
         activeAssignment: assignment,
         lastAcceptedAssignment: state.lastAcceptedAssignment,
         boundDriverId: assignment.driverId,
+        customerContact: state.customerContact,
+        activeBatch: state.activeBatch,
       );
     }
+  }
+
+  /// Cancels the active delivery via Backend (remote mode) and clears the
+  /// assignment; Fake mode falls back to the local cancel-command record.
+  Future<void> cancelActiveDelivery({String? reasonCode}) async {
+    if (_commandInFlight || state.isLoading) return;
+    final assignment = state.activeAssignment;
+    if (assignment == null) return;
+
+    final cancelRemote = _cancelDeliveryRemote;
+    if (cancelRemote == null) {
+      // Fake Alpha path: record-only, no lifecycle change.
+      await recordCancelCommand();
+      return;
+    }
+
+    final driverId = state.boundDriverId ?? assignment.driverId;
+    final generation = _generation;
+    _commandInFlight = true;
+    state = DeliveryControllerState.processing(
+      action: DeliveryProcessingAction.advancing,
+      offers: const [],
+      activeAssignment: assignment,
+      lastAcceptedAssignment: state.lastAcceptedAssignment,
+      boundDriverId: driverId,
+      customerContact: state.customerContact,
+      activeBatch: state.activeBatch,
+    );
+    try {
+      final result = await cancelRemote(
+        driverId: driverId,
+        commandId: _commandId(
+          driverId: driverId,
+          targetId: assignment.assignmentId,
+          action: 'cancel',
+        ),
+        reasonCode: reasonCode,
+      );
+      if (!_isCurrent(generation)) return;
+      if (result.isFailure) {
+        state = DeliveryControllerState.failure(
+          failure: result.failureOrNull ?? const DeliveryUnknownFailure(),
+          activeAssignment: assignment,
+          lastAcceptedAssignment: state.lastAcceptedAssignment,
+          boundDriverId: driverId,
+          customerContact: state.customerContact,
+          activeBatch: state.activeBatch,
+        );
+        return;
+      }
+      await _cancelArrivalWatch();
+      _clearCustomerContactReader(ref, deliveryId: assignment.assignmentId);
+      state = DeliveryControllerState.ready(
+        offers: const [],
+        activeAssignment: null,
+        lastAcceptedAssignment: state.lastAcceptedAssignment,
+        boundDriverId: driverId,
+        activeBatch: state.activeBatch,
+      );
+      await _availabilityRefreshReader(ref);
+    } finally {
+      if (_isCurrent(generation)) _commandInFlight = false;
+    }
+  }
+
+  /// Reports a delivery issue via Backend (remote mode); Fake mode keeps the
+  /// local reportIssue workflow transition.
+  Future<void> reportIssueRemote({required String code, String? notes}) async {
+    final reportIssue = _reportIssueRemote;
+    if (reportIssue == null) {
+      await advanceWorkflow(DriverWorkflowCommand.reportIssue);
+      return;
+    }
+
+    if (_commandInFlight || state.isLoading) return;
+    final assignment = state.activeAssignment;
+    if (assignment == null) return;
+
+    final driverId = state.boundDriverId ?? assignment.driverId;
+    final generation = _generation;
+    _commandInFlight = true;
+    state = DeliveryControllerState.processing(
+      action: DeliveryProcessingAction.advancing,
+      offers: const [],
+      activeAssignment: assignment,
+      lastAcceptedAssignment: state.lastAcceptedAssignment,
+      boundDriverId: driverId,
+      customerContact: state.customerContact,
+      activeBatch: state.activeBatch,
+    );
+    try {
+      final result = await reportIssue(
+        driverId: driverId,
+        commandId: _commandId(
+          driverId: driverId,
+          targetId: assignment.assignmentId,
+          action: 'reportIssue',
+        ),
+        code: code,
+        notes: notes,
+      );
+      if (!_isCurrent(generation)) return;
+      if (result.isFailure) {
+        state = DeliveryControllerState.failure(
+          failure: result.failureOrNull ?? const DeliveryUnknownFailure(),
+          activeAssignment: assignment,
+          lastAcceptedAssignment: state.lastAcceptedAssignment,
+          boundDriverId: driverId,
+          customerContact: state.customerContact,
+          activeBatch: state.activeBatch,
+        );
+        return;
+      }
+      final next = result.valueOrNull;
+      state = DeliveryControllerState.ready(
+        offers: const [],
+        activeAssignment: next,
+        lastAcceptedAssignment: next ?? state.lastAcceptedAssignment,
+        boundDriverId: driverId,
+        customerContact: state.customerContact,
+        activeBatch: state.activeBatch,
+      );
+    } finally {
+      if (_isCurrent(generation)) _commandInFlight = false;
+    }
+  }
+
+  /// Refreshes the memory-only current-customer contact (remote mode only).
+  Future<void> refreshCustomerContact() async {
+    final driverId = state.boundDriverId ?? _driverIdReader(ref)?.trim();
+    if (driverId == null || driverId.isEmpty) return;
+    await _refreshCustomerContactSoft(
+      driverId: driverId,
+      generation: _generation,
+    );
+  }
+
+  /// Refreshes the active batch summary (remote mode only).
+  Future<void> refreshActiveBatch() async {
+    await _refreshActiveBatchSoft(_generation);
+  }
+
+  /// Clears the memory-only customer contact (repository cache + state).
+  void clearCustomerContactMemory({String? deliveryId}) {
+    _clearCustomerContactReader(ref, deliveryId: deliveryId);
+    state = state.copyWith(clearCustomerContact: true);
   }
 
   /// Verifies Fake/Backend delivery code then moves to summary.
@@ -1027,8 +1488,16 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
         state.boundDriverId ?? state.activeAssignment!.driverId.trim();
     if (driverId.isEmpty) return;
 
+    // Remote mode: Backend confirmDelivery has no verification code in the
+    // contracts — the code argument is ignored and the Fake trial gate is
+    // bypassed. Fake mode keeps the existing VerifyDeliveryCode path.
+    final confirmDeliveryRemote =
+        state.activeAssignment!.workflowStage == DriverWorkflowStage.verifying
+        ? _confirmDeliveryRemote
+        : null;
+
     final verify = _verifyCode;
-    if (verify == null) {
+    if (verify == null && confirmDeliveryRemote == null) {
       state = DeliveryControllerState.failure(
         failure: const DeliveryUnknownFailure(
           'Delivery verification service is unavailable.',
@@ -1036,6 +1505,8 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
         activeAssignment: state.activeAssignment,
         lastAcceptedAssignment: state.lastAcceptedAssignment,
         boundDriverId: driverId,
+        customerContact: state.customerContact,
+        activeBatch: state.activeBatch,
       );
       return;
     }
@@ -1048,38 +1519,68 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
       activeAssignment: state.activeAssignment,
       lastAcceptedAssignment: state.lastAcceptedAssignment,
       boundDriverId: driverId,
+      customerContact: state.customerContact,
+      activeBatch: state.activeBatch,
     );
 
     try {
       final assignmentId = state.activeAssignment!.assignmentId;
-      final result = await verify(
-        driverId: driverId,
-        code: code,
-        commandId: _commandId(
-          driverId: driverId,
-          targetId: assignmentId,
-          action: 'confirm-delivery',
-        ),
-        simulateOffline:
-            simulateOffline ??
-            !_acceptPreconditionsReader(ref).connectivityOnline,
-      );
+      final offline =
+          simulateOffline ??
+          !_acceptPreconditionsReader(ref).connectivityOnline;
+      final result = confirmDeliveryRemote != null
+          ? await confirmDeliveryRemote(
+              driverId: driverId,
+              commandId: _commandId(
+                driverId: driverId,
+                targetId: assignmentId,
+                action: 'confirm-delivery',
+              ),
+              connectivityOnline: !offline,
+            )
+          : await verify!(
+              driverId: driverId,
+              code: code,
+              commandId: _commandId(
+                driverId: driverId,
+                targetId: assignmentId,
+                action: 'confirm-delivery',
+              ),
+              simulateOffline: offline,
+            );
       if (!_isCurrent(generation)) return;
       if (result.isFailure) {
+        final failure = result.failureOrNull ?? const DeliveryUnknownFailure();
+        final retryable =
+            confirmDeliveryRemote != null &&
+            (failure is DeliveryNetworkUnavailable ||
+                failure is DeliveryBackendUnavailable);
         state = DeliveryControllerState.failure(
-          failure: result.failureOrNull ?? const DeliveryUnknownFailure(),
-          activeAssignment: state.activeAssignment,
+          failure: failure,
+          activeAssignment: retryable
+              ? state.activeAssignment?.copyWith(pendingSync: true)
+              : state.activeAssignment,
           lastAcceptedAssignment: state.lastAcceptedAssignment,
           boundDriverId: driverId,
+          customerContact: state.customerContact,
+          activeBatch: state.activeBatch,
         );
         return;
       }
       final assignment = result.valueOrNull;
+      if (confirmDeliveryRemote != null) {
+        // Backend acknowledged delivery — contact must leave memory now.
+        _clearCustomerContactReader(ref, deliveryId: assignmentId);
+      }
       state = DeliveryControllerState.ready(
         offers: const [],
         activeAssignment: assignment,
         lastAcceptedAssignment: assignment ?? state.lastAcceptedAssignment,
         boundDriverId: driverId,
+        customerContact: confirmDeliveryRemote != null
+            ? null
+            : state.customerContact,
+        activeBatch: state.activeBatch,
       );
     } finally {
       if (_isCurrent(generation)) {
@@ -1123,6 +1624,8 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
         activeAssignment: state.activeAssignment,
         lastAcceptedAssignment: state.lastAcceptedAssignment,
         boundDriverId: driverId,
+        customerContact: state.customerContact,
+        activeBatch: state.activeBatch,
       );
       return;
     }
@@ -1135,6 +1638,8 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
       activeAssignment: state.activeAssignment,
       lastAcceptedAssignment: state.lastAcceptedAssignment,
       boundDriverId: driverId,
+      customerContact: state.customerContact,
+      activeBatch: state.activeBatch,
     );
 
     try {
@@ -1156,14 +1661,19 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
           activeAssignment: synced,
           lastAcceptedAssignment: state.lastAcceptedAssignment,
           boundDriverId: driverId,
+          customerContact: state.customerContact,
+          activeBatch: state.activeBatch,
         );
         return;
       }
+      // Delivery released — memory-only contact must not survive completion.
+      _clearCustomerContactReader(ref);
       state = DeliveryControllerState.ready(
         offers: const [],
         activeAssignment: null,
         lastAcceptedAssignment: state.lastAcceptedAssignment,
         boundDriverId: driverId,
+        activeBatch: state.activeBatch,
       );
       await _availabilityRefreshReader(ref);
     } finally {
