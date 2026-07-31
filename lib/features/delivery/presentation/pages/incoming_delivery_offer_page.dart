@@ -17,6 +17,9 @@ import '../widgets/delivery_offer_error_state.dart';
 import '../widgets/delivery_offer_loading_state.dart';
 import '../../../batch/batch_feature.dart';
 import '../../../batch/widgets/batch_offer_entry_card.dart';
+import '../../../realtime/domain/entities/realtime_connection_status.dart';
+import '../../../realtime/presentation/providers/realtime_providers.dart';
+import '../../../realtime/presentation/widgets/realtime_connection_banner.dart';
 
 /// Full-screen delivery offer / assignment surface (ADR-026).
 ///
@@ -43,6 +46,7 @@ class IncomingDeliveryOfferPage extends ConsumerWidget {
       }
     });
     final state = ref.watch(deliveryControllerProvider);
+    final realtime = ref.watch(realtimeControllerProvider);
     final controller = ref.read(deliveryControllerProvider.notifier);
 
     return Scaffold(
@@ -57,7 +61,18 @@ class IncomingDeliveryOfferPage extends ConsumerWidget {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(AppConstants.contentPadding),
-          child: _buildBody(context, ref, l10n, state, controller),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              RealtimeConnectionBanner(
+                status: realtime.status,
+                message: _realtimeOffersMessage(l10n, realtime.status),
+              ),
+              Expanded(
+                child: _buildBody(context, ref, l10n, state, controller),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -219,4 +234,18 @@ class _InlineFailureBanner extends StatelessWidget {
       ),
     );
   }
+}
+
+String _realtimeOffersMessage(
+  AppLocalizations l10n,
+  RealtimeConnectionStatus status,
+) {
+  return switch (status) {
+    RealtimeConnectionStatus.reconnecting => l10n.realtimeReconnecting,
+    RealtimeConnectionStatus.degraded => l10n.realtimeDegraded,
+    RealtimeConnectionStatus.catchingUp => l10n.realtimeCatchingUp,
+    RealtimeConnectionStatus.connected => l10n.realtimeConnected,
+    RealtimeConnectionStatus.idle ||
+    RealtimeConnectionStatus.stopped => l10n.realtimeConnected,
+  };
 }
