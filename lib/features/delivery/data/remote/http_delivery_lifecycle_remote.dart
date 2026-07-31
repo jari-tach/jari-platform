@@ -19,13 +19,15 @@ final class HttpDeliveryLifecycleRemote {
   Future<DeliveryMutationResponseWire?> getActiveDelivery() async {
     final response = await _api.get<dynamic>(DriverApiPaths.deliveriesActive);
     if (response.statusCode == 204 || response.data == null) return null;
-    final data = Map<String, dynamic>.from(response.data as Map);
-    // Active may return full Delivery — normalize mutation-like fields.
-    return DeliveryMutationResponseWire(
-      deliveryId: data['deliveryId'] as String,
-      state: data['state'] as String,
-      aggregateVersion: data['aggregateVersion'] as int,
-      updatedAt: DateTime.parse(data['updatedAt'] as String),
+    final raw = response.data;
+    if (raw is! Map) {
+      throw const FormatException('active delivery is not an object');
+    }
+    // Active may return full Delivery — normalize mutation-like fields via
+    // the validating wire parser so malformed payloads surface as
+    // FormatException (contract violation), never a silent unknown failure.
+    return DeliveryMutationResponseWire.fromJson(
+      Map<String, dynamic>.from(raw),
     );
   }
 
