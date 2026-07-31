@@ -71,6 +71,47 @@ final class IncompleteOtpError extends AuthError {
   const IncompleteOtpError([super.message = 'OTP code is incomplete.']);
 }
 
+/// Network is unavailable (not GNSS / GPS).
+final class NetworkUnavailableAuthError extends AuthError {
+  const NetworkUnavailableAuthError([
+    super.message = 'Network is unavailable.',
+  ]);
+}
+
+/// Request timed out.
+final class RequestTimeoutAuthError extends AuthError {
+  const RequestTimeoutAuthError([super.message = 'Request timed out.']);
+}
+
+/// Backend is unavailable (5xx / INTERNAL_ERROR).
+final class ServerUnavailableAuthError extends AuthError {
+  const ServerUnavailableAuthError([
+    super.message = 'Authentication service is unavailable.',
+  ]);
+}
+
+/// Caller is forbidden.
+final class ForbiddenAuthError extends AuthError {
+  const ForbiddenAuthError([super.message = 'Access is forbidden.']);
+}
+
+/// Conflict / idempotency / assignment conflict family.
+final class ConflictAuthError extends AuthError {
+  const ConflictAuthError([super.message = 'Authentication conflict.']);
+}
+
+/// Rate limited.
+final class RateLimitedAuthError extends AuthError {
+  const RateLimitedAuthError([super.message = 'Too many requests.']);
+}
+
+/// Response violated the pinned API contract.
+final class ContractViolationAuthError extends AuthError {
+  const ContractViolationAuthError([
+    super.message = 'Authentication response was invalid.',
+  ]);
+}
+
 /// Anything else. Never expose the underlying technical detail to the user.
 final class UnexpectedAuthError extends AuthError {
   const UnexpectedAuthError([

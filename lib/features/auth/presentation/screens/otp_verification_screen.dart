@@ -114,10 +114,16 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
         title: l10n.secureStorageFailureTitle,
         message: l10n.secureStorageFailureMessage,
       ),
-      OtpRateLimitedError() => (
+      OtpRateLimitedError() || RateLimitedAuthError() => (
         title: l10n.rateLimitTitle,
         message: l10n.otpRateLimitedMessage,
       ),
+      NetworkUnavailableAuthError() ||
+      RequestTimeoutAuthError() ||
+      ServerUnavailableAuthError() ||
+      ContractViolationAuthError() ||
+      ForbiddenAuthError() ||
+      ConflictAuthError() ||
       UnexpectedAuthError() => (
         title: l10n.networkFailureTitle,
         message: l10n.networkFailureMessage,

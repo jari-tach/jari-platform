@@ -10,7 +10,11 @@ import '../../domain/entities/driver_session.dart';
 /// serialization and corruption handling. Does NOT add any new storage
 /// mechanism or encryption library.
 class AuthSessionStorage {
-  AuthSessionStorage({required this._storage, required this._logger});
+  AuthSessionStorage({
+    required SecureStorageService storage,
+    required LoggerService logger,
+  }) : _storage = storage,
+       _logger = logger;
 
   final SecureStorageService _storage;
   final LoggerService _logger;
