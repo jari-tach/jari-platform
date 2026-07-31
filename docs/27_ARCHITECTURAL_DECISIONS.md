@@ -2,7 +2,7 @@
 
 > **Version:** 1.1.0
 > **Status:** Active
-> **Last Updated:** 2026-07-30
+> **Last Updated:** 2026-07-31
 > **Author:** Senior Flutter Software Engineer
 > **Related:** [02_SYSTEM_ARCHITECTURE.md](./02_SYSTEM_ARCHITECTURE.md), [04_CLEAN_ARCHITECTURE.md](./04_CLEAN_ARCHITECTURE.md), [ADR-014](./adr/ADR_014_PLATFORM_CHANNEL_AND_DOMAIN_ALIGNMENT.md), [PHASE_2_5_DELIVERY_REQUEST_LIFECYCLE_ARCHITECTURE.md](./PHASE_2_5_DELIVERY_REQUEST_LIFECYCLE_ARCHITECTURE.md)
 
@@ -47,6 +47,7 @@ This document records **every significant architectural decision** made for the 
 | ADR-027 | Fake Offer Security | ✅ Accepted | 2026-07-26 |
 | ADR-028 | Delivery Assignment Persistence | ✅ Accepted | 2026-07-26 |
 | ADR-029 | Driver Location, Permissions, Maps & Geofence (STEP 4) | ✅ Accepted | 2026-07-30 |
+| ADR-030 | Backend Stack and Repository Strategy (STEP 5A) | ✅ Accepted | 2026-07-31 |
 
 **Program note (not a new ADR):** PHASE 2.6 expands from “Active Delivery Flow” to **Complete Driver UI & Interaction Layer** (shell + history/earnings/notifications/settings/support + active stages). Decision record: [`PHASE_2_6_COMPLETE_DRIVER_UI_PLAN.md`](./PHASE_2_6_COMPLETE_DRIVER_UI_PLAN.md). New ADRs only if a decision crosses layers or apps (e.g. stage persistence schema) — Increment 2 may add a stage-persistence ADR if Drift JSON extension warrants one.
 
