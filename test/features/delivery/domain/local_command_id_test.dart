@@ -94,7 +94,8 @@ class _CapturingAcceptAdapter implements HttpClientAdapter {
       jsonEncode({
         'offerId': _offerId,
         'deliveryId': '11111111-1111-4111-8111-111111111111',
-        'state': 'assigned',
+        // Backend accept commits to this canonical state (not "accepted").
+        'state': 'pickupAwaitingManualConfirmation',
         'aggregateVersion': 1,
       }),
       200,

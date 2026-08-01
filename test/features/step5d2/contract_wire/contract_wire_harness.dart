@@ -133,7 +133,8 @@ Map<String, dynamic> offersPageJson({List<Map<String, dynamic>>? items}) => {
 };
 
 Map<String, dynamic> offerActionResponseJson({
-  String state = 'accepted',
+  // Backend accept commits to pickupAwaitingManualConfirmation (contracts).
+  String state = 'pickupAwaitingManualConfirmation',
   int aggregateVersion = 4,
 }) => {
   'offerId': fixtureOfferId,

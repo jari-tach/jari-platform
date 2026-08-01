@@ -48,13 +48,13 @@ void main() {
         final h = ContractWireHarness();
         h.enqueue(200, {'nextCursor': null});
 
-        // The offers data source maps FormatException to a typed persistence
-        // failure — never an untyped/unknown pass-through of malformed data.
+        // FormatException from wire parsing maps to a typed contract
+        // violation — never an untyped/unknown pass-through of malformed data.
         await expectLater(
           HttpDeliveryRemoteDataSource(
             api: h.api,
           ).fetchOffers(driverId: fixtureDriverId),
-          throwsA(isA<DeliveryPersistenceFailure>()),
+          throwsA(isA<DeliveryContractViolation>()),
         );
       },
     );
@@ -193,7 +193,7 @@ void main() {
           idempotencyKey: 'idem-accept-4',
           revision: '3',
         ),
-        throwsA(isA<DeliveryPersistenceFailure>()),
+        throwsA(isA<DeliveryContractViolation>()),
       );
     });
   });

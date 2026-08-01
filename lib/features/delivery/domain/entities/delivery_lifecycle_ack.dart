@@ -1,3 +1,4 @@
+import 'delivery_status.dart';
 import 'driver_workflow_stage.dart';
 
 /// Canonical Backend delivery lifecycle states (contracts-v0.1.0).
@@ -16,6 +17,8 @@ abstract final class CanonicalDeliveryStates {
       'deliveryAwaitingManualConfirmation';
   static const deliveredConfirmedManually = 'deliveredConfirmedManually';
   static const cancelled = 'cancelled';
+  static const expired = 'expired';
+  static const rejected = 'rejected';
 
   /// States in which the Backend allows reading the current customer contact.
   static const contactAllowed = {
@@ -24,6 +27,40 @@ abstract final class CanonicalDeliveryStates {
     arrivedAutomaticallyByLocation,
     deliveryAwaitingManualConfirmation,
   };
+}
+
+/// Maps a canonical Backend delivery state to the local [DeliveryStatus]
+/// used by assignment persistence and Active Delivery UI.
+///
+/// Backend accept commits the delivery to
+/// [CanonicalDeliveryStates.pickupAwaitingManualConfirmation] (not the bare
+/// string `accepted`). The previous client path stored `action.state` verbatim
+/// and then failed in `_parseDeliveryStatus`, so the HTTP accept succeeded
+/// while local assignment persistence never ran.
+DeliveryStatus deliveryStatusForCanonicalState(String state) {
+  switch (state) {
+    case CanonicalDeliveryStates.offered:
+    case CanonicalDeliveryStates.accepted:
+    case CanonicalDeliveryStates.pickupAwaitingManualConfirmation:
+      return DeliveryStatus.accepted;
+    case CanonicalDeliveryStates.pickupConfirmedManually:
+    case CanonicalDeliveryStates.enRouteToCustomer:
+    case CanonicalDeliveryStates.arrivedAutomaticallyByLocation:
+    case CanonicalDeliveryStates.deliveryAwaitingManualConfirmation:
+      return DeliveryStatus.pickedUp;
+    case CanonicalDeliveryStates.deliveredConfirmedManually:
+      return DeliveryStatus.delivered;
+    case CanonicalDeliveryStates.cancelled:
+    case CanonicalDeliveryStates.expired:
+    case CanonicalDeliveryStates.rejected:
+      return DeliveryStatus.cancelled;
+    default:
+      // Local enum names already used by Fake / Drift snapshots.
+      for (final value in DeliveryStatus.values) {
+        if (value.name == state) return value;
+      }
+      throw FormatException('unknown delivery status: $state');
+  }
 }
 
 /// Maps the local [DriverWorkflowStage] to the canonical Backend state used
