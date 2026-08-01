@@ -3,10 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/localization/app_localizations.dart';
-import '../../../../core/providers/app_providers.dart';
 import '../../../../core/routes/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/saeq_semantic_colors.dart';
+import '../../../../shared/widgets/saeq_brand_mark.dart';
 import '../../../../shared/widgets/saeq_primary_button.dart';
 
 /// Figma `DRV-AUTH-002-Onboarding` — Continue / Skip → Login.
@@ -17,9 +17,6 @@ class OnboardingScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final colors = SaeqSemanticColors.of(context);
-    final isArabic = l10n.isArabic;
-    final themeMode = ref.watch(appThemeModeProvider);
-    final isDark = themeMode == ThemeMode.dark;
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -38,12 +35,18 @@ class OnboardingScreen extends ConsumerWidget {
                 ),
               ),
               const Spacer(flex: 2),
+              const SaeqBrandLockup(
+                markSize: 56,
+                showTagline: false,
+                alignment: CrossAxisAlignment.start,
+              ),
+              const SizedBox(height: AppTheme.spacingLG),
               Text(
                 key: const Key('onboardingTitle'),
                 l10n.onboardingTitle,
                 style: AppTextStyles.headlineLarge.copyWith(
                   color: colors.textPrimary,
-                  fontSize: AppTheme.fontSizeXXL,
+                  fontSize: AppTheme.fontSizeXL,
                   fontWeight: AppTheme.fontWeightBold,
                 ),
               ),
@@ -54,19 +57,6 @@ class OnboardingScreen extends ConsumerWidget {
                   color: colors.textSecondary,
                   fontSize: AppTheme.fontSizeSM,
                 ),
-              ),
-              const SizedBox(height: AppTheme.spacingLG),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(3, (i) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: CircleAvatar(
-                      radius: 4,
-                      backgroundColor: i == 0 ? colors.primary : colors.border,
-                    ),
-                  );
-                }),
               ),
               const Spacer(flex: 3),
               SaeqPrimaryButton(
@@ -83,47 +73,6 @@ class OnboardingScreen extends ConsumerWidget {
                   style: TextButton.styleFrom(foregroundColor: colors.primary),
                   child: Text(l10n.onboardingSkipAction),
                 ),
-              ),
-              const SizedBox(height: AppTheme.spacingSM),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextButton(
-                      key: const Key('onboardingLocaleToggle'),
-                      onPressed: () {
-                        ref
-                            .read(appLocaleProvider.notifier)
-                            .setLocale(
-                              isArabic
-                                  ? const Locale('en')
-                                  : const Locale('ar'),
-                            );
-                      },
-                      child: Text(
-                        isArabic
-                            ? l10n.firstLaunchSwitchToEnglish
-                            : l10n.firstLaunchSwitchToArabic,
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: TextButton(
-                      key: const Key('onboardingThemeToggle'),
-                      onPressed: () {
-                        ref
-                            .read(appThemeModeProvider.notifier)
-                            .setThemeMode(
-                              isDark ? ThemeMode.light : ThemeMode.dark,
-                            );
-                      },
-                      child: Text(
-                        isDark
-                            ? l10n.settingsThemeLight
-                            : l10n.settingsThemeDark,
-                      ),
-                    ),
-                  ),
-                ],
               ),
             ],
           ),

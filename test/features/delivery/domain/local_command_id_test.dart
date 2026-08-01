@@ -200,6 +200,42 @@ void main() {
       expect(a, isNot(b));
     });
 
+    test('changing scope changes the key for stable delivery targets', () {
+      final a = localCommandId(
+        driverId: _driverId,
+        targetId: _offerId,
+        action: 'confirmPickup',
+        scope: '3',
+      );
+      final b = localCommandId(
+        driverId: _driverId,
+        targetId: _offerId,
+        action: 'confirmPickup',
+        scope: '4',
+      );
+      final bare = localCommandId(
+        driverId: _driverId,
+        targetId: _offerId,
+        action: 'confirmPickup',
+      );
+      expect(a, isNot(b));
+      expect(a, isNot(bare));
+      expect(_contractPattern.hasMatch(a), isTrue);
+      expect(_contractPattern.hasMatch(b), isTrue);
+    });
+
+    test('same scope retries reuse the exact key', () {
+      String next() => localCommandId(
+        driverId: _driverId,
+        targetId: _offerId,
+        action: 'confirmPickup',
+        scope: '7',
+      );
+      final first = next();
+      expect(next(), first);
+      expect(next(), first);
+    });
+
     test('disallowed characters are escaped without collisions', () {
       final colon = localCommandId(
         driverId: 'drv-1',

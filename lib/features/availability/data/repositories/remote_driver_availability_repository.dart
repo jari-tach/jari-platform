@@ -61,11 +61,9 @@ final class RemoteDriverAvailabilityRepository
         return const AvailabilityFailureResult(AvailabilityUnauthenticated());
       }
 
-      if (_current?.status == AvailabilityStatus.unavailable &&
-          request.requestedStatus == AvailabilityStatus.available) {
-        // Suspended (mapped to unavailable) cannot become available locally.
-        return const AvailabilityFailureResult(DriverAccountSuspended());
-      }
+      // Backend wire `offline` maps to domain unavailable (Issue #32). Do not
+      // treat unavailable as suspended here — Backend rejects suspended drivers
+      // on PUT /availability (mapped to DriverAccountSuspended below).
 
       if (request.requestedStatus == AvailabilityStatus.busy) {
         return const AvailabilityFailureResult(ManualBusyTransitionDenied());

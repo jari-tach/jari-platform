@@ -99,12 +99,15 @@ Future<ProviderContainer> _pumpHome(
 }
 
 void main() {
-  testWidgets('Home shows summary and quick actions', (tester) async {
+  testWidgets('Home shows brand lockup and notifications action', (
+    tester,
+  ) async {
     await _pumpHome(tester);
-    expect(find.textContaining("Today's summary"), findsOneWidget);
-    expect(find.text('View deliveries'), findsOneWidget);
-    expect(find.text('View earnings'), findsOneWidget);
-    expect(find.text('Notifications'), findsWidgets);
+    expect(find.byKey(const Key('saeqBrandAppBarTitle')), findsOneWidget);
+    expect(find.byKey(HomeScreen.notificationsActionKey), findsOneWidget);
+    // Quick-action triad removed from Home (bottom nav covers those destinations).
+    expect(find.byKey(HomeScreen.quickActionDeliveriesKey), findsNothing);
+    expect(find.byKey(HomeScreen.quickActionEarningsKey), findsNothing);
   });
 
   testWidgets('Home shows offline banner when offline', (tester) async {

@@ -21,7 +21,6 @@ class NotificationsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final colors = SaeqSemanticColors.of(context);
     final state = ref.watch(notificationsControllerProvider);
     final controller = ref.read(notificationsControllerProvider.notifier);
 
@@ -30,19 +29,7 @@ class NotificationsScreen extends ConsumerWidget {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(AppConstants.contentPadding),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                l10n.fakeAlphaDataHint,
-                style: AppTextStyles.supporting.copyWith(
-                  color: colors.textSecondary,
-                ),
-              ),
-              const SizedBox(height: AppTheme.spacingSM),
-              Expanded(child: _body(context, l10n, state, controller)),
-            ],
-          ),
+          child: _body(context, l10n, state, controller),
         ),
       ),
     );

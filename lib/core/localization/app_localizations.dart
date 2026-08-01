@@ -54,11 +54,17 @@ class AppLocalizations {
   String _t(String english, String arabic) => isArabic ? arabic : english;
 
   // —— App shell / brand ——
-  /// Brand display name — Latin in English, Arabic short name in Arabic
-  /// (aligned with [AppConstants.appName] = `سائق`).
-  String get appName => _t('Saeq Driver', 'سائق');
+  /// Product wordmark from Figma Brand / فزعة Lockup (Cairo/Tajawal display).
+  String get appName => _t("Faz'a", 'فزعة');
+
+  /// Wordmark used in brand lockups (same as [appName]).
+  String get brandWordmark => appName;
+
+  /// Short chrome label (same product name).
+  String get brandShort => appName;
+
   String get appTagline => _t(
-    'Professional delivery for drivers',
+    'Professional delivery platform for drivers',
     'منصة التوصيل الاحترافية للسائقين',
   );
   String get pageNotFound => _t('Page not found', 'الصفحة غير موجودة');
@@ -98,8 +104,15 @@ class AppLocalizations {
   String get deliveryVerifyCodeHint => '1234';
   String get deliveryVerifySubmit => _t('Confirm code', 'تأكيد الرمز');
   String get deliveryVerifyHintMessage => _t(
-    'Enter the trial delivery code (Fake).',
-    'أدخل رمز التسليم التجريبي (وهمي).',
+    'Enter the delivery confirmation code.',
+    'أدخل رمز تأكيد التسليم.',
+  );
+  String get deliveryVerifyCodeFieldHint => _t('Code', 'الرمز');
+  String get activeDeliveryEmptyTitle =>
+      _t('No active delivery', 'لا يوجد توصيل نشط');
+  String get activeDeliveryEmptyMessage => _t(
+    'When you accept an offer, the trip details appear here.',
+    'عند قبول عرض، تظهر تفاصيل الرحلة هنا.',
   );
   String get deliveryDismissSummary =>
       _t('Finish and return home', 'إنهاء والعودة للرئيسية');
@@ -163,8 +176,14 @@ class AppLocalizations {
   String screenComingSoon(String title) =>
       _t('$title screen - Coming soon', 'شاشة $title — قريبًا');
   String get shellPlaceholderMessage => _t(
-    'This section will be ready in a later increment.',
-    'هذا القسم سيكون جاهزًا في زيادة لاحقة.',
+    'This section is not available yet.',
+    'هذا القسم غير متاح بعد.',
+  );
+  String get featureUnavailableTitle =>
+      _t('Coming soon', 'قريبًا');
+  String get featureUnavailableMessage => _t(
+    'This area will open when it is ready for drivers.',
+    'ستُفتح هذه المنطقة عند جاهزيتها للسائقين.',
   );
   String get loadingEllipsis => _t('...', '...');
   String get loading => _t('Loading', 'جارٍ التحميل');
@@ -239,11 +258,11 @@ class AppLocalizations {
   );
 
   // —— Splash / Onboarding / Welcome (Phase 2.6 Batch 2) ——
-  String get splashTitle => _t('Saeq Driver', 'سائق سايق');
-  String get splashSubtitle =>
-      _t('Professional delivery platform', 'منصة التوصيل الاحترافية');
+  String get splashTitle => brandWordmark;
+  String get splashSubtitle => appTagline;
   String get splashTapToContinue => _t('Tap to continue', 'اضغط للمتابعة');
-  String get onboardingTitle => _t('Welcome to Saeq', 'مرحباً بك في سايق');
+  String get onboardingTitle =>
+      _t("Welcome to Faz'a", 'مرحباً بك في فزعة');
   String get onboardingSubtitle => _t(
     'Track offers, earn with confidence, and manage deliveries easily.',
     'تابع الطلبات، اربح بثقة، وادِر توصيلاتك بسهولة.',
@@ -259,11 +278,8 @@ class AppLocalizations {
       _t('Simulate session expired', 'محاكاة انتهاء الجلسة');
 
   // —— Welcome / First Launch (Figma Final/Auth/First Launch) ——
-  String get firstLaunchTitle => _t('Saeq Driver', 'سائق سايق');
-  String get firstLaunchSubtitle => _t(
-    'Professional delivery platform for drivers',
-    'منصة التوصيل الاحترافية للسائقين',
-  );
+  String get firstLaunchTitle => brandWordmark;
+  String get firstLaunchSubtitle => appTagline;
   String get firstLaunchStartAction => _t('Start', 'ابدأ');
   String get firstLaunchSwitchToEnglish => _t('English', 'English');
   String get firstLaunchSwitchToArabic => _t('العربية', 'العربية');
@@ -863,7 +879,7 @@ class AppLocalizations {
   String get supportContactPhoneLabel => _t('Phone', 'الهاتف');
   String get supportContactEmailLabel => _t('Email', 'البريد');
   String get supportContactHelpUrlLabel => _t('Help center', 'مركز المساعدة');
-  String get supportAboutSectionTitle => _t('About SAEQ Driver', 'حول سائق');
+  String get supportAboutSectionTitle => _t("About Faz'a", 'حول فزعة');
   String get supportSafetyTipsAction => _t('Safety tips', 'نصائح السلامة');
   String get supportSafetyScreenTitle => _t('Safety tips', 'نصائح السلامة');
   String get supportSafetyIntro =>

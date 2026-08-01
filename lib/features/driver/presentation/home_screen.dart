@@ -8,10 +8,10 @@ import '../../../core/providers/home_ui_providers.dart';
 import '../../../core/routes/app_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/saeq_semantic_colors.dart';
+import '../../../shared/widgets/saeq_brand_mark.dart';
 import '../../../shared/widgets/saeq_icon_button.dart';
 import '../../../shared/widgets/saeq_info_card.dart';
 import '../../../shared/widgets/saeq_offline_banner.dart';
-import '../../../shared/widgets/saeq_secondary_button.dart';
 import '../../auth/presentation/providers/auth_providers.dart';
 import '../../availability/presentation/widgets/availability_connectivity_bridge.dart';
 import '../../availability/presentation/widgets/driver_availability_card.dart';
@@ -48,7 +48,7 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.navHome),
+        title: const SaeqBrandAppBarTitle(),
         actions: [
           SaeqIconButton(
             key: notificationsActionKey,
@@ -100,39 +100,12 @@ class HomeScreen extends ConsumerWidget {
                       const SizedBox(height: AppTheme.spacingMD),
                       const DeliveryOfferHomeBanner(),
                       const _HomeNoOfferHint(),
+                      // Metrics strip only when a summary source is wired
+                      // (hidden in production via fakeHomeSummaryProvider).
                       if (summary != null) ...[
                         const SizedBox(height: AppTheme.spacingMD),
                         _HomeSummaryStrip(summary: summary),
                       ],
-                      const SizedBox(height: AppTheme.spacingLG),
-                      Text(
-                        l10n.homeQuickActionsTitle,
-                        style: AppTextStyles.bodyMedium.copyWith(
-                          color: colors.textSecondary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: AppTheme.spacingSM),
-                      SaeqSecondaryButton(
-                        key: quickActionDeliveriesKey,
-                        label: l10n.homeQuickActionDeliveries,
-                        icon: Icons.local_shipping_outlined,
-                        onPressed: () => context.go(AppRoutes.deliveries),
-                      ),
-                      const SizedBox(height: AppTheme.spacingSM),
-                      SaeqSecondaryButton(
-                        key: quickActionEarningsKey,
-                        label: l10n.homeQuickActionEarnings,
-                        icon: Icons.payments_outlined,
-                        onPressed: () => context.go(AppRoutes.earnings),
-                      ),
-                      const SizedBox(height: AppTheme.spacingSM),
-                      SaeqSecondaryButton(
-                        key: quickActionNotificationsKey,
-                        label: l10n.homeQuickActionNotifications,
-                        icon: Icons.notifications_outlined,
-                        onPressed: () => context.go(AppRoutes.notifications),
-                      ),
                       const SizedBox(height: AppTheme.spacingLG),
                     ],
                   ),
