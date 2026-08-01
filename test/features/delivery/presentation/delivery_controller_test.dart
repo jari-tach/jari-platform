@@ -172,7 +172,7 @@ void main() {
 
       final state = container.read(deliveryControllerProvider);
       final persisted = assignment.copyWith(
-        completedCommandIds: {'local:drv-1:off-1:accept'},
+        completedCommandIds: {'local_drv-1_off-1_accept'},
       );
       expect(state.status, DeliveryViewStatus.ready);
       expect(state.activeOffer, isNull);
