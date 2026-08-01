@@ -18,6 +18,7 @@ import '../../domain/entities/driver_workflow_stage.dart';
 import '../../domain/entities/local_delivery_command.dart';
 import '../../domain/entities/reject_delivery_offer_request.dart';
 import '../../domain/failures/delivery_failure.dart';
+import '../../domain/local_command_id.dart';
 import '../../domain/policies/driver_workflow_transition_policy.dart';
 import '../../domain/repositories/delivery_offer_repository.dart';
 import '../../domain/usecases/accept_delivery_offer.dart';
@@ -1230,7 +1231,7 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
         commandId: _commandId(
           driverId: driverId,
           targetId: assignmentId,
-          action: '$commandGroup:${command.name}',
+          action: '$commandGroup.${command.name}',
         ),
         simulateOffline: simulateOffline,
       );
@@ -1700,9 +1701,15 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
     return activeResult.valueOrNull;
   }
 
+  /// Contract-safe deterministic key (`^[A-Za-z0-9._~-]{8,128}$`); reused on
+  /// retry and by Local Command Ledger replays. See [localCommandId].
   String _commandId({
     required String driverId,
     required String targetId,
     required String action,
-  }) => 'local:$driverId:$targetId:$action';
+  }) => localCommandId(
+    driverId: driverId,
+    targetId: targetId,
+    action: action,
+  );
 }
