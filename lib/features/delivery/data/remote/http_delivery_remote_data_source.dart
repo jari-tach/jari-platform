@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import '../../../../core/backend_configuration/driver_api_paths.dart';
 import '../../../../core/network/remote_error_mapper.dart';
 import '../../../../core/network/saeq_api_client.dart';
+import '../../domain/entities/delivery_lifecycle_ack.dart';
 import '../../domain/failures/delivery_failure.dart';
 import '../datasources/delivery_remote_data_source.dart';
 import '../models/delivery_assignment_model.dart';
@@ -82,11 +83,12 @@ final class HttpDeliveryRemoteDataSource implements DeliveryRemoteDataSource {
         Map<String, dynamic>.from(response.data as Map),
       );
       final cached = _offerCache[offerId];
+      final localStatus = deliveryStatusForCanonicalState(action.state);
       return DeliveryAssignmentModel(
         assignmentId: action.deliveryId,
         offerId: action.offerId,
         driverId: driverId,
-        status: action.state,
+        status: localStatus.name,
         order:
             cached?.order ??
             DeliveryOrderModel(
@@ -129,7 +131,9 @@ final class HttpDeliveryRemoteDataSource implements DeliveryRemoteDataSource {
   DeliveryFailure _mapError(Object error) {
     if (error is DeliveryFailure) return error;
     if (error is FormatException) {
-      return const DeliveryPersistenceFailure();
+      // Wire/JSON shape or canonical-state mapping failure — not a local DB
+      // write error. Keep the message so Device QA / logs show the real cause.
+      return DeliveryContractViolation(error.message);
     }
     if (error is DioException) {
       final envelope = _errorMapper.envelopeOf(error);

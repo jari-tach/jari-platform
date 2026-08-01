@@ -1,4 +1,5 @@
 import '../../domain/entities/delivery_assignment.dart';
+import '../../domain/entities/delivery_lifecycle_ack.dart';
 import '../../domain/entities/delivery_status.dart';
 import '../../domain/entities/driver_workflow_stage.dart';
 import 'delivery_order_model.dart';
@@ -162,10 +163,10 @@ class DeliveryAssignmentModel {
   };
 
   static DeliveryStatus _parseDeliveryStatus(String raw) {
-    for (final value in DeliveryStatus.values) {
-      if (value.name == raw) return value;
-    }
-    throw FormatException('unknown delivery status: $raw');
+    // Accept both local enum names and canonical Backend wire states so a
+    // Drift snapshot written before/after the accept-status mapping fix can
+    // still be restored.
+    return deliveryStatusForCanonicalState(raw);
   }
 
   static DriverWorkflowStage _parseWorkflowStage(String raw) {
