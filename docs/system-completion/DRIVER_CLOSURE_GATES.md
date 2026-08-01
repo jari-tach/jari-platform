@@ -35,10 +35,10 @@
 
 | PR | Repo | CI | Conflicts | Review | ملاحظات |
 | --- | --- | --- | --- | --- | --- |
-| [#37](https://github.com/jari-tach/jari-platform/pull/37) | jari-platform | GREEN | MERGEABLE | لا مراجعة بعد | Issue #32 + Maps؛ عليه commits محلية غير مدفوعة (هوية فزعة + polish) |
-| [#27](https://github.com/jari-tach/jari-platform/pull/27) | jari-platform | — | MERGEABLE | — | STEP 4B-A؛ مرتبط Device QA — لا يُغلق بلا PASS ميداني |
-| [#5](https://github.com/jari-tach/saeq-backend/pull/5) | saeq-backend | **RED** | MERGEABLE | — | يجب إصلاح CI |
-| [#6](https://github.com/jari-tach/saeq-contracts/pull/6) | saeq-contracts | **RED** | MERGEABLE | — | docs مستقبلية؛ CI أحمر |
+| [#37](https://github.com/jari-tach/jari-platform/pull/37) | jari-platform | CI قيد التشغيل (إصلاح اختبارات Home مدفوع) | MERGEABLE | لا مراجعة بعد | #32 + Maps + فزعة؛ اختبارات محلية خضراء |
+| [#27](https://github.com/jari-tach/jari-platform/pull/27) | jari-platform | GREEN | MERGEABLE | لا مراجعة بعد | STEP 4B-A؛ **لا يُغلق بلا Device QA PASS** |
+| [#5](https://github.com/jari-tach/saeq-backend/pull/5) | saeq-backend | CI قيد التشغيل | MERGEABLE | لا مراجعة بعد | Phase 1 gaps؛ بانتظار أخضر + Review |
+| [#6](https://github.com/jari-tach/saeq-contracts/pull/6) | saeq-contracts | GREEN | MERGEABLE | لا مراجعة بعد | توثيق تأجيل Merchant فقط — ليس تنفيذ تاجر |
 
 شروط إغلاق كل PR: محدّث مع `main`، بدون تعارض، CI أخضر، Review مكتمل، بلا Requested Changes، بلا TODO/FIXME/Debug في diff التشغيلي.
 
