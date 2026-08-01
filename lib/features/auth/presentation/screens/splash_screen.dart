@@ -8,10 +8,9 @@ import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/routes/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/saeq_semantic_colors.dart';
+import '../../../../shared/widgets/saeq_brand_mark.dart';
 
-/// Cold-start splash — Figma `DRV-SYS-001-Splash`.
-///
-/// Auto-advances to Welcome after a short delay; tap also continues.
+/// Cold-start splash — Figma Brand / فزعة Lockup + route mark.
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
@@ -26,7 +25,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _timer = Timer(const Duration(milliseconds: 1200), _goWelcome);
+    _timer = Timer(const Duration(milliseconds: 1400), _goWelcome);
   }
 
   @override
@@ -58,24 +57,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const Spacer(),
-                Text(
-                  key: const Key('splashBrandTitle'),
-                  l10n.splashTitle,
-                  style: AppTextStyles.headlineLarge.copyWith(
-                    color: colors.primary,
-                    fontSize: AppTheme.fontSizeXXL,
-                    fontWeight: AppTheme.fontWeightBold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: AppTheme.spacing12),
-                Text(
-                  l10n.splashSubtitle,
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: colors.textSecondary,
-                    fontSize: AppTheme.fontSizeSM,
-                  ),
-                  textAlign: TextAlign.center,
+                const SaeqBrandLockup(
+                  markSize: 88,
+                  showTagline: true,
                 ),
                 const SizedBox(height: AppTheme.spacingLG),
                 Center(

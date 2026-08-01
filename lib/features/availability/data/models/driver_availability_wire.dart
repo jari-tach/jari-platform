@@ -1,6 +1,9 @@
-/// GENERATED — DO NOT EDIT
-/// Source: contracts-v0.1.0
-/// Source SHA: a54997590bb9e481b48e890c3a3d446f260e00e3
+/// Wire mapping for Driver Availability (contracts Driver API).
+///
+/// Issue #32: Backend wire status `offline` means "driver not receiving
+/// offers" (domain [AvailabilityStatus.unavailable]). Domain
+/// [AvailabilityStatus.offline] is reserved for connectivity-offline
+/// (ADR-017) and must never be confused with the Backend wire value.
 library;
 
 import '../../domain/entities/availability_status.dart';
@@ -54,7 +57,8 @@ final class DriverAvailabilityWire {
       case 'busy':
         return AvailabilityStatus.busy;
       case 'offline':
-        return AvailabilityStatus.offline;
+        // Backend "offline" = not available for offers (not connectivity).
+        return AvailabilityStatus.unavailable;
       case 'suspended':
         return AvailabilityStatus.unavailable;
       default:
@@ -66,10 +70,11 @@ final class DriverAvailabilityWire {
     switch (status) {
       case AvailabilityStatus.available:
         return 'available';
-      case AvailabilityStatus.offline:
+      case AvailabilityStatus.unavailable:
         return 'offline';
       case AvailabilityStatus.busy:
-      case AvailabilityStatus.unavailable:
+      case AvailabilityStatus.offline:
+        // Connectivity-offline and busy are never PUT by the client.
         return null;
     }
   }

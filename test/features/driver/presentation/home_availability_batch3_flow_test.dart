@@ -150,17 +150,14 @@ void main() {
       expect(find.byIcon(Icons.logout), findsNothing);
     });
 
-    testWidgets('notifications and quick action keys are present', (
+    testWidgets('notifications action and brand title are present', (
       tester,
     ) async {
       await pumpHome(tester);
       expect(find.byKey(HomeScreen.notificationsActionKey), findsOneWidget);
-      expect(find.byKey(HomeScreen.quickActionDeliveriesKey), findsOneWidget);
-      expect(find.byKey(HomeScreen.quickActionEarningsKey), findsOneWidget);
-      expect(
-        find.byKey(HomeScreen.quickActionNotificationsKey),
-        findsOneWidget,
-      );
+      expect(find.byKey(const Key('saeqBrandAppBarTitle')), findsOneWidget);
+      expect(find.byKey(HomeScreen.quickActionDeliveriesKey), findsNothing);
+      expect(find.byKey(HomeScreen.quickActionEarningsKey), findsNothing);
     });
   });
 
@@ -448,12 +445,10 @@ void main() {
       expect(router.state.uri.path, AppRoutes.notifications);
       expect(find.text('Notifications Page'), findsOneWidget);
 
-      // Quick-action keys remain wired on Home (full taps covered above).
       router.go(AppRoutes.home);
       await _settle(tester);
-      expect(find.byKey(HomeScreen.quickActionDeliveriesKey), findsWidgets);
-      expect(find.byKey(HomeScreen.quickActionEarningsKey), findsWidgets);
-      expect(find.byKey(HomeScreen.quickActionNotificationsKey), findsWidgets);
+      expect(find.byKey(HomeScreen.notificationsActionKey), findsWidgets);
+      expect(find.byKey(const Key('saeqBrandAppBarTitle')), findsWidgets);
     });
   });
 }

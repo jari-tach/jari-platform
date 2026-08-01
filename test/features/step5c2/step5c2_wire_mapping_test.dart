@@ -47,6 +47,10 @@ void main() {
         AvailabilityStatus.available,
       );
       expect(
+        DriverAvailabilityWire.mapStatus('offline'),
+        AvailabilityStatus.unavailable,
+      );
+      expect(
         DriverAvailabilityWire.mapStatus('suspended'),
         AvailabilityStatus.unavailable,
       );
@@ -55,7 +59,15 @@ void main() {
         'available',
       );
       expect(
+        DriverAvailabilityWire.toWireStatus(AvailabilityStatus.unavailable),
+        'offline',
+      );
+      expect(
         DriverAvailabilityWire.toWireStatus(AvailabilityStatus.busy),
+        isNull,
+      );
+      expect(
+        DriverAvailabilityWire.toWireStatus(AvailabilityStatus.offline),
         isNull,
       );
     });
