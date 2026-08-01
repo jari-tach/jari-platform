@@ -16,7 +16,7 @@ class AppConfig {
   static const String _apiUrlStaging = 'https://staging-api.saeq.com';
   static const String _apiUrlProd = 'https://api.saeq.com';
 
-  static const String _appName = 'SAEQ Driver';
+  static const String _appName = "Faz'a";
   static const String _appVersion = '1.0.0';
   static const int _buildNumber = 1;
 

@@ -8,6 +8,7 @@ import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/routes/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/saeq_semantic_colors.dart';
+import '../../../../shared/widgets/saeq_brand_mark.dart';
 import '../../../../shared/widgets/saeq_otp_input.dart';
 import '../../../../shared/widgets/saeq_primary_button.dart';
 import '../../domain/entities/auth_error.dart';
@@ -247,6 +248,12 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                     child: Text(l10n.changePhoneAction),
                   ),
                 ),
+                const SaeqBrandLockup(
+                  markSize: 40,
+                  compact: true,
+                  alignment: CrossAxisAlignment.start,
+                ),
+                const SizedBox(height: AppTheme.spacingMD),
                 Text(
                   l10n.otpTitle,
                   style: AppTextStyles.headlineLarge.copyWith(

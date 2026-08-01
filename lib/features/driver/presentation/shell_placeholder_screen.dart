@@ -32,9 +32,9 @@ class ShellPlaceholderScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: SaeqEmptyState(
-                  title: title,
-                  message: message ?? l10n.shellPlaceholderMessage,
-                  icon: Icons.construction_outlined,
+                  title: message == null ? l10n.featureUnavailableTitle : title,
+                  message: message ?? l10n.featureUnavailableMessage,
+                  icon: Icons.hourglass_empty_outlined,
                 ),
               ),
               SaeqSecondaryButton(

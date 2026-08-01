@@ -78,8 +78,8 @@ class ActiveDeliveryPage extends ConsumerWidget {
         children: [
           Expanded(
             child: SaeqEmptyState(
-              title: l10n.activeDeliveryScreenTitle,
-              message: l10n.shellPlaceholderMessage,
+              title: l10n.activeDeliveryEmptyTitle,
+              message: l10n.activeDeliveryEmptyMessage,
               icon: Icons.local_shipping_outlined,
             ),
           ),

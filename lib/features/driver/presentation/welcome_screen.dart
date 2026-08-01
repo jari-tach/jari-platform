@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,9 +8,10 @@ import '../../../core/providers/app_providers.dart';
 import '../../../core/routes/app_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/saeq_semantic_colors.dart';
+import '../../../shared/widgets/saeq_brand_mark.dart';
 import '../../../shared/widgets/saeq_primary_button.dart';
 
-/// Figma `Final/Auth/First Launch` (node 40:4).
+/// Figma `Final/Auth/First Launch` + Brand / فزعة Lockup.
 class WelcomeScreen extends ConsumerWidget {
   const WelcomeScreen({super.key});
 
@@ -27,21 +29,10 @@ class WelcomeScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                l10n.firstLaunchTitle,
-                style: AppTextStyles.headlineLarge.copyWith(
-                  color: colors.textPrimary,
-                  fontSize: AppTheme.fontSizeXXL,
-                  fontWeight: AppTheme.fontWeightBold,
-                ),
-              ),
-              const SizedBox(height: AppTheme.spacing12),
-              Text(
-                l10n.firstLaunchSubtitle,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: colors.textSecondary,
-                  fontSize: AppTheme.fontSizeSM,
-                ),
+              const SaeqBrandLockup(
+                markSize: 64,
+                showTagline: true,
+                alignment: CrossAxisAlignment.start,
               ),
               const SizedBox(height: AppTheme.spacingLG),
               SaeqPrimaryButton(
@@ -76,37 +67,39 @@ class WelcomeScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-              SizedBox(
-                height: AppTheme.minTouchTarget,
-                width: double.infinity,
-                child: TextButton(
-                  key: const Key('welcomeThemeToggle'),
-                  onPressed: () {
-                    final isDark =
-                        ref.read(appThemeModeProvider) == ThemeMode.dark;
-                    ref
-                        .read(appThemeModeProvider.notifier)
-                        .setThemeMode(
-                          isDark ? ThemeMode.light : ThemeMode.dark,
-                        );
-                  },
-                  style: TextButton.styleFrom(foregroundColor: colors.primary),
-                  child: Text(
-                    ref.watch(appThemeModeProvider) == ThemeMode.dark
-                        ? l10n.settingsThemeLight
-                        : l10n.settingsThemeDark,
+              if (kDebugMode) ...[
+                SizedBox(
+                  height: AppTheme.minTouchTarget,
+                  width: double.infinity,
+                  child: TextButton(
+                    key: const Key('welcomeThemeToggle'),
+                    onPressed: () {
+                      final isDark =
+                          ref.read(appThemeModeProvider) == ThemeMode.dark;
+                      ref
+                          .read(appThemeModeProvider.notifier)
+                          .setThemeMode(
+                            isDark ? ThemeMode.light : ThemeMode.dark,
+                          );
+                    },
+                    style: TextButton.styleFrom(foregroundColor: colors.primary),
+                    child: Text(
+                      ref.watch(appThemeModeProvider) == ThemeMode.dark
+                          ? l10n.settingsThemeLight
+                          : l10n.settingsThemeDark,
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(
-                height: AppTheme.minTouchTarget,
-                width: double.infinity,
-                child: TextButton(
-                  key: const Key('welcomeSessionExpiredDemo'),
-                  onPressed: () => context.go(AppRoutes.sessionExpired),
-                  child: Text(l10n.simulateSessionExpiredAction),
+                SizedBox(
+                  height: AppTheme.minTouchTarget,
+                  width: double.infinity,
+                  child: TextButton(
+                    key: const Key('welcomeSessionExpiredDemo'),
+                    onPressed: () => context.go(AppRoutes.sessionExpired),
+                    child: Text(l10n.simulateSessionExpiredAction),
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ),

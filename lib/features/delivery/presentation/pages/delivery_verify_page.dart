@@ -10,11 +10,10 @@ import '../../../../core/theme/saeq_semantic_colors.dart';
 import '../../../../shared/widgets/saeq_primary_button.dart';
 import '../../../../shared/widgets/saeq_secondary_button.dart';
 import '../../domain/entities/driver_workflow_stage.dart';
-import '../../domain/usecases/verify_delivery_code.dart';
 import '../mappers/delivery_failure_messages.dart';
 import '../providers/delivery_providers.dart';
 
-/// Delivery code verification (Fake trial code) — PHASE 2.6.
+/// Delivery code verification.
 class DeliveryVerifyPage extends ConsumerStatefulWidget {
   const DeliveryVerifyPage({super.key});
 
@@ -69,7 +68,7 @@ class _DeliveryVerifyPageState extends ConsumerState<DeliveryVerifyPage> {
                 enabled: fieldEnabled,
                 decoration: InputDecoration(
                   labelText: l10n.deliveryVerifyCodeLabel,
-                  hintText: FakeDeliveryVerificationCodes.trialCode,
+                  hintText: l10n.deliveryVerifyCodeFieldHint,
                   labelStyle: TextStyle(color: colors.textSecondary),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppTheme.radiusMD),

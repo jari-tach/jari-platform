@@ -23,7 +23,6 @@ class DeliveriesHistoryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final colors = SaeqSemanticColors.of(context);
     final state = ref.watch(historyControllerProvider);
     final controller = ref.read(historyControllerProvider.notifier);
 
@@ -35,13 +34,6 @@ class DeliveriesHistoryScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                l10n.fakeAlphaDataHint,
-                style: AppTextStyles.supporting.copyWith(
-                  color: colors.textSecondary,
-                ),
-              ),
-              const SizedBox(height: AppTheme.spacingSM),
               SaeqFilterChipBar(
                 chips: [
                   SaeqFilterChip(
@@ -66,11 +58,6 @@ class DeliveriesHistoryScreen extends ConsumerWidget {
               ),
               const SizedBox(height: AppTheme.spacingMD),
               Expanded(child: _body(context, l10n, state, controller)),
-              SaeqPrimaryButton(
-                label: l10n.activeDeliveryScreenTitle,
-                icon: Icons.local_shipping_outlined,
-                onPressed: () => context.push(AppRoutes.deliveryActive),
-              ),
             ],
           ),
         ),

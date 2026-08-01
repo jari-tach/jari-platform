@@ -6,8 +6,10 @@ Out of scope: Device QA / HONOR / H0 / Production / STEP 4B-A closure
 
 ## Verdict
 
+**تصميم واجهة المنتج التشغيلي: ~100%** (هوية فزعة + مسار التشغيل بدون placeholders).  
 **Core Driver path is implementation-complete for automated verification.**  
-Owner gate required before resuming Device QA, closing PR #27, or any H0/publish.
+Owner gate required before resuming Device QA, closing PR #27, or any H0/publish.  
+See also: `design-completion-report.md`.
 
 ## Completed
 

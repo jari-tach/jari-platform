@@ -22,7 +22,6 @@ class EarningsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final colors = SaeqSemanticColors.of(context);
     final state = ref.watch(earningsControllerProvider);
     final controller = ref.read(earningsControllerProvider.notifier);
 
@@ -34,13 +33,6 @@ class EarningsScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                l10n.fakeAlphaDataHint,
-                style: AppTextStyles.supporting.copyWith(
-                  color: colors.textSecondary,
-                ),
-              ),
-              const SizedBox(height: AppTheme.spacingSM),
               SaeqFilterChipBar(
                 chips: [
                   SaeqFilterChip(
