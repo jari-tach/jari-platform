@@ -2,6 +2,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 
 import '../../core/auth_session/access_token_memory_cache.dart';
 import '../../core/auth_session/auth_token_store.dart';
+import '../../core/auth_session/device_identity_store.dart';
 import '../../core/auth_session/session_repository.dart';
 import '../../core/backend_configuration/backend_configuration.dart';
 import '../../core/config/app_config.dart';
@@ -597,6 +598,9 @@ final class AppServiceRegistry {
       tokenStore: registry._authTokenStore,
       accessTokenCache: registry._accessTokenCache,
       logger: registry._logger,
+      deviceIdentityStore: SecureDeviceIdentityStore(
+        storage: registry._storage,
+      ),
     );
     registry._logger.info(
       'AppServiceRegistry: RemoteAuthenticationRepository initialized',
