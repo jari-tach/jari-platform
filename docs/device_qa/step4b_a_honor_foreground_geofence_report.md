@@ -2,88 +2,103 @@
 
 ## Status
 
-**BLOCKED — ENVIRONMENT NOT AVAILABLE**
+**BLOCKED — PRE-EXISTING AUTH CLIENT BUG (OUTSIDE STEP 4B-A SCOPE)**
 
-Live HONOR Device QA was **not executed**. This report must not be read as PASS.
+Live Device QA was started on a real HONOR device against a local Backend, but
+the full delivery journey **cannot proceed past OTP verify**. This report must
+**not** be read as PASS. Per owner directive (2026-08-01), owner deferral is
+**not permitted** — the PR stops at the review gate and must **not** be merged.
 
-## Environment probe (2026-07-31)
+Tested Head SHA: `55f586927f543229febcedf6cab1490dee2c0c60`
 
-| Check | Result |
-|---|---|
-| Flutter repository | `jari-tach/jari-platform` |
-| Flutter baseline (branch start) | `4ed9b65e36d07984f9a821887a7de0d18916faf0` |
-| Contracts | `contracts-v0.1.0` / `a54997590bb9e481b48e890c3a3d446f260e00e3` |
-| Backend main SHA | `c27f33fa2fa59de8b1d56388f2d800046c2b9544` |
-| Flutter mode intended | remote + `SAEQ_API_BASE_URL=http://127.0.0.1:3000` |
-| Node runtime on engineer host | `v24.18.0` (required: Node 20 per `.nvmrc`) |
-| Docker / `docker compose` | **NOT AVAILABLE** on PATH / Desktop not installed |
-| PostgreSQL (`127.0.0.1:5432`) | **NOT LISTENING** |
-| Backend (`127.0.0.1:3000` health) | **NOT LISTENING** |
-| ADB binary | Found at `%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe` |
-| `adb devices` | Empty — **no device in `device` state** |
-| HONOR device model | **NOT DETECTED** |
-| Android version | **NOT DETECTED** |
-| Mock location environment | **NOT AVAILABLE / NOT DOCUMENTED** |
-| Physical/stable mock location | **NOT EXECUTED** |
+---
 
-## Environment re-probe (2026-08-01 — after sync with `main` @ STEP 6-C)
-
-Branch was synced with `origin/main` (merge of `5eddb42`, STEP 6-C included) with
-**zero conflicts** and no change to the five STEP 4B-A files. Live Device QA was
-re-attempted the same day; the environment remains unavailable:
+## Environment — unlocked on 2026-08-01 (evening resume)
 
 | Check | Result |
 |---|---|
-| `adb devices -l` (`%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe`) | Empty — **no physical device attached** |
-| `flutter devices` | Windows desktop / Chrome / Edge only — no Android target |
-| HONOR device model / Android version | **NOT DETECTED** |
-| Docker | **NOT INSTALLED** (not on PATH) |
-| PostgreSQL | **NOT INSTALLED** (no service, no `psql`, no `C:\Program Files\PostgreSQL`) |
-| Node runtime | `v24.18.0` — satisfies backend `engines` (`>=20.0.0 <25`), though `.nvmrc` pins 20 |
-| Backend startable | **NO** — blocked on PostgreSQL |
+| Device | **HONOR VKP-NX9** (`AP4EVB6423004646`), brand HONOR, Android **16** (API 36) |
+| `adb devices` | `device` |
+| `flutter devices` | `VKP NX9 (mobile) • AP4EVB6423004646 • android-arm64` |
+| Battery / location mode | level 52; `location_mode=3` (on) |
+| PostgreSQL | Portable PostgreSQL **16.6** on `127.0.0.1:5432` (after VC++ Redistributable install) |
+| Backend | NestJS `start:dev`, Node `v24.18.0` (within `engines: >=20 <25`) |
+| Health | `GET /health/live` → ok; `GET /health/ready` → ok (database ok) |
+| `adb reverse` | `tcp:3000` → host `3000` |
+| Flutter Head | `55f586927f543229febcedf6cab1490dee2c0c60` (unchanged vs prior CI-green Head) |
+| Local checks | `flutter analyze` No issues; `flutter test` **1078** passed |
+| CI on Head | Analyze / Test / Build Android / Build iOS — all green (prior run) |
+| Debug APK | Built with `--dart-define=SAEQ_BACKEND_MODE=remote`, `SAEQ_API_BASE_URL=http://127.0.0.1:3000`, `SAEQ_DEVICE_LOCATION_QA=true` |
+| Seed + offer | Driver `+966500000000`; delivery `SEED-DEL-0001`; pending offer created via SQL (no offer-create API exists) |
+| Scope vs `main` | Still **exactly 5 files** (3 usecases + regression test + this report) |
 
-**Owner directive (2026-08-01):** owner deferral is explicitly **not permitted**
-for this gate. Device QA must be executed on a real physical Android device
-(HONOR preferred) with a complete local Backend (Node 20-compatible +
-PostgreSQL). Until that environment is provided, this PR **stops at the review
-gate and must not be merged**.
+Evidence directory (local, not committed): `docs/device_qa/evidence/`
 
-To unblock: attach the HONOR (or equivalent Android) device with USB debugging
-authorized, and provide PostgreSQL (native install or Docker Desktop) so the
-Backend can be started at `127.0.0.1:3000`.
+---
 
-## Blocking reasons
+## Live journey progress (device)
 
-1. No HONOR (or any Android) device attached via ADB.
-2. Docker is unavailable, so `docker compose up -d postgres` cannot run.
-3. Backend cannot be started to the required local health endpoints without Postgres.
-4. Host Node is 24, not the CI-required Node 20.
-5. Without Backend + ADB reverse + device, OTP → full delivery journey and live foreground geofence cannot be executed.
+| Step | Result | Evidence |
+|---|---|---|
+| App launch on HONOR | PASS | `evidence/01_launch.png` |
+| Language → English | PASS | `evidence/02_english.png` |
+| Onboarding → Sign in | PASS | `evidence/03_login.png` |
+| OTP request `0500000000` → Backend | PASS | Backend log `POST /v1/auth/otp/request` 200, Dart UA via `adb reverse` |
+| OTP screen shows 6 digits | PASS | Digits filled with `000000` |
+| OTP verify | **FAIL** | Backend `VALIDATION_ERROR — Request validation failed` on `POST /v1/auth/otp/verify` |
+| Availability / offers / pickup / geofence / arrival | **NOT REACHED** | Blocked by OTP verify |
+
+---
+
+## Root cause (classified)
+
+**Category: pre-existing code defect outside STEP 4B-A scope — not environment, not HONOR, not location permissions.**
+
+Flutter remote auth client sends a non-UUID `deviceId`:
+
+```dart
+// lib/features/auth/data/repositories/remote_authentication_repository.dart
+device: const {
+  'deviceId': 'saeq-driver-flutter',  // NOT a UUID
+  'platform': 'android',
+  'appVersion': '1.0.0',
+},
+```
+
+Backend DTO requires a UUID:
+
+```ts
+// saeq-backend src/modules/auth/api/dto/otp-verify.dto.ts
+export class DeviceInfoDto {
+  @IsUUID()
+  deviceId!: string;
+  ...
+}
+```
+
+Observed Backend responses (2026-08-01 ~16:45 UTC):
+
+- `POST /v1/auth/otp/verify` → handled as `VALIDATION_ERROR — Request validation failed` (requestIds `6cb5fa1f-…`, `9099d241-…`)
+
+This file is **not** among the five STEP 4B-A authorized files. Fixing it would expand PR ‎#27 beyond the approved STEP 4B-A scope (lifecycle usecase short-circuit + foreground geofence regression + this report). Per executive directive, out-of-scope fixes were not applied.
+
+---
 
 ## Scenario results (device)
 
-All live scenarios are recorded as **BLOCKED**, not PASS:
-
 | Scenario | Result |
 |---|---|
-| App launch on HONOR | BLOCKED |
-| OTP request / Development OTP verify | BLOCKED |
-| Driver profile + compliance load | BLOCKED |
-| Availability → Available | BLOCKED |
-| Offers load + accept | BLOCKED |
-| Active delivery + manual pickup confirmation | BLOCKED |
-| Backend acknowledgment → current customer PII visible | BLOCKED |
-| Upcoming customer PII hidden | BLOCKED |
-| External navigation round-trip | BLOCKED |
-| Foreground location monitoring | BLOCKED |
-| Accuracy policy + required dwell | BLOCKED |
-| Automatic arrival exactly once | **NOT EXECUTED** |
+| App launch on HONOR | PASS |
+| OTP request / Development OTP verify | **FAIL** (verify validation) |
+| Driver profile + compliance load | NOT REACHED |
+| Availability → Available | NOT REACHED |
+| Offers load + accept | NOT REACHED |
+| Active delivery + manual pickup confirmation | NOT REACHED |
+| Foreground location monitoring | NOT REACHED |
+| Automatic arrival exactly once | NOT REACHED |
 | Manual arrival button = 0 | Automated regression only (not live device) |
-| Delivery confirmation after Backend arrival ack | BLOCKED |
-| Contact cleared after delivery | BLOCKED |
-| Location monitoring stopped after delivery | BLOCKED |
-| App restart does not resurrect completed delivery | BLOCKED |
-| Logout clears tokens + PII | BLOCKED |
+| Delivery confirmation after Backend arrival ack | NOT REACHED |
+| App restart / Logout checks | NOT REACHED |
 
 ## Counts (live device)
 
@@ -93,20 +108,19 @@ All live scenarios are recorded as **BLOCKED**, not PASS:
 | Duplicate arrivals | NOT EXECUTED |
 | Duplicate commands | NOT EXECUTED |
 | Duplicate transitions | NOT EXECUTED |
-| Crashes | NOT EXECUTED |
-| Freezes | NOT EXECUTED |
+| Crashes | 0 observed before OTP block |
+| Freezes | 0 observed before OTP block |
 | Token leaks | NOT EXECUTED |
 | PII leaks | NOT EXECUTED |
 
 ## Defects discovered on device
 
-None — live journey was not reachable.
+1. **OTP verify blocked by non-UUID `deviceId`** — Flutter `remote_authentication_repository.dart` hardcodes `saeq-driver-flutter`; Backend `@IsUUID()` rejects it. Blocks all remote Device QA journeys. **Outside STEP 4B-A scope.**
 
-## Defects fixed in this branch
+## Defects fixed in this branch (prior STEP 4B-A work — unchanged)
 
-1. **Idempotent lifecycle command short-circuit** — `ConfirmPickupRemote`, `ReportAutomaticArrivalRemote`, and `ConfirmDeliveryRemote` now honor a completed local command id before the stage gate, so a same-Idempotency-Key retry after Backend acknowledgment cannot fail with `INVALID_DELIVERY_TRANSITION`.
-
-Automated foreground geofence / remote-arrival regression tests were added under `test/features/step4ba/` to keep CI coverage for the authorized foreground-only scope.
+1. **Idempotent lifecycle command short-circuit** — `ConfirmPickupRemote`, `ReportAutomaticArrivalRemote`, and `ConfirmDeliveryRemote` honor a completed local command id before the stage gate.
+2. Automated foreground geofence / remote-arrival regression tests under `test/features/step4ba/`.
 
 ## Authorized scope reminder
 
@@ -118,7 +132,7 @@ Still locked / deferred:
 - Long-running foreground tracking service
 - Embedded Map SDK
 - Continuous location streaming
-- WebSocket / SSE / Push
+- WebSocket / Push
 - Redis realtime
 - Production deployment
 
@@ -126,11 +140,13 @@ Still locked / deferred:
 
 Per executive directive, STEP 4B-A merge requires:
 
-- Flutter Analyze / Test / Build Android / Build iOS: SUCCESS
-- Device QA: **PASS** **or** an **explicit owner deferral**
+- Flutter Analyze / Test / Build Android / Build iOS: SUCCESS ✅ (on Head `55f5869`)
+- Device QA: **PASS** (owner deferral withdrawn)
 
-Current Device QA: **BLOCKED — ENVIRONMENT NOT AVAILABLE** (re-confirmed 2026-08-01)
+Current Device QA: **BLOCKED — OTP verify VALIDATION_ERROR (non-UUID deviceId)**
 
-Per owner directive of 2026-08-01, the deferral option is **withdrawn**: Device
-QA must actually run and PASS before merge. Awaiting a physical Android device
-(HONOR preferred) over ADB plus a PostgreSQL instance for the local Backend.
+**Stop condition met:** real blocker documented; PR not merged; H0 not started.
+
+### Recommended unblock (requires owner authorization — expands beyond STEP 4B-A)
+
+Authorize a **separate minimal commit** (or a scoped amendment to PR ‎#27) that changes Flutter's verify payload `deviceId` to a stable UUID (e.g. persist a generated UUID in secure storage), then re-run Device QA from OTP verify onward. Do **not** treat this report as PASS until that live geofence journey completes.
