@@ -203,6 +203,8 @@ class ActiveDeliveryPage extends ConsumerWidget {
                   mapsLabel: l10n.deliveryMapsAction,
                   query: _mapsQuery(assignment, stage),
                   mapsCopiedMessage: l10n.deliveryMapsCopied,
+                  latitude: _mapsLatitude(assignment, stage),
+                  longitude: _mapsLongitude(assignment, stage),
                   helpLabel:
                       stage == DriverWorkflowStage.arrivedPickup ||
                           stage == DriverWorkflowStage.navToCustomer
@@ -345,16 +347,35 @@ class ActiveDeliveryPage extends ConsumerWidget {
     ];
   }
 
+  bool _mapsToCustomer(DriverWorkflowStage stage) =>
+      stage == DriverWorkflowStage.collected ||
+      stage == DriverWorkflowStage.navToCustomer ||
+      stage == DriverWorkflowStage.arrivedCustomer ||
+      stage == DriverWorkflowStage.verifying ||
+      stage == DriverWorkflowStage.delivered ||
+      stage == DriverWorkflowStage.summary;
+
   String _mapsQuery(DeliveryAssignment assignment, DriverWorkflowStage stage) {
-    final toCustomer =
-        stage == DriverWorkflowStage.collected ||
-        stage == DriverWorkflowStage.navToCustomer ||
-        stage == DriverWorkflowStage.arrivedCustomer ||
-        stage == DriverWorkflowStage.verifying ||
-        stage == DriverWorkflowStage.delivered ||
-        stage == DriverWorkflowStage.summary;
-    return toCustomer
+    return _mapsToCustomer(stage)
         ? assignment.order.dropoffLabel
         : assignment.order.pickupLabel;
+  }
+
+  double? _mapsLatitude(
+    DeliveryAssignment assignment,
+    DriverWorkflowStage stage,
+  ) {
+    return _mapsToCustomer(stage)
+        ? assignment.order.dropoffLatitude
+        : assignment.order.pickupLatitude;
+  }
+
+  double? _mapsLongitude(
+    DeliveryAssignment assignment,
+    DriverWorkflowStage stage,
+  ) {
+    return _mapsToCustomer(stage)
+        ? assignment.order.dropoffLongitude
+        : assignment.order.pickupLongitude;
   }
 }

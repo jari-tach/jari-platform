@@ -98,7 +98,7 @@ void main() {
         final wire = await HttpDriverAvailabilityRemoteDataSource(api: h.api)
             .putAvailability(
               status: DriverAvailabilityWire.toWireStatus(
-                AvailabilityStatus.offline,
+                AvailabilityStatus.unavailable,
               )!,
               idempotencyKey: 'idem-availability-1',
             );
