@@ -1,8 +1,8 @@
-/// Driver API path constants from contracts-v0.1.0.
+/// Driver API path constants from contracts-v0.2.0.
 ///
 /// GENERATED — DO NOT EDIT
-/// Source: contracts-v0.1.0
-/// Source SHA: a54997590bb9e481b48e890c3a3d446f260e00e3
+/// Source: contracts-v0.2.0
+/// Source SHA: 50ca40deb27aa09876b73f474ad7c317253f46ae
 abstract final class DriverApiPaths {
   static const otpRequest = '/v1/auth/otp/request';
   static const otpVerify = '/v1/auth/otp/verify';
@@ -35,4 +35,8 @@ abstract final class DriverApiPaths {
 
   static const batchesActive = '/v1/batches/active';
   static String batchById(String batchId) => '/v1/batches/$batchId';
+
+  /// Realtime event channel (contracts-v0.2.0 / STEP 6-A) — additive.
+  static const events = '/v1/events';
+  static const eventsStream = '/v1/events/stream';
 }

@@ -175,6 +175,11 @@ class AppLocalizations {
     'أنت غير متصل. قد تكون بعض الإجراءات غير متاحة.',
   );
 
+  String get realtimeConnected => _t('Connected', 'متصل');
+  String get realtimeReconnecting => _t('Reconnecting…', 'جارٍ إعادة الاتصال…');
+  String get realtimeDegraded => _t('Limited connection', 'وضع اتصال محدود');
+  String get realtimeCatchingUp => _t('Updating…', 'جارٍ التحديث…');
+
   // —— History / Earnings / Notifications (PHASE 2.6 Inc 3) ——
   String get historyFilterAll => _t('All', 'الكل');
   String get historyFilterDelivered => _t('Delivered', 'مُسلَّم');

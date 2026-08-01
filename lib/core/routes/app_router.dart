@@ -33,6 +33,7 @@ import '../../features/profile/presentation/screens/profile_edit_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/profile/vehicle/vehicle_edit_screen.dart';
 import '../../features/profile/vehicle/vehicle_overview_screen.dart';
+import '../../features/realtime/presentation/widgets/realtime_session_binder.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/support/presentation/screens/support_safety_screen.dart';
 import '../../features/support/presentation/screens/support_screen.dart';
@@ -437,9 +438,11 @@ class AppRouter {
         // Shell route for main app (with bottom nav) — protected
         ShellRoute(
           builder: (context, state, child) {
-            return Scaffold(
-              body: child,
-              bottomNavigationBar: _buildBottomNav(context),
+            return RealtimeSessionBinder(
+              child: Scaffold(
+                body: child,
+                bottomNavigationBar: _buildBottomNav(context),
+              ),
             );
           },
           routes: [
