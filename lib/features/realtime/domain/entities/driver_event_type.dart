@@ -35,4 +35,22 @@ enum DriverEventType {
     DriverEventType.driverAvailabilityChanged ||
     DriverEventType.systemResyncRequired => false,
   };
+
+  /// Whether this event type signals that the active delivery / batch state
+  /// may have changed (STEP 6-C). REST stays the source of truth.
+  bool get invalidatesDelivery => switch (this) {
+    DriverEventType.deliveryStateChanged ||
+    DriverEventType.deliveryCancelled => true,
+    DriverEventType.offerCreated ||
+    DriverEventType.offerAccepted ||
+    DriverEventType.offerRejected ||
+    DriverEventType.offerExpired ||
+    DriverEventType.driverAvailabilityChanged ||
+    DriverEventType.systemResyncRequired => false,
+  };
+
+  /// Whether this event type signals that driver availability may have
+  /// changed on another device / session (STEP 6-C).
+  bool get invalidatesAvailability =>
+      this == DriverEventType.driverAvailabilityChanged;
 }
