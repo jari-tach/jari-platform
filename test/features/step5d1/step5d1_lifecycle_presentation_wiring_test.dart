@@ -600,11 +600,11 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 40));
 
       expect(
-        h.commands.commands['local_drv-1_asg-1_confirmPickup']?.status,
+        h.commands.commands['local_drv-1_asg-1_confirmPickup_0']?.status,
         LocalDeliveryCommandStatus.completed,
       );
       expect(
-        h.commands.commands['local_drv-1_asg-1_reportArrival']?.status,
+        h.commands.commands['local_drv-1_asg-1_reportArrival_1']?.status,
         LocalDeliveryCommandStatus.completed,
       );
 
@@ -650,7 +650,7 @@ void main() {
         expect(state.customerContact, isNull);
         expect(h.lifecycle.cachedCustomerContact, isNull);
         expect(
-          h.commands.commands['local_drv-1_asg-1_confirm-delivery']?.status,
+          h.commands.commands['local_drv-1_asg-1_confirm-delivery_0']?.status,
           LocalDeliveryCommandStatus.completed,
         );
       },
@@ -675,7 +675,7 @@ void main() {
       expect(h.assignments.active, isNull);
       expect(h.lifecycle.cachedCustomerContact, isNull);
       expect(
-        h.commands.commands['local_drv-1_asg-1_cancel']?.status,
+        h.commands.commands['local_drv-1_asg-1_cancel_0']?.status,
         LocalDeliveryCommandStatus.completed,
       );
     });
@@ -702,7 +702,7 @@ void main() {
           state.activeAssignment?.workflowStage,
           DriverWorkflowStage.issueOpen,
         );
-        final command = h.commands.commands['local_drv-1_asg-1_reportIssue'];
+        final command = h.commands.commands['local_drv-1_asg-1_reportIssue_0'];
         expect(command?.status, LocalDeliveryCommandStatus.completed);
         expect(command?.type, LocalDeliveryCommandType.reportIssue);
       },
@@ -726,7 +726,7 @@ void main() {
       expect(state.failure, isA<DeliveryNetworkUnavailable>());
       expect(state.activeAssignment?.pendingSync, isTrue);
       expect(
-        h.commands.commands['local_drv-1_asg-1_confirmPickup']?.status,
+        h.commands.commands['local_drv-1_asg-1_confirmPickup_0']?.status,
         LocalDeliveryCommandStatus.pendingSync,
       );
 
@@ -740,7 +740,7 @@ void main() {
         DriverWorkflowStage.navToCustomer,
       );
       expect(
-        h.commands.commands['local_drv-1_asg-1_confirmPickup']?.status,
+        h.commands.commands['local_drv-1_asg-1_confirmPickup_0']?.status,
         LocalDeliveryCommandStatus.completed,
       );
       // Replay reused the pending idempotency key: one Backend mutation.
