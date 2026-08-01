@@ -26,6 +26,32 @@ Live HONOR Device QA was **not executed**. This report must not be read as PASS.
 | Mock location environment | **NOT AVAILABLE / NOT DOCUMENTED** |
 | Physical/stable mock location | **NOT EXECUTED** |
 
+## Environment re-probe (2026-08-01 — after sync with `main` @ STEP 6-C)
+
+Branch was synced with `origin/main` (merge of `5eddb42`, STEP 6-C included) with
+**zero conflicts** and no change to the five STEP 4B-A files. Live Device QA was
+re-attempted the same day; the environment remains unavailable:
+
+| Check | Result |
+|---|---|
+| `adb devices -l` (`%LOCALAPPDATA%\Android\Sdk\platform-tools\adb.exe`) | Empty — **no physical device attached** |
+| `flutter devices` | Windows desktop / Chrome / Edge only — no Android target |
+| HONOR device model / Android version | **NOT DETECTED** |
+| Docker | **NOT INSTALLED** (not on PATH) |
+| PostgreSQL | **NOT INSTALLED** (no service, no `psql`, no `C:\Program Files\PostgreSQL`) |
+| Node runtime | `v24.18.0` — satisfies backend `engines` (`>=20.0.0 <25`), though `.nvmrc` pins 20 |
+| Backend startable | **NO** — blocked on PostgreSQL |
+
+**Owner directive (2026-08-01):** owner deferral is explicitly **not permitted**
+for this gate. Device QA must be executed on a real physical Android device
+(HONOR preferred) with a complete local Backend (Node 20-compatible +
+PostgreSQL). Until that environment is provided, this PR **stops at the review
+gate and must not be merged**.
+
+To unblock: attach the HONOR (or equivalent Android) device with USB debugging
+authorized, and provide PostgreSQL (native install or Docker Desktop) so the
+Backend can be started at `127.0.0.1:3000`.
+
 ## Blocking reasons
 
 1. No HONOR (or any Android) device attached via ADB.
@@ -103,6 +129,8 @@ Per executive directive, STEP 4B-A merge requires:
 - Flutter Analyze / Test / Build Android / Build iOS: SUCCESS
 - Device QA: **PASS** **or** an **explicit owner deferral**
 
-Current Device QA: **BLOCKED — ENVIRONMENT NOT AVAILABLE**
+Current Device QA: **BLOCKED — ENVIRONMENT NOT AVAILABLE** (re-confirmed 2026-08-01)
 
-Awaiting owner decision: provide HONOR + Docker/Postgres + Node 20 environment, **or** issue an explicit deferral to merge this PR with Device QA remaining BLOCKED.
+Per owner directive of 2026-08-01, the deferral option is **withdrawn**: Device
+QA must actually run and PASS before merge. Awaiting a physical Android device
+(HONOR preferred) over ADB plus a PostgreSQL instance for the local Backend.
