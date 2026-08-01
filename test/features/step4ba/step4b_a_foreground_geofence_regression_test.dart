@@ -27,14 +27,18 @@ import '../delivery/helpers/fake_delivery_command_repository.dart';
 
 void main() {
   group('STEP 4B-A environment gate', () {
-    test('QA report records BLOCKED and never claims live PASS', () {
+    test('QA report never claims live PASS until Device QA closes', () {
       final contents = File(
         'docs/device_qa/step4b_a_honor_foreground_geofence_report.md',
       ).readAsStringSync();
-      expect(contents, contains('BLOCKED — ENVIRONMENT NOT AVAILABLE'));
-      expect(contents, contains('NOT EXECUTED'));
+      // Status may be BLOCKED (environment / auth) or PENDING RETEST after
+      // the independent deviceId fix (PR #30). It must never claim a live
+      // device PASS until the full journey is executed and evidenced.
+      final statusIsPass =
+          RegExp(r'^\*\*PASS\*\*$', multiLine: true).hasMatch(contents) ||
+          contents.contains('HONOR Device:\nPASS');
+      expect(statusIsPass, isFalse);
       expect(contents, contains('Manual arrival button = 0'));
-      expect(contents, isNot(contains('HONOR Device:\nPASS')));
       expect(contents, contains('Automatic arrival exactly once'));
     });
   });

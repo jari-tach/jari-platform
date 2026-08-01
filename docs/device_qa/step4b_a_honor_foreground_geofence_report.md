@@ -2,14 +2,22 @@
 
 ## Status
 
-**BLOCKED — PRE-EXISTING AUTH CLIENT BUG (OUTSIDE STEP 4B-A SCOPE)**
+**PENDING RETEST — AUTH FIX MERGED (PR #30); LIVE JOURNEY NOT YET RE-RUN**
 
-Live Device QA was started on a real HONOR device against a local Backend, but
-the full delivery journey **cannot proceed past OTP verify**. This report must
-**not** be read as PASS. Per owner directive (2026-08-01), owner deferral is
-**not permitted** — the PR stops at the review gate and must **not** be merged.
+A prior Device QA attempt on HONOR was blocked at OTP verify by a pre-existing
+auth client bug (hardcoded non-UUID `deviceId`). That bug was fixed in an
+**independent** PR:
 
-Tested Head SHA: `55f586927f543229febcedf6cab1490dee2c0c60`
+- PR [#30](https://github.com/jari-tach/jari-platform/pull/30) —
+  `fix(auth): stable persisted UUID as device.deviceId in OTP verify`
+- Merge SHA: `b99e9df` (Merge Commit of Head `398da9f`)
+
+This STEP 4B-A branch has been updated with that `main`. This report must
+**not** be read as PASS until the full live journey is re-executed and
+evidenced. Owner deferral is **not permitted**.
+
+Previous blocked Head: `55f586927f543229febcedf6cab1490dee2c0c60`
+Current Head (post PR #30 merge into this branch): see git HEAD at push time.
 
 ---
 
@@ -140,13 +148,12 @@ Still locked / deferred:
 
 Per executive directive, STEP 4B-A merge requires:
 
-- Flutter Analyze / Test / Build Android / Build iOS: SUCCESS ✅ (on Head `55f5869`)
-- Device QA: **PASS** (owner deferral withdrawn)
+- Flutter Analyze / Test / Build Android / Build iOS: SUCCESS on the final Head
+- Device QA: **PASS** on a full live journey (owner deferral withdrawn)
 
-Current Device QA: **BLOCKED — OTP verify VALIDATION_ERROR (non-UUID deviceId)**
-
-**Stop condition met:** real blocker documented; PR not merged; H0 not started.
-
-### Recommended unblock (requires owner authorization — expands beyond STEP 4B-A)
-
-Authorize a **separate minimal commit** (or a scoped amendment to PR ‎#27) that changes Flutter's verify payload `deviceId` to a stable UUID (e.g. persist a generated UUID in secure storage), then re-run Device QA from OTP verify onward. Do **not** treat this report as PASS until that live geofence journey completes.
+Auth unblock: **DONE** via independent PR #30 (Merge SHA `b99e9df`).
+Current Device QA: **PENDING RETEST** — full journey from OTP → availability →
+offer → accept → pickup → en route → geofence arrival (exactly once) →
+delivery confirmation must be re-run on HONOR with a rebuild that includes
+PR #30. Do **not** treat this report as PASS and do **not** merge PR ‎#27
+until that retest succeeds with evidence. H0 remains blocked.
