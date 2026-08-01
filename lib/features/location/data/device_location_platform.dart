@@ -1,7 +1,12 @@
+import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:permission_handler/permission_handler.dart' as ph;
 
 import 'location_gateway.dart';
+
+/// Debug Device QA builds force Android LocationManager so adb mock /
+/// test-provider fixes are visible (Fused often ignores them).
+const bool _deviceLocationQa = bool.fromEnvironment('SAEQ_DEVICE_LOCATION_QA');
 
 enum DeviceLocationPrecision { high, medium }
 
@@ -102,13 +107,33 @@ class PluginDeviceLocationPlatform implements DeviceLocationPlatform {
   @override
   Stream<DevicePositionSample> watchPositions() {
     // Deliberately no timeLimit: silence is not failure or arrival.
-    const settings = geo.LocationSettings(
-      accuracy: geo.LocationAccuracy.high,
-      distanceFilter: 5,
-    );
+    // distanceFilter must be 0: geofence arrival requires ≥2 spaced hits while
+    // the driver is often stationary inside the radius (ADR-029).
     return geo.Geolocator.getPositionStream(
-      locationSettings: settings,
+      locationSettings: deviceWatchLocationSettings(
+        forceAndroidLocationManager: _deviceLocationQa,
+      ),
     ).map(_sample);
+  }
+
+  /// Shared watch settings for production + Device QA.
+  @visibleForTesting
+  static geo.LocationSettings deviceWatchLocationSettings({
+    required bool forceAndroidLocationManager,
+    Duration interval = const Duration(seconds: 2),
+  }) {
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return geo.AndroidSettings(
+        accuracy: geo.LocationAccuracy.high,
+        distanceFilter: 0,
+        intervalDuration: interval,
+        forceLocationManager: forceAndroidLocationManager,
+      );
+    }
+    return const geo.LocationSettings(
+      accuracy: geo.LocationAccuracy.high,
+      distanceFilter: 0,
+    );
   }
 
   static DevicePositionSample _sample(geo.Position position) {

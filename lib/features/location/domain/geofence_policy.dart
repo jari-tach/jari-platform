@@ -56,7 +56,11 @@ class GeofencePolicy {
       debouncer.reset();
       return GeofenceEvaluation.outside;
     }
-    final stable = debouncer.accept(fix, sampleAccepted: true);
+    final stable = debouncer.accept(
+      fix,
+      sampleAccepted: true,
+      now: _clock(),
+    );
     return stable ? GeofenceEvaluation.arrived : GeofenceEvaluation.approaching;
   }
 }
