@@ -38,6 +38,10 @@ import '../../features/delivery/data/repositories/local_delivery_assignment_repo
 import '../../features/delivery/data/repositories/drift_delivery_command_repository.dart';
 import '../../features/delivery/data/repositories/remote_delivery_lifecycle_repository.dart';
 import '../../features/delivery/data/repositories/remote_delivery_offer_repository.dart';
+import '../../features/realtime/application/realtime_coordinator.dart';
+import '../../features/realtime/data/remote/http_client_sse_transport.dart';
+import '../../features/realtime/data/remote/http_driver_events_remote.dart';
+import '../../features/realtime/data/stores/last_event_cursor_store.dart';
 import '../../features/delivery/domain/repositories/delivery_assignment_repository.dart';
 import '../../features/delivery/domain/repositories/delivery_command_repository.dart';
 import '../../features/delivery/domain/repositories/delivery_lifecycle_repository.dart';
@@ -186,6 +190,33 @@ final class AppServiceRegistry {
     return registry;
   }
 
+  /// STEP 6-B: SSE + polling events channel (remote only).
+  void _initRealtimeCoordinator({required SaeqApiClient api}) {
+    final baseUrl = _backendConfiguration.apiBaseUrl;
+    if (baseUrl == null || baseUrl.isEmpty) return;
+
+    late final RemoteAuthenticationRepository? remoteAuth;
+    final auth = _authenticationRepository;
+    remoteAuth = auth is RemoteAuthenticationRepository ? auth : null;
+
+    final eventsRemote = HttpDriverEventsRemote(
+      api: api,
+      baseUrl: baseUrl,
+      accessTokenCache: _accessTokenCache,
+      sseTransport: HttpClientSseTransport(),
+    );
+    _realtimeCoordinator = RealtimeCoordinator(
+      remote: eventsRemote,
+      cursorStore: SharedPreferencesLastEventCursorStore(),
+      logger: _logger,
+      onUnauthorizedRefresh: () async {
+        if (remoteAuth == null) return false;
+        return remoteAuth.refreshTokensForClient();
+      },
+    );
+    _logger.info('AppServiceRegistry: RealtimeCoordinator initialized');
+  }
+
   /// Wires Delivery datasources → repositories → use cases.
   Future<void> _initDeliveryStack() async {
     if (_backendConfiguration.isRemote) {
@@ -204,6 +235,7 @@ final class AppServiceRegistry {
       _deliveryLifecycleRepository = RemoteDeliveryLifecycleRepository(
         remote: _deliveryLifecycleRemote!,
       );
+      _initRealtimeCoordinator(api: api);
       _logger.info(
         'AppServiceRegistry: HttpDeliveryRemoteDataSource + lifecycle initialized',
       );
@@ -506,6 +538,8 @@ final class AppServiceRegistry {
     await registry._authenticationRepository?.dispose();
     registry._deliveryLifecycleRemote?.onLogoutOrSessionExpired();
     registry._customerContactMemoryCache?.clear();
+    await registry._realtimeCoordinator?.dispose();
+    registry._realtimeCoordinator = null;
     final availability = registry._driverAvailabilityRepository;
     if (availability is LocalDriverAvailabilityRepository) {
       availability.dispose();
@@ -692,6 +726,7 @@ final class AppServiceRegistry {
   AcceptDeliveryOfferAndBindBusy? _acceptDeliveryOfferAndBindBusy;
   CompleteDeliveryAndReleaseBusy? _completeDeliveryAndReleaseBusy;
   RecordLocalDeliveryCommand? _recordLocalDeliveryCommand;
+  RealtimeCoordinator? _realtimeCoordinator;
 
   /// The application's logger service.
   static LoggerService get logger => _instance!._logger;
@@ -790,6 +825,10 @@ final class AppServiceRegistry {
   /// STEP 3 local command ledger; never a Backend adapter.
   static DeliveryCommandRepository? get deliveryCommandRepository =>
       _instance!._deliveryCommandRepository;
+
+  /// STEP 6-B realtime coordinator (SSE + polling); remote mode only.
+  static RealtimeCoordinator? get realtimeCoordinator =>
+      _instance!._realtimeCoordinator;
 
   /// Use case: load offers (one-active enforced).
   static GetDeliveryOffers? get getDeliveryOffers =>

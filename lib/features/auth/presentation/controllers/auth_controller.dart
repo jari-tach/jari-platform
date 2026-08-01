@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -262,6 +264,8 @@ class AuthController extends Notifier<AuthControllerState> {
     AppServiceRegistry.deliveryLifecycleRepository?.clearCustomerContact();
     AppServiceRegistry.customerContactMemoryCache?.clear();
     AppServiceRegistry.deliveryLifecycleRemote?.onLogoutOrSessionExpired();
+    // Close realtime channel on logout / session expiry (STEP 6-B).
+    unawaited(AppServiceRegistry.realtimeCoordinator?.onLogout());
   }
 
   Future<void> refreshSession() async {

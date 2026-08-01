@@ -17,6 +17,9 @@ import '../../availability/presentation/widgets/availability_connectivity_bridge
 import '../../availability/presentation/widgets/driver_availability_card.dart';
 import '../../delivery/presentation/providers/delivery_providers.dart';
 import '../../delivery/presentation/widgets/delivery_offer_home_banner.dart';
+import '../../realtime/domain/entities/realtime_connection_status.dart';
+import '../../realtime/presentation/providers/realtime_providers.dart';
+import '../../realtime/presentation/widgets/realtime_connection_banner.dart';
 
 /// Authenticated Home dashboard (PHASE 2.6 Batch 3 — Figma Home/Availability).
 ///
@@ -40,6 +43,7 @@ class HomeScreen extends ConsumerWidget {
     final state = ref.watch(authControllerProvider);
     final session = state.session;
     final offline = ref.watch(isOfflineProvider);
+    final realtime = ref.watch(realtimeControllerProvider);
     final summary = ref.watch(fakeHomeSummaryProvider);
 
     return Scaffold(
@@ -69,6 +73,10 @@ class HomeScreen extends ConsumerWidget {
                       SaeqOfflineBanner(
                         message: l10n.offlineBannerMessage,
                         visible: offline,
+                      ),
+                      RealtimeConnectionBanner(
+                        status: realtime.status,
+                        message: _realtimeMessage(l10n, realtime.status),
                       ),
                       Text(
                         key: greetingKey,
@@ -237,4 +245,18 @@ class _Metric extends StatelessWidget {
       ),
     );
   }
+}
+
+String _realtimeMessage(
+  AppLocalizations l10n,
+  RealtimeConnectionStatus status,
+) {
+  return switch (status) {
+    RealtimeConnectionStatus.reconnecting => l10n.realtimeReconnecting,
+    RealtimeConnectionStatus.degraded => l10n.realtimeDegraded,
+    RealtimeConnectionStatus.catchingUp => l10n.realtimeCatchingUp,
+    RealtimeConnectionStatus.connected => l10n.realtimeConnected,
+    RealtimeConnectionStatus.idle ||
+    RealtimeConnectionStatus.stopped => l10n.realtimeConnected,
+  };
 }
