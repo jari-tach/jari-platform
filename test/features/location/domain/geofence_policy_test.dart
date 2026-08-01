@@ -112,6 +112,39 @@ void main() {
         isFalse,
       );
     });
+
+    test('advances on wall clock when GNSS timestamps are stuck', () {
+      final debouncer = LocationFixDebouncer(
+        requiredHits: 2,
+        minInterval: const Duration(seconds: 1),
+      );
+      final t0 = DateTime.utc(2026, 7, 30, 12);
+      final stuck = LocationFix(
+        point: const GeoPoint(latitude: 1, longitude: 1),
+        recordedAt: t0,
+        accuracyMeters: 10,
+      );
+      expect(
+        debouncer.accept(stuck, sampleAccepted: true, now: t0),
+        isFalse,
+      );
+      expect(
+        debouncer.accept(
+          stuck,
+          sampleAccepted: true,
+          now: t0.add(const Duration(milliseconds: 500)),
+        ),
+        isFalse,
+      );
+      expect(
+        debouncer.accept(
+          stuck,
+          sampleAccepted: true,
+          now: t0.add(const Duration(seconds: 2)),
+        ),
+        isTrue,
+      );
+    });
   });
 
   group('GeofencePolicy', () {

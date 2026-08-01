@@ -50,17 +50,34 @@ class LocationFixDebouncer {
   }
 
   /// Returns `true` when the debouncer has enough consecutive accepts.
-  bool accept(LocationFix fix, {required bool sampleAccepted}) {
+  ///
+  /// Spacing prefers [LocationFix.recordedAt]. When GNSS timestamps do not
+  /// advance (common with mock / fused providers), [now] (wall clock) is used
+  /// so stationary-inside-geofence can still satisfy [requiredHits].
+  bool accept(
+    LocationFix fix, {
+    required bool sampleAccepted,
+    DateTime? now,
+  }) {
     if (!sampleAccepted) {
       reset();
       return false;
     }
+    final gnssAt = fix.recordedAt.toUtc();
+    final wallAt = now?.toUtc();
     final last = _lastAcceptedAt;
-    if (last != null && fix.recordedAt.difference(last) < minInterval) {
-      // Too soon — ignore without resetting the streak.
-      return _hits >= requiredHits;
+    if (last != null) {
+      final gnssSpaced = gnssAt.difference(last) >= minInterval;
+      final wallSpaced =
+          wallAt != null && wallAt.difference(last) >= minInterval;
+      if (!gnssSpaced && !wallSpaced) {
+        // Too soon — ignore without resetting the streak.
+        return _hits >= requiredHits;
+      }
+      _lastAcceptedAt = gnssSpaced ? gnssAt : wallAt!;
+    } else {
+      _lastAcceptedAt = gnssAt;
     }
-    _lastAcceptedAt = fix.recordedAt;
     _hits += 1;
     return _hits >= requiredHits;
   }
