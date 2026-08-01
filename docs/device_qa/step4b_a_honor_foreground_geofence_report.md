@@ -2,93 +2,112 @@
 
 ## Status
 
-**PENDING RETEST — AUTH FIX MERGED (PR #30); LIVE JOURNEY NOT YET RE-RUN**
+**BLOCKED — PRE-EXISTING IDEMPOTENCY-KEY CLIENT BUG (OUTSIDE STEP 4B-A SCOPE)**
 
-A prior Device QA attempt on HONOR was blocked at OTP verify by a pre-existing
-auth client bug (hardcoded non-UUID `deviceId`). That bug was fixed in an
-**independent** PR:
+After the independent auth `deviceId` fix (PR #30) was merged and this branch
+was updated, Device QA was re-run from the beginning on HONOR. OTP verify now
+**PASS**es. The live journey then advances through Home / Available (with a QA
+DB force for an ADR-017 offline mapping quirk) to Offer Accept, where Backend
+rejects the accept call because the Flutter client sends an `Idempotency-Key`
+containing `:` characters.
 
-- PR [#30](https://github.com/jari-tach/jari-platform/pull/30) —
-  `fix(auth): stable persisted UUID as device.deviceId in OTP verify`
-- Merge SHA: `b99e9df` (Merge Commit of Head `398da9f`)
+This report must **not** be read as PASS. Owner deferral is **not permitted**.
+PR ‎#27 must **not** be merged until the full live journey passes.
 
-This STEP 4B-A branch has been updated with that `main`. This report must
-**not** be read as PASS until the full live journey is re-executed and
-evidenced. Owner deferral is **not permitted**.
-
-Previous blocked Head: `55f586927f543229febcedf6cab1490dee2c0c60`
-Current Head (post PR #30 merge into this branch): see git HEAD at push time.
+Pinned Head SHA for this report: `269146cd8652e91c3210d8cf4845f5fc0cf3c88d`
+(compare with `gh api repos/jari-tach/jari-platform/pulls/27 --jq .head.sha`
+before any merge).
 
 ---
 
-## Environment — unlocked on 2026-08-01 (evening resume)
+## Unblocks completed before this retest
+
+| Item | Result |
+|---|---|
+| PR [#30](https://github.com/jari-tach/jari-platform/pull/30) stable `device.deviceId` UUID | **Merged** — Merge SHA `b99e9df` (Head `398da9f`) |
+| PR ‎#27 updated with `main` including PR #30 | Merge commit `572b1db` + docs `269146c` |
+| Local `flutter analyze` on Head `269146c` | No issues |
+| Local `flutter test` on Head `269146c` | **1085** passed |
+| CI on Head `269146c` | Analyze / Test / Build Android / Build iOS — all green |
+| Debug APK rebuild with three defines | Success |
+
+---
+
+## Environment — retest 2026-08-01 evening
 
 | Check | Result |
 |---|---|
 | Device | **HONOR VKP-NX9** (`AP4EVB6423004646`), brand HONOR, Android **16** (API 36) |
 | `adb devices` | `device` |
-| `flutter devices` | `VKP NX9 (mobile) • AP4EVB6423004646 • android-arm64` |
-| Battery / location mode | level 52; `location_mode=3` (on) |
-| PostgreSQL | Portable PostgreSQL **16.6** on `127.0.0.1:5432` (after VC++ Redistributable install) |
-| Backend | NestJS `start:dev`, Node `v24.18.0` (within `engines: >=20 <25`) |
-| Health | `GET /health/live` → ok; `GET /health/ready` → ok (database ok) |
+| PostgreSQL | Portable PostgreSQL **16.6** on `127.0.0.1:5432` |
+| Backend | NestJS `start:dev`, Node within `engines: >=20 <25` |
+| Health | `GET /health/live` → ok; `GET /health/ready` → ok |
 | `adb reverse` | `tcp:3000` → host `3000` |
-| Flutter Head | `55f586927f543229febcedf6cab1490dee2c0c60` (unchanged vs prior CI-green Head) |
-| Local checks | `flutter analyze` No issues; `flutter test` **1078** passed |
-| CI on Head | Analyze / Test / Build Android / Build iOS — all green (prior run) |
-| Debug APK | Built with `--dart-define=SAEQ_BACKEND_MODE=remote`, `SAEQ_API_BASE_URL=http://127.0.0.1:3000`, `SAEQ_DEVICE_LOCATION_QA=true` |
-| Seed + offer | Driver `+966500000000`; delivery `SEED-DEL-0001`; pending offer created via SQL (no offer-create API exists) |
-| Scope vs `main` | Still **exactly 5 files** (3 usecases + regression test + this report) |
+| Flutter Head | `269146cd8652e91c3210d8cf4845f5fc0cf3c88d` |
+| Debug APK | `--dart-define=SAEQ_BACKEND_MODE=remote`, `SAEQ_API_BASE_URL=http://127.0.0.1:3000`, `SAEQ_DEVICE_LOCATION_QA=true` |
+| Seed + offer | Driver `+966500000000`; delivery `SEED-DEL-0001`; pending offer via SQL |
 
 Evidence directory (local, not committed): `docs/device_qa/evidence/`
+(`r01_launch.png` … `r08_accepted.png`, `r_fail.png`, `step4ba_live_run.txt`)
 
 ---
 
-## Live journey progress (device)
+## Live journey progress (retest after PR #30)
 
 | Step | Result | Evidence |
 |---|---|---|
-| App launch on HONOR | PASS | `evidence/01_launch.png` |
-| Language → English | PASS | `evidence/02_english.png` |
-| Onboarding → Sign in | PASS | `evidence/03_login.png` |
-| OTP request `0500000000` → Backend | PASS | Backend log `POST /v1/auth/otp/request` 200, Dart UA via `adb reverse` |
-| OTP screen shows 6 digits | PASS | Digits filled with `000000` |
-| OTP verify | **FAIL** | Backend `VALIDATION_ERROR — Request validation failed` on `POST /v1/auth/otp/verify` |
-| Availability / offers / pickup / geofence / arrival | **NOT REACHED** | Blocked by OTP verify |
+| App launch on HONOR | PASS | `r01_launch.png` |
+| Language → English | PASS | UI dump + tap log |
+| Onboarding → Sign in | PASS | `r02_login.png` |
+| OTP request `0500000000` | PASS | Backend `POST /v1/auth/otp/request` 200 |
+| OTP verify `000000` with persisted UUID `deviceId` | **PASS** | Backend `POST /v1/auth/otp/verify` 200; `r04_after_verify.png` Home |
+| Availability → Available | **PASS*** | `r06_available.png` shows **Stop receiving requests** |
+| Open offer | PASS | `r07_offer.png` |
+| Accept offer | **FAIL** | Backend `VALIDATION_ERROR — Idempotency-Key header contains unsupported characters` |
+| Confirm pickup | NOT REACHED | Blocked by accept |
+| En route / geofence / auto arrival / delivery confirm | NOT REACHED | Blocked by accept |
+
+\*Availability note (environment workaround, not a product change in PR ‎#27):
+Backend default status `offline` is mapped by Flutter to connectivity-offline.
+ADR-017 denies `offline → available`, and connectivity recovery to local
+`unavailable` cannot be sent on the wire (`toWireStatus(unavailable) == null`).
+For this retest the seed row in `driver_availabilities` was forced to
+`available` and the app was relaunched so `GET /availability` synced. This is
+**not** claimed as a product fix and is **not** part of STEP 4B-A scope.
 
 ---
 
 ## Root cause (classified)
 
-**Category: pre-existing code defect outside STEP 4B-A scope — not environment, not HONOR, not location permissions.**
+**Category: pre-existing code defect outside STEP 4B-A scope — not HONOR, not Geofence, not environment.**
 
-Flutter remote auth client sends a non-UUID `deviceId`:
+Flutter builds offer-accept idempotency keys as:
 
 ```dart
-// lib/features/auth/data/repositories/remote_authentication_repository.dart
-device: const {
-  'deviceId': 'saeq-driver-flutter',  // NOT a UUID
-  'platform': 'android',
-  'appVersion': '1.0.0',
-},
+// lib/features/delivery/presentation/controllers/delivery_controller.dart
+String _commandId(...) => 'local:$driverId:$targetId:$action';
 ```
 
-Backend DTO requires a UUID:
+Example observed on the wire:
 
-```ts
-// saeq-backend src/modules/auth/api/dto/otp-verify.dto.ts
-export class DeviceInfoDto {
-  @IsUUID()
-  deviceId!: string;
-  ...
-}
-```
+`local:e0fd2ff7-…:6306a6e1-…:accept`
 
-Observed Backend responses (2026-08-01 ~16:45 UTC):
+Backend contract / decorator require:
 
-- `POST /v1/auth/otp/verify` → handled as `VALIDATION_ERROR — Request validation failed` (requestIds `6cb5fa1f-…`, `9099d241-…`)
+`^[A-Za-z0-9._~-]+$` (no `:`).
 
-This file is **not** among the five STEP 4B-A authorized files. Fixing it would expand PR ‎#27 beyond the approved STEP 4B-A scope (lifecycle usecase short-circuit + foreground geofence regression + this report). Per executive directive, out-of-scope fixes were not applied.
+Observed Backend response (2026-08-01 ~17:49 UTC):
+
+- `POST /v1/offers/6306a6e1-fbaf-44b2-a74f-14f680e3008e/accept`
+- `VALIDATION_ERROR — Idempotency-Key header contains unsupported characters`
+- requestId `7b9d9bc1-623e-4379-8931-a14a9c76ed95`
+
+UI shows: “Something went wrong while updating the delivery offer.” + “Reconnecting…”
+
+This file (`delivery_controller.dart`) is **not** among the STEP 4B-A
+authorized files. Fixing it inside PR ‎#27 would expand scope. Same governance
+path as the prior `deviceId` bug: **independent small fix PR**, then rebase /
+retest Device QA.
 
 ---
 
@@ -97,16 +116,15 @@ This file is **not** among the five STEP 4B-A authorized files. Fixing it would 
 | Scenario | Result |
 |---|---|
 | App launch on HONOR | PASS |
-| OTP request / Development OTP verify | **FAIL** (verify validation) |
-| Driver profile + compliance load | NOT REACHED |
-| Availability → Available | NOT REACHED |
-| Offers load + accept | NOT REACHED |
+| OTP request / Development OTP verify | **PASS** (after PR #30) |
+| Driver profile + compliance load | PASS (Home reached) |
+| Availability → Available | PASS* (DB force + relaunch; see note) |
+| Offers load + accept | **FAIL** (Idempotency-Key `:`) |
 | Active delivery + manual pickup confirmation | NOT REACHED |
 | Foreground location monitoring | NOT REACHED |
 | Automatic arrival exactly once | NOT REACHED |
 | Manual arrival button = 0 | Automated regression only (not live device) |
 | Delivery confirmation after Backend arrival ack | NOT REACHED |
-| App restart / Logout checks | NOT REACHED |
 
 ## Counts (live device)
 
@@ -116,19 +134,29 @@ This file is **not** among the five STEP 4B-A authorized files. Fixing it would 
 | Duplicate arrivals | NOT EXECUTED |
 | Duplicate commands | NOT EXECUTED |
 | Duplicate transitions | NOT EXECUTED |
-| Crashes | 0 observed before OTP block |
-| Freezes | 0 observed before OTP block |
+| Crashes | 0 observed |
+| Freezes | 0 observed |
 | Token leaks | NOT EXECUTED |
 | PII leaks | NOT EXECUTED |
 
 ## Defects discovered on device
 
-1. **OTP verify blocked by non-UUID `deviceId`** — Flutter `remote_authentication_repository.dart` hardcodes `saeq-driver-flutter`; Backend `@IsUUID()` rejects it. Blocks all remote Device QA journeys. **Outside STEP 4B-A scope.**
+1. ~~OTP verify blocked by non-UUID `deviceId`~~ — **FIXED** in PR #30 (Merge `b99e9df`).
+2. **Offer accept blocked by illegal `Idempotency-Key` characters (`:`)** —
+   `DeliveryController._commandId` emits `local:…:…:…` while Backend enforces
+   `^[A-Za-z0-9._~-]+$`. **Outside STEP 4B-A scope.**
+3. **Availability offline mapping quirk (ADR-017 / wire gap)** — Backend
+   `offline` leaves the driver unable to go available via the normal CTA in
+   remote mode; QA used a DB force. Track separately; not required to claim
+   STEP 4B-A PASS, but needed for a clean journey without SQL.
 
 ## Defects fixed in this branch (prior STEP 4B-A work — unchanged)
 
-1. **Idempotent lifecycle command short-circuit** — `ConfirmPickupRemote`, `ReportAutomaticArrivalRemote`, and `ConfirmDeliveryRemote` honor a completed local command id before the stage gate.
-2. Automated foreground geofence / remote-arrival regression tests under `test/features/step4ba/`.
+1. **Idempotent lifecycle command short-circuit** — `ConfirmPickupRemote`,
+   `ReportAutomaticArrivalRemote`, and `ConfirmDeliveryRemote` honor a
+   completed local command id before the stage gate.
+2. Automated foreground geofence / remote-arrival regression tests under
+   `test/features/step4ba/`.
 
 ## Authorized scope reminder
 
@@ -148,12 +176,25 @@ Still locked / deferred:
 
 Per executive directive, STEP 4B-A merge requires:
 
-- Flutter Analyze / Test / Build Android / Build iOS: SUCCESS on the final Head
+- Flutter Analyze / Test / Build Android / Build iOS: SUCCESS on the final Head ✅ (`269146c`)
 - Device QA: **PASS** on a full live journey (owner deferral withdrawn)
 
-Auth unblock: **DONE** via independent PR #30 (Merge SHA `b99e9df`).
-Current Device QA: **PENDING RETEST** — full journey from OTP → availability →
-offer → accept → pickup → en route → geofence arrival (exactly once) →
-delivery confirmation must be re-run on HONOR with a rebuild that includes
-PR #30. Do **not** treat this report as PASS and do **not** merge PR ‎#27
-until that retest succeeds with evidence. H0 remains blocked.
+Auth `deviceId` unblock: **DONE** (PR #30).
+Current Device QA: **BLOCKED** at offer accept by illegal `Idempotency-Key`.
+
+**Stop condition met:** real blocker documented; PR not merged; H0 not started.
+
+### Recommended unblock (requires owner authorization — expands beyond STEP 4B-A)
+
+Authorize a **separate minimal PR** (e.g. `fix/delivery-idempotency-key-charset`) that changes
+`DeliveryController._commandId` to emit a contract-safe key (no `:`), with
+regression tests that the accept header matches `^[A-Za-z0-9._~-]{8,128}$`,
+then:
+
+1. Merge that fix to `main` with Merge Commit + pinned `expected_head_sha`.
+2. Update PR ‎#27 onto the new `main`.
+3. Rebuild the debug APK with the three defines and re-run Device QA from OTP
+   through geofence arrival (exactly once) and delivery confirmation.
+4. Only then flip this report to **PASS** and merge PR ‎#27.
+
+Do **not** treat this report as PASS until that live geofence journey completes.
