@@ -7,13 +7,18 @@
 /// characters`.
 ///
 /// Guarantees:
-/// - Pure function of (driverId, targetId, action): retries and Local
-///   Command Ledger replays reuse the exact same key.
-/// - Different driver, target, or action always produce a different key.
+/// - Pure function of (driverId, targetId, action[, scope]): retries and Local
+///   Command Ledger replays reuse the exact same key for the same inputs.
+/// - Different driver, target, action, or scope always produce a different key.
 /// - Output always matches the contract pattern, including the 8–128 length
 ///   bounds, even if a component contains characters outside the allowed
 ///   set (each such character is escaped, never dropped, so distinct inputs
 ///   cannot collapse into the same key).
+///
+/// [scope] should carry the aggregate / server revision when the target id is
+/// stable across Backend resets (e.g. seed delivery UUID). Without it, a later
+/// confirmPickup against a recycled delivery reuses the old key with a new
+/// `aggregateVersion` body and the Backend returns IDEMPOTENCY_CONFLICT.
 library;
 
 /// Allowed by contract: `A–Z a–z 0–9 . _ ~ -`.
@@ -23,8 +28,12 @@ String localCommandId({
   required String driverId,
   required String targetId,
   required String action,
+  String? scope,
 }) {
-  final raw = 'local_${driverId}_${targetId}_$action';
+  final scopePart = scope?.trim();
+  final raw = (scopePart == null || scopePart.isEmpty)
+      ? 'local_${driverId}_${targetId}_$action'
+      : 'local_${driverId}_${targetId}_${action}_$scopePart';
   final key = _escape(raw);
   if (key.length <= 128) return key;
   // Components are UUIDs and short action literals in practice (~115 chars

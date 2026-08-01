@@ -933,6 +933,7 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
             driverId: driverId,
             targetId: assignmentId,
             action: 'confirmPickup',
+            scope: state.activeAssignment?.serverRevision,
           ),
           connectivityOnline: !offline,
         );
@@ -1080,6 +1081,7 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
               driverId: driverId,
               targetId: assignment.assignmentId,
               action: 'reportArrival',
+              scope: assignment.serverRevision,
             ),
             evidence: evidence,
             connectivityOnline: !simulateOffline,
@@ -1317,6 +1319,7 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
         driverId: assignment.driverId,
         targetId: assignment.assignmentId,
         action: 'cancel',
+        scope: assignment.serverRevision,
       ),
       driverId: assignment.driverId,
       targetId: assignment.assignmentId,
@@ -1367,6 +1370,7 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
           driverId: driverId,
           targetId: assignment.assignmentId,
           action: 'cancel',
+          scope: assignment.serverRevision,
         ),
         reasonCode: reasonCode,
       );
@@ -1429,6 +1433,7 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
           driverId: driverId,
           targetId: assignment.assignmentId,
           action: 'reportIssue',
+          scope: assignment.serverRevision,
         ),
         code: code,
         notes: notes,
@@ -1536,6 +1541,7 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
                 driverId: driverId,
                 targetId: assignmentId,
                 action: 'confirm-delivery',
+                scope: state.activeAssignment?.serverRevision,
               ),
               connectivityOnline: !offline,
             )
@@ -1546,6 +1552,7 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
                 driverId: driverId,
                 targetId: assignmentId,
                 action: 'confirm-delivery',
+                scope: state.activeAssignment?.serverRevision,
               ),
               simulateOffline: offline,
             );
@@ -1703,13 +1710,19 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
 
   /// Contract-safe deterministic key (`^[A-Za-z0-9._~-]{8,128}$`); reused on
   /// retry and by Local Command Ledger replays. See [localCommandId].
+  ///
+  /// [scope] is the assignment `serverRevision` / aggregate version for
+  /// delivery-scoped mutations so recycled Backend deliveries do not collide
+  /// with a prior Idempotency-Key + different payload.
   String _commandId({
     required String driverId,
     required String targetId,
     required String action,
+    String? scope,
   }) => localCommandId(
     driverId: driverId,
     targetId: targetId,
     action: action,
+    scope: scope,
   );
 }
