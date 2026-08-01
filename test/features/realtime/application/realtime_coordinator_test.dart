@@ -368,6 +368,184 @@ void main() {
       await coordinator.dispose();
     });
 
+    test(
+      'delivery.state_changed invalidates delivery only (STEP 6-C)',
+      () async {
+        final remote = FakeDriverEventsRemote();
+        final coordinator = _build(remote: remote);
+        final offers = <int>[];
+        final delivery = <int>[];
+        final availability = <int>[];
+        coordinator.offersInvalidated.listen((_) => offers.add(1));
+        coordinator.deliveryInvalidated.listen((_) => delivery.add(1));
+        coordinator.availabilityInvalidated.listen((_) => availability.add(1));
+
+        await coordinator.start('drv-1');
+        await Future<void>.delayed(Duration.zero);
+        remote.emitSse(
+          sampleEnvelope(
+            sequence: 21,
+            eventType: 'delivery.state_changed',
+            aggregateType: 'delivery',
+            payload: const {'driverId': 'drv-1', 'deliveryId': 'd-1'},
+          ),
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+
+        expect(delivery, hasLength(1));
+        expect(offers, isEmpty);
+        expect(availability, isEmpty);
+        expect(coordinator.inbox.lastSequence, 21);
+        await coordinator.dispose();
+      },
+    );
+
+    test('delivery.cancelled invalidates delivery (STEP 6-C)', () async {
+      final remote = FakeDriverEventsRemote();
+      final coordinator = _build(remote: remote);
+      final delivery = <int>[];
+      coordinator.deliveryInvalidated.listen((_) => delivery.add(1));
+
+      await coordinator.start('drv-1');
+      await Future<void>.delayed(Duration.zero);
+      remote.emitSse(
+        sampleEnvelope(
+          sequence: 22,
+          eventType: 'delivery.cancelled',
+          aggregateType: 'delivery',
+          payload: const {'driverId': 'drv-1', 'deliveryId': 'd-1'},
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+
+      expect(delivery, hasLength(1));
+      await coordinator.dispose();
+    });
+
+    test(
+      'driver.availability_changed invalidates availability only (STEP 6-C)',
+      () async {
+        final remote = FakeDriverEventsRemote();
+        final coordinator = _build(remote: remote);
+        final offers = <int>[];
+        final delivery = <int>[];
+        final availability = <int>[];
+        coordinator.offersInvalidated.listen((_) => offers.add(1));
+        coordinator.deliveryInvalidated.listen((_) => delivery.add(1));
+        coordinator.availabilityInvalidated.listen((_) => availability.add(1));
+
+        await coordinator.start('drv-1');
+        await Future<void>.delayed(Duration.zero);
+        remote.emitSse(
+          sampleEnvelope(
+            sequence: 23,
+            eventType: 'driver.availability_changed',
+            aggregateType: 'driver',
+            aggregateId: 'drv-1',
+            payload: const {'driverId': 'drv-1', 'available': false},
+          ),
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+
+        expect(availability, hasLength(1));
+        expect(offers, isEmpty);
+        expect(delivery, isEmpty);
+        await coordinator.dispose();
+      },
+    );
+
+    test(
+      'foreign driver availability event does not invalidate (STEP 6-C)',
+      () async {
+        final remote = FakeDriverEventsRemote();
+        final coordinator = _build(remote: remote);
+        final availability = <int>[];
+        coordinator.availabilityInvalidated.listen((_) => availability.add(1));
+
+        await coordinator.start('drv-1');
+        await Future<void>.delayed(Duration.zero);
+        remote.emitSse(
+          sampleEnvelope(
+            sequence: 24,
+            eventType: 'driver.availability_changed',
+            aggregateType: 'driver',
+            aggregateId: 'drv-other',
+            payload: const {'driverId': 'drv-other'},
+          ),
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+
+        expect(availability, isEmpty);
+        await coordinator.dispose();
+      },
+    );
+
+    test(
+      'system.resync_required via SSE invalidates all read models (STEP 6-C)',
+      () async {
+        final remote = FakeDriverEventsRemote();
+        final cursor = MemoryLastEventCursorStore();
+        final coordinator = _build(remote: remote, cursorStore: cursor);
+        final offers = <int>[];
+        final delivery = <int>[];
+        final availability = <int>[];
+        coordinator.offersInvalidated.listen((_) => offers.add(1));
+        coordinator.deliveryInvalidated.listen((_) => delivery.add(1));
+        coordinator.availabilityInvalidated.listen((_) => availability.add(1));
+
+        await coordinator.start('drv-1');
+        await Future<void>.delayed(Duration.zero);
+        remote.emitSse(
+          sampleEnvelope(
+            sequence: 25,
+            eventType: 'system.resync_required',
+            aggregateType: 'system',
+            payload: const {},
+          ),
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+
+        expect(offers, hasLength(1));
+        expect(delivery, hasLength(1));
+        expect(availability, hasLength(1));
+        expect(await cursor.read('drv-1'), 25);
+        await coordinator.dispose();
+      },
+    );
+
+    test(
+      'resyncRequired polling flag triggers full resync (STEP 6-C)',
+      () async {
+        final remote = FakeDriverEventsRemote()
+          ..failNextSse = true
+          ..resyncRequired = true;
+        final coordinator = _build(
+          remote: remote,
+          backoff: ReconnectBackoff(
+            initial: const Duration(milliseconds: 1),
+            maximum: const Duration(milliseconds: 1),
+            random: null,
+          ),
+          sseFailureThreshold: 1,
+          pollingInterval: const Duration(milliseconds: 15),
+        );
+        final offers = <int>[];
+        final delivery = <int>[];
+        final availability = <int>[];
+        coordinator.offersInvalidated.listen((_) => offers.add(1));
+        coordinator.deliveryInvalidated.listen((_) => delivery.add(1));
+        coordinator.availabilityInvalidated.listen((_) => availability.add(1));
+
+        await coordinator.start('drv-1');
+        await Future<void>.delayed(const Duration(milliseconds: 60));
+
+        expect(offers, isNotEmpty);
+        expect(delivery, isNotEmpty);
+        expect(availability, isNotEmpty);
+        await coordinator.dispose();
+      },
+    );
+
     test('stale aggregateVersion does not re-invalidate offers', () async {
       final remote = FakeDriverEventsRemote();
       final coordinator = _build(remote: remote);

@@ -25,6 +25,11 @@ typedef TokenRefreshFn = Future<bool> Function();
 /// 4. On background: pause. On resume: catch-up poll, then SSE.
 ///
 /// Events are treated as invalidation signals — offer list truth stays REST.
+///
+/// STEP 6-C routing: `delivery.*` events raise [deliveryInvalidated],
+/// `driver.availability_changed` raises [availabilityInvalidated], and
+/// `system.resync_required` (SSE event or polling flag) raises **all**
+/// invalidation streams so every affected read model resyncs from REST.
 final class RealtimeCoordinator {
   RealtimeCoordinator({
     required DriverEventsRemote remote,
@@ -55,6 +60,10 @@ final class RealtimeCoordinator {
       StreamController<DriverEvent>.broadcast();
   final StreamController<void> _offersInvalidatedController =
       StreamController<void>.broadcast();
+  final StreamController<void> _deliveryInvalidatedController =
+      StreamController<void>.broadcast();
+  final StreamController<void> _availabilityInvalidatedController =
+      StreamController<void>.broadcast();
 
   RealtimeConnectionStatus _status = RealtimeConnectionStatus.idle;
   String? _driverId;
@@ -73,6 +82,9 @@ final class RealtimeCoordinator {
       _statusController.stream;
   Stream<DriverEvent> get events => _eventController.stream;
   Stream<void> get offersInvalidated => _offersInvalidatedController.stream;
+  Stream<void> get deliveryInvalidated => _deliveryInvalidatedController.stream;
+  Stream<void> get availabilityInvalidated =>
+      _availabilityInvalidatedController.stream;
   RealtimeConnectionStatus get status => _status;
   EventInbox get inbox => _inbox;
   String? get driverId => _driverId;
@@ -258,7 +270,7 @@ final class RealtimeCoordinator {
     try {
       var page = await _remote.listEvents(after: _inbox.lastSequence);
       if (page.resyncRequired) {
-        _notifyOffersInvalidated();
+        _notifyFullResync();
       }
       for (final wire in page.events) {
         await _handleWire(wire);
@@ -295,7 +307,7 @@ final class RealtimeCoordinator {
     if (domain.eventType == DriverEventType.systemResyncRequired) {
       _inbox.noteSequence(domain.sequence);
       await _persistCursor();
-      _notifyOffersInvalidated();
+      _notifyFullResync();
       if (!_eventController.isClosed) _eventController.add(domain);
       return;
     }
@@ -307,6 +319,12 @@ final class RealtimeCoordinator {
         if (!_eventController.isClosed) _eventController.add(domain);
         if (domain.eventType.invalidatesOffers) {
           _notifyOffersInvalidated();
+        }
+        if (domain.eventType.invalidatesDelivery) {
+          _notifyDeliveryInvalidated();
+        }
+        if (domain.eventType.invalidatesAvailability) {
+          _notifyAvailabilityInvalidated();
         }
       case EventInboxDecision.staleAggregate:
         await _persistCursor();
@@ -321,6 +339,26 @@ final class RealtimeCoordinator {
     if (!_offersInvalidatedController.isClosed) {
       _offersInvalidatedController.add(null);
     }
+  }
+
+  void _notifyDeliveryInvalidated() {
+    if (!_deliveryInvalidatedController.isClosed) {
+      _deliveryInvalidatedController.add(null);
+    }
+  }
+
+  void _notifyAvailabilityInvalidated() {
+    if (!_availabilityInvalidatedController.isClosed) {
+      _availabilityInvalidatedController.add(null);
+    }
+  }
+
+  /// `system.resync_required` — every realtime-backed read model must
+  /// re-fetch from REST, not only the offers list (STEP 6-C).
+  void _notifyFullResync() {
+    _notifyOffersInvalidated();
+    _notifyDeliveryInvalidated();
+    _notifyAvailabilityInvalidated();
   }
 
   Future<void> _persistCursor() async {
@@ -340,5 +378,7 @@ final class RealtimeCoordinator {
     await _statusController.close();
     await _eventController.close();
     await _offersInvalidatedController.close();
+    await _deliveryInvalidatedController.close();
+    await _availabilityInvalidatedController.close();
   }
 }
