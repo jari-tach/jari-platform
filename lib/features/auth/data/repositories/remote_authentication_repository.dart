@@ -2,6 +2,7 @@ import 'dart:async';
 
 import '../../../../core/auth_session/access_token_memory_cache.dart';
 import '../../../../core/auth_session/auth_token_store.dart';
+import '../../../../core/auth_session/device_identity_store.dart';
 import '../../../../core/network/idempotency_key_factory.dart';
 import '../../../../core/network/remote_error_classification.dart';
 import '../../../../core/network/remote_error_mapper.dart';
@@ -30,9 +31,11 @@ final class RemoteAuthenticationRepository implements AuthenticationRepository {
     required this._logger,
     IdempotencyKeyFactory? idempotencyKeyFactory,
     RemoteErrorMapper? errorMapper,
+    DeviceIdentityStore? deviceIdentityStore,
     this._locale = 'ar-SA',
   }) : _idempotencyKeys = idempotencyKeyFactory ?? IdempotencyKeyFactory(),
-       _errorMapper = errorMapper ?? const RemoteErrorMapper();
+       _errorMapper = errorMapper ?? const RemoteErrorMapper(),
+       _deviceIdentity = deviceIdentityStore ?? InMemoryDeviceIdentityStore();
 
   final AuthRemoteDataSource _remote;
   final AuthSessionStorage _sessionStorage;
@@ -41,6 +44,7 @@ final class RemoteAuthenticationRepository implements AuthenticationRepository {
   final LoggerService _logger;
   final IdempotencyKeyFactory _idempotencyKeys;
   final RemoteErrorMapper _errorMapper;
+  final DeviceIdentityStore _deviceIdentity;
   final String _locale;
 
   DriverSession? _currentSession;
@@ -143,12 +147,15 @@ final class RemoteAuthenticationRepository implements AuthenticationRepository {
     }
 
     try {
+      // Stable per-install UUID: generated once, persisted, reused for
+      // every verification (backend enforces @IsUUID on device.deviceId).
+      final deviceId = await _deviceIdentity.obtainDeviceId();
       final tokens = await _remote.verifyOtp(
         challengeId: challengeId,
         otpCode: otpCode.trim(),
         idempotencyKey: _idempotencyKeys.next(),
-        device: const {
-          'deviceId': 'saeq-driver-flutter',
+        device: {
+          'deviceId': deviceId,
           'platform': 'android',
           'appVersion': '1.0.0',
         },
