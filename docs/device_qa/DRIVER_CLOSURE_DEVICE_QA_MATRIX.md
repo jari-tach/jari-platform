@@ -1,8 +1,8 @@
 # Driver Closure — Device QA Matrix (Phase 4)
 
-> **Status:** NOT STARTED  
+> **Status:** READY TO RUN (Phase 4)  
 > **Rule:** Every row must be PASS or FAIL with evidence. No partial credit.  
-> **Blocked until:** PRs merged for journey blockers (#37 / #32), backend #5 green+merged as needed.
+> **Unblocked:** #37/#32/#5 merged. Remaining open PR #27 (geofence) must not merge until geofence row PASS.
 
 | # | Scenario | Result | Evidence | Notes |
 | --- | --- | --- | --- | --- |

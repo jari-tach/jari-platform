@@ -109,9 +109,10 @@ class AppConfig {
       _environment = Environment.dev;
     }
 
-    // Use debugPrint instead of print for Flutter compatibility
-    debugPrint('AppConfig: Initialized with environment: $_environment');
-    debugPrint('AppConfig: API URL: $baseApiUrl');
+    if (kDebugMode) {
+      debugPrint('AppConfig: Initialized with environment: $_environment');
+      debugPrint('AppConfig: API URL: $baseApiUrl');
+    }
   }
 
   // Get configuration as map (for debugging)
