@@ -100,6 +100,84 @@ void main() {
     },
   );
 
+  test(
+    'initialize resumes geofence watch for restored navToCustomer assignment',
+    () async {
+      final target = const GeoPoint(latitude: 24.72, longitude: 46.68);
+      final assignment = sampleAssignment(
+        order: sampleOrder(
+          dropoffLatitude: target.latitude,
+          dropoffLongitude: target.longitude,
+          pickupLatitude: target.latitude,
+          pickupLongitude: target.longitude,
+        ),
+        workflowStage: DriverWorkflowStage.navToCustomer,
+        status: DeliveryStatus.pickedUp,
+      );
+      final assignments = FakeDeliveryAssignmentRepository(active: assignment);
+      final gateway = _TrackingLocationGateway();
+      addTearDown(gateway.close);
+
+      final container = ProviderContainer(
+        overrides: [
+          locationGatewayProvider.overrideWithValue(gateway),
+          deliveryControllerProvider.overrideWith(
+            () => DeliveryController(
+              getActiveReader: (_) => GetActiveDelivery(assignments),
+              advanceWorkflowReader: (_) =>
+                  AdvanceDeliveryWorkflow(assignments),
+              driverIdReader: (_) => 'drv-1',
+              acceptPreconditionsReader: (_) =>
+                  const DeliveryAcceptPreconditions(
+                    connectivityOnline: true,
+                    isConfirmedAvailable: true,
+                  ),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      container.read(deliveryControllerProvider);
+      await container.read(deliveryControllerProvider.notifier).initialize();
+      await Future<void>.delayed(const Duration(milliseconds: 40));
+
+      expect(
+        container.read(deliveryControllerProvider).activeAssignment?.workflowStage,
+        DriverWorkflowStage.navToCustomer,
+      );
+
+      final at = DateTime.now().toUtc();
+      gateway.emit(
+        LocationFix(point: target, recordedAt: at, accuracyMeters: 10),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 60));
+      gateway.emit(
+        LocationFix(
+          point: target,
+          recordedAt: DateTime.now().toUtc(),
+          accuracyMeters: 10,
+        ),
+      );
+
+      DriverWorkflowStage? stage;
+      for (var i = 0; i < 40; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        stage = container
+            .read(deliveryControllerProvider)
+            .activeAssignment
+            ?.workflowStage;
+        if (stage == DriverWorkflowStage.verifying) break;
+      }
+
+      expect(
+        stage,
+        DriverWorkflowStage.verifying,
+        reason: 'Issue #38 RC-2: restore must resume geofence arrival watch',
+      );
+    },
+  );
+
   test('low accuracy never triggers automatic arrival', () async {
     final target = const GeoPoint(latitude: 24.72, longitude: 46.68);
     final assignment = sampleAssignment(
