@@ -178,6 +178,61 @@ void main() {
     },
   );
 
+  test(
+    'initialize does not fabricate arrival when restored navToCustomer '
+    'lacks dropoff coordinates',
+    () async {
+      final assignment = sampleAssignment(
+        workflowStage: DriverWorkflowStage.navToCustomer,
+        status: DeliveryStatus.pickedUp,
+        serverRevision: '0',
+      );
+      expect(assignment.order.hasDropoffCoordinates, isFalse);
+      final assignments = FakeDeliveryAssignmentRepository(active: assignment);
+      final gateway = _TrackingLocationGateway();
+      addTearDown(gateway.close);
+
+      final container = ProviderContainer(
+        overrides: [
+          locationGatewayProvider.overrideWithValue(gateway),
+          deliveryControllerProvider.overrideWith(
+            () => DeliveryController(
+              getActiveReader: (_) => GetActiveDelivery(assignments),
+              advanceWorkflowReader: (_) =>
+                  AdvanceDeliveryWorkflow(assignments),
+              driverIdReader: (_) => 'drv-1',
+              acceptPreconditionsReader: (_) =>
+                  const DeliveryAcceptPreconditions(
+                    connectivityOnline: true,
+                    isConfirmedAvailable: true,
+                  ),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      container.read(deliveryControllerProvider);
+      await container.read(deliveryControllerProvider.notifier).initialize();
+      await Future<void>.delayed(const Duration(milliseconds: 80));
+
+      expect(
+        container
+            .read(deliveryControllerProvider)
+            .activeAssignment
+            ?.workflowStage,
+        DriverWorkflowStage.navToCustomer,
+        reason:
+            'Restore without dropoff must not synthesize (0,0) arrival; '
+            'otherwise cancel/reportIssue race on revision/stage',
+      );
+      expect(
+        container.read(deliveryControllerProvider).status,
+        DeliveryViewStatus.ready,
+      );
+    },
+  );
+
   test('low accuracy never triggers automatic arrival', () async {
     final target = const GeoPoint(latitude: 24.72, longitude: 46.68);
     final assignment = sampleAssignment(

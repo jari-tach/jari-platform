@@ -377,7 +377,11 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
       // Issue #38 RC-2: process restore must resume geofence watch while en
       // route to customer — otherwise automatic arrival never fires after
       // force-stop / cold start (Device QA session restore).
-      if (assignment.workflowStage == DriverWorkflowStage.navToCustomer) {
+      // Require dropoff coordinates: without them `_watchCustomerArrivalAndAdvance`
+      // fabricates arrival at (0,0), which races cancel/reportIssue and is not a
+      // valid Device restore path (real orders carry dropoff coords).
+      if (assignment.workflowStage == DriverWorkflowStage.navToCustomer &&
+          assignment.order.hasDropoffCoordinates) {
         unawaited(
           _watchCustomerArrivalAndAdvance(
             driverId: driverId,
