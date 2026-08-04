@@ -41,9 +41,15 @@ On HONOR, re-adding/removing the `gps` test provider every few seconds causes:
 - `gps provider is not a test provider` when set without a successful add
 - Continuous `test/gps provider removed mock provider override` / disabled
 
-Meanwhile the app (with `SAEQ_DEVICE_LOCATION_QA` → `forceLocationManager`) continues to receive LocationManager updates that are **not** a stable mock at dropoff `(24.7201, 46.7201)`. Geofence policy correctly stays `outside` / never reaches `arrived`.
+Meanwhile the app (with `SAEQ_DEVICE_LOCATION_QA`) historically forced
+`forceLocationManager`, which kept reading LocationManager updates that were
+**not** a stable mock at dropoff `(24.7201, 46.7201)`. Geofence policy correctly
+stays `outside` / never reaches `arrived`.
 
-This is **not** evidence that radius math (80m) or stage gates are wrong for that session.
+**Update 2026-08-04 (`672a9eb` Device QA + follow-up):** dumpsys on HONOR
+Android 16 showed mock last locations on `fused`/`test` while `gps` stayed
+`null`. Product follow-up: watch stream uses Fused
+(`forceLocationManager: false`) so Device QA mocks reach geofence evaluation.
 
 ### RC-2 (Product) — confirmed code gap
 
