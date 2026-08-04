@@ -1,11 +1,12 @@
 # المرحلة الخامسة — Performance Review (خطة تنفيذ ملزمة)
 
 > **تاريخ التفعيل:** 2026-08-04  
-> **الحالة:** ACTIVE — IN PROGRESS  
+> **الحالة:** **CLOSED — CONDITIONAL PASS** (اعتماد المالك 2026-08-04)  
 > **البوابة:** Gate 5 في `docs/system-completion/DRIVER_CLOSURE_GATES.md`  
 > **بعد:** إغلاق Device QA (Gate 4 = PASS، `021a823`)  
 > **المرجعية الرقمية:** `docs/35_PERFORMANCE_BENCHMARKS.md` (عتبات القبول)  
-> **الجهاز المرجعي لهذه الجولة:** HONOR VKP-NX9 / Android 16 (DUT الحقيقي للإغلاق)
+> **الجهاز المرجعي لهذه الجولة:** HONOR VKP-NX9 / Android 16 (DUT الحقيقي للإغلاق)  
+> **التقرير الختامي:** `PHASE_5_PERFORMANCE_REVIEW_REPORT.md`
 
 ## 1) قيود معتمدة (بدون استثناء)
 
@@ -76,9 +77,9 @@ Profile/`flutter run --profile` يُفضَّل للـ First Frame وTimeline ع�
 
 | محور | الحالة |
 | --- | --- |
-| 5.1 Baseline | **PASS WITH MEMORY CAVEAT** — see `PHASE_5_1_BASELINE_RESULTS.md` |
-| 5.2 Scrolling | NOT STARTED |
-| 5.3 Network | NOT STARTED |
-| 5.4 Map | NOT STARTED |
-| 5.5 Battery | NOT STARTED |
-| 5.6 Final report | NOT STARTED |
+| 5.1 Baseline | **PASS WITH MEMORY CAVEAT** — `PHASE_5_1_BASELINE_RESULTS.md` |
+| 5.2 Scrolling | **PASS WITH INSTRUMENTATION CAVEAT** — `PHASE_5_2_SCROLLING_RESULTS.md` |
+| 5.3 Network | **PASS** — `PHASE_5_3_NETWORK_RESULTS.md` |
+| 5.4 Map | **PASS** — `PHASE_5_4_MAP_RESULTS.md` |
+| 5.5 Battery | **PASS WITH INSTRUMENTATION CAVEAT** — `PHASE_5_5_BATTERY_RESULTS.md` |
+| 5.6 Final report | **CLOSED — CONDITIONAL PASS** — `PHASE_5_PERFORMANCE_REVIEW_REPORT.md` |
