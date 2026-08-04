@@ -386,6 +386,26 @@ void main() {
       expect(command?.type, LocalDeliveryCommandType.cancel);
       expect(command?.status, LocalDeliveryCommandStatus.completed);
     });
+
+    test('defaults reasonCode when UI omits it', () async {
+      final h = makeHarness(
+        active: enRouteAssignment(),
+        backendState: CanonicalDeliveryStates.enRouteToCustomer,
+        withContact: true,
+      );
+      final result = await cancelDeliveryOf(h)(
+        driverId: 'drv-1',
+        commandId: 'cmd-cancel-default-reason',
+      );
+
+      expect(
+        result.isSuccess,
+        isTrue,
+        reason:
+            'Device QA #16: Issue/Verify Cancel must not fail when reason omitted',
+      );
+      expect(h.assignments.active, isNull);
+    });
   });
 
   group('GetCustomerContact', () {

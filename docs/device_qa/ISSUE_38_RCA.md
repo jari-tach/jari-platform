@@ -1,10 +1,10 @@
 # Issue #38 — Root Cause Analysis (binding sequence)
 
-> **Status:** RCA complete — RC-2 fix landed; RC-1 Device QA retest required  
-> **Date:** 2026-08-02  
+> **Status:** RC-1/RC-2 product path validated on HONOR (2026-08-04); Backend ArrivalDto whitelist bug fixed  
+> **Date:** 2026-08-02 (updated 2026-08-04)  
 > **Device:** HONOR VKP-NX9 / Android 16  
-> **Branch:** `feature/step-4b-a-honor-live-geofence-validation`  
-> **PR #27:** remains unmerged until acceptance criteria met  
+> **Branch (Driver):** `feature/step-4b-a-honor-live-geofence-validation` (`1201719`)  
+> **PR #27:** remains unmerged until formal Device QA matrix close + review
 
 ## 1) Reproduction conditions (stable)
 
@@ -49,7 +49,19 @@ stays `outside` / never reaches `arrived`.
 **Update 2026-08-04 (`672a9eb` Device QA + follow-up):** dumpsys on HONOR
 Android 16 showed mock last locations on `fused`/`test` while `gps` stayed
 `null`. Product follow-up: watch stream uses Fused
-(`forceLocationManager: false`) so Device QA mocks reach geofence evaluation.
+(`forceLocationManager: false`) so Device QA mocks reach geofence evaluation
+(Driver commit `1201719`).
+
+**Update 2026-08-04 (Backend Device QA blocker):** After Fused watch, the app
+did POST `/v1/deliveries/:id/arrival`, but Nest `ValidationPipe`
+(`whitelist` + `forbidNonWhitelisted`) rejected `latitude`/`longitude`
+because `ArrivalDto` had `@Type(() => Number)` only — no class-validator
+decorators. HTTP access log showed misleading `statusCode:200` while
+`SaeqExceptionFilter` logged `VALIDATION_ERROR`. Fix: add `@IsNumber` /
+range constraints on lat/lng (and `@IsNumber` on accuracy) in
+`saeq-backend` `ArrivalDto`. Evidence: Backend advanced to
+`deliveryAwaitingManualConfirmation` (v29); UI unlocked **Verifying** /
+**Enter delivery code** (post-arrival confirmation gate).
 
 ### RC-2 (Product) — confirmed code gap
 
