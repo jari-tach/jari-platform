@@ -46,11 +46,17 @@ class CancelDeliveryRemote {
     }
 
     final version = int.tryParse(current.serverRevision ?? '') ?? 0;
+    // Backend DeliveryCancellationDto requires reasonCode; UI Cancel from
+    // Issue/Verify pages may omit it (Device QA #16). Align with STEP 5D-2
+    // contract fixtures that use customer_request.
+    final resolvedReason = (reasonCode == null || reasonCode.trim().isEmpty)
+        ? 'customer_request'
+        : reasonCode.trim();
     final remote = await _lifecycle.cancelDelivery(
       deliveryId: current.assignmentId,
       aggregateVersion: version,
       idempotencyKey: id,
-      reasonCode: reasonCode,
+      reasonCode: resolvedReason,
     );
     if (remote.isFailure) {
       return DeliveryFailureResult(

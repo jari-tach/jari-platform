@@ -157,7 +157,12 @@ void main() {
           matching: find.byType(AnimatedContainer),
         ),
       );
-      expect(boxes.every((box) => box.constraints?.maxHeight == SaeqOtpInput.cellHeight), isTrue);
+      expect(
+        boxes.every(
+          (box) => box.constraints?.maxHeight == SaeqOtpInput.cellHeight,
+        ),
+        isTrue,
+      );
     });
   });
 

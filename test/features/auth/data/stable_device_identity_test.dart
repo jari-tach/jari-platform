@@ -125,9 +125,7 @@ Map<String, dynamic> _challengeJson() {
   return {
     'challengeId': '22222222-2222-4222-8222-222222222222',
     'expiresAt': now.add(const Duration(minutes: 5)).toIso8601String(),
-    'resendAvailableAt': now
-        .add(const Duration(seconds: 30))
-        .toIso8601String(),
+    'resendAvailableAt': now.add(const Duration(seconds: 30)).toIso8601String(),
   };
 }
 
@@ -155,7 +153,9 @@ class _CapturingAuthAdapter implements HttpClientAdapter {
           bytes.addAll(chunk);
         }
       }
-      final raw = bytes.isNotEmpty ? utf8.decode(bytes) : jsonEncode(options.data);
+      final raw = bytes.isNotEmpty
+          ? utf8.decode(bytes)
+          : jsonEncode(options.data);
       verifyBodies.add(Map<String, dynamic>.from(jsonDecode(raw) as Map));
       responseJson = _tokenJson();
     } else {
@@ -188,7 +188,10 @@ RemoteAuthenticationRepository _buildRepo({
   );
   repo = RemoteAuthenticationRepository(
     remote: HttpAuthRemoteDataSource(api: api),
-    sessionStorage: AuthSessionStorage(storage: storage, logger: _SilentLogger()),
+    sessionStorage: AuthSessionStorage(
+      storage: storage,
+      logger: _SilentLogger(),
+    ),
     tokenStore: InMemoryAuthTokenStore(),
     accessTokenCache: cache,
     logger: _SilentLogger(),
@@ -256,10 +259,7 @@ void main() {
       await _requestAndVerify(repo);
 
       final body = adapter.verifyBodies.single;
-      expect(
-        body.keys.toSet(),
-        {'challengeId', 'otpCode', 'device'},
-      );
+      expect(body.keys.toSet(), {'challengeId', 'otpCode', 'device'});
       expect(body['challengeId'], '22222222-2222-4222-8222-222222222222');
       expect(body['otpCode'], '123456');
       final device = Map<String, dynamic>.from(body['device'] as Map);

@@ -4,10 +4,6 @@ import 'package:permission_handler/permission_handler.dart' as ph;
 
 import 'location_gateway.dart';
 
-/// Debug Device QA builds force Android LocationManager so adb mock /
-/// test-provider fixes are visible (Fused often ignores them).
-const bool _deviceLocationQa = bool.fromEnvironment('SAEQ_DEVICE_LOCATION_QA');
-
 enum DeviceLocationPrecision { high, medium }
 
 class DevicePositionSample {
@@ -109,9 +105,14 @@ class PluginDeviceLocationPlatform implements DeviceLocationPlatform {
     // Deliberately no timeLimit: silence is not failure or arrival.
     // distanceFilter must be 0: geofence arrival requires ≥2 spaced hits while
     // the driver is often stationary inside the radius (ADR-029).
+    //
+    // Issue #38 Device QA (HONOR Android 16 / HEAD 672a9eb): adb
+    // test-provider mocks appear on `fused`/`test`, while LocationManager
+    // `gps` stays null. Forcing LocationManager therefore never feeds
+    // geofence. Use Fused for watch (production + Device QA).
     return geo.Geolocator.getPositionStream(
       locationSettings: deviceWatchLocationSettings(
-        forceAndroidLocationManager: _deviceLocationQa,
+        forceAndroidLocationManager: false,
       ),
     ).map(_sample);
   }

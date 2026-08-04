@@ -204,22 +204,22 @@ void main() {
       () async {
         final commands = FakeDeliveryCommandRepository();
         final before = sampleAssignment();
-      final record = RecordLocalDeliveryCommand(
-        commands,
-        clock: () => DateTime.utc(2026, 7, 30),
+        final record = RecordLocalDeliveryCommand(
+          commands,
+          clock: () => DateTime.utc(2026, 7, 30),
         );
-      await record(
-        commandId: 'cancel-1',
-        driverId: before.driverId,
-        targetId: before.assignmentId,
-        type: LocalDeliveryCommandType.cancel,
-      );
-      await record(
-        commandId: 'cancel-1',
-        driverId: before.driverId,
-        targetId: before.assignmentId,
-        type: LocalDeliveryCommandType.cancel,
-      );
+        await record(
+          commandId: 'cancel-1',
+          driverId: before.driverId,
+          targetId: before.assignmentId,
+          type: LocalDeliveryCommandType.cancel,
+        );
+        await record(
+          commandId: 'cancel-1',
+          driverId: before.driverId,
+          targetId: before.assignmentId,
+          type: LocalDeliveryCommandType.cancel,
+        );
 
         final recorded = await commands.getById(commandId: 'cancel-1');
         expect(recorded.valueOrNull?.type, LocalDeliveryCommandType.cancel);

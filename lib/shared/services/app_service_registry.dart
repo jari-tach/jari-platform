@@ -586,6 +586,7 @@ final class AppServiceRegistry {
       accessTokenCache: registry._accessTokenCache,
       logger: registry._logger,
       onUnauthorizedRefresh: () => remoteRepo.refreshTokensForClient(),
+      isProductionEnvironment: AppConfig.isProduction,
     );
     registry._saeqApiClient = apiClient;
     registry._authenticatedRequestExecutor = AuthenticatedRequestExecutor(

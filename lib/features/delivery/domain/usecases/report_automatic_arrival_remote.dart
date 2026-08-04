@@ -56,13 +56,6 @@ class ReportAutomaticArrivalRemote {
     if (current == null || !current.isActive) {
       return const DeliveryFailureResult(DeliveryAssignmentNotFound());
     }
-    if (current.workflowStage != DriverWorkflowStage.navToCustomer) {
-      return const DeliveryFailureResult(
-        InvalidDeliveryWorkflowTransition(
-          'Automatic arrival is only allowed while en route to the customer.',
-        ),
-      );
-    }
 
     final existing = await _commands.getById(commandId: id);
     if (existing.isFailure) {
@@ -74,6 +67,14 @@ class ReportAutomaticArrivalRemote {
     if (recorded != null &&
         recorded.status == LocalDeliveryCommandStatus.completed) {
       return DeliverySuccess(current);
+    }
+
+    if (current.workflowStage != DriverWorkflowStage.navToCustomer) {
+      return const DeliveryFailureResult(
+        InvalidDeliveryWorkflowTransition(
+          'Automatic arrival is only allowed while en route to the customer.',
+        ),
+      );
     }
 
     final version = int.tryParse(current.serverRevision ?? '') ?? 0;

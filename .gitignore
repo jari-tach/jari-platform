@@ -75,6 +75,14 @@ lcov.info
 **/*.pem
 **/keystore.jks
 **/keystore.properties
+android/key.properties
+android/app/*.jks
+android/app/upload-keystore.jks
+**/*-keystore.jks
+**/*upload*.jks
+
+# Local backup archives / scratch (never ship in PR)
+.backup/
 
 # Firebase
 google-services.json

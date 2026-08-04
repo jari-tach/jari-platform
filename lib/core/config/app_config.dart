@@ -79,8 +79,16 @@ class AppConfig {
   static const int maxCacheSize = 100; // MB
 
   // Security Configuration
-  static const bool enableCertificatePinning =
-      false; // TODO: Enable in production
+  /// Prefer `--dart-define=SAEQ_ENABLE_CERT_PINNING=true` for explicit enable.
+  /// Production environment also expects pins via `SAEQ_TLS_PINS`.
+  static bool get enableCertificatePinning {
+    const fromDefine = bool.fromEnvironment(
+      'SAEQ_ENABLE_CERT_PINNING',
+      defaultValue: false,
+    );
+    return fromDefine || isProduction;
+  }
+
   static const bool enableRequestSigning = false; // TODO: Enable in production
 
   // Initialize configuration
@@ -109,9 +117,10 @@ class AppConfig {
       _environment = Environment.dev;
     }
 
-    // Use debugPrint instead of print for Flutter compatibility
-    debugPrint('AppConfig: Initialized with environment: $_environment');
-    debugPrint('AppConfig: API URL: $baseApiUrl');
+    if (kDebugMode) {
+      debugPrint('AppConfig: Initialized with environment: $_environment');
+      debugPrint('AppConfig: API URL: $baseApiUrl');
+    }
   }
 
   // Get configuration as map (for debugging)

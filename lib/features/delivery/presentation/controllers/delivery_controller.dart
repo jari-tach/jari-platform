@@ -262,6 +262,8 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
   Future<void> initialize() async {
     final generation = ++_generation;
     await _cancelWatch();
+    // Drop any prior-generation geofence subscription before restore/resume.
+    await _cancelArrivalWatch();
 
     final driverId = _driverIdReader(ref)?.trim();
     if (driverId == null || driverId.isEmpty) {
@@ -371,6 +373,26 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
         generation: generation,
       );
       await _refreshActiveBatchSoft(generation);
+      if (!_isCurrent(generation)) return;
+      // Issue #38 RC-2: process restore must resume geofence watch while en
+      // route to customer — otherwise automatic arrival never fires after
+      // force-stop / cold start (Device QA session restore).
+      // Require dropoff coordinates: without them `_watchCustomerArrivalAndAdvance`
+      // fabricates arrival at (0,0), which races cancel/reportIssue and is not a
+      // valid Device restore path (real orders carry dropoff coords).
+      if (assignment.workflowStage == DriverWorkflowStage.navToCustomer &&
+          assignment.order.hasDropoffCoordinates) {
+        unawaited(
+          _watchCustomerArrivalAndAdvance(
+            driverId: driverId,
+            assignment: assignment,
+            generation: generation,
+            simulateOffline: !_acceptPreconditionsReader(
+              ref,
+            ).connectivityOnline,
+          ),
+        );
+      }
     }
   }
 

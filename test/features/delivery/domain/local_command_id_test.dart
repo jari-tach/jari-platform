@@ -88,7 +88,9 @@ class _CapturingAcceptAdapter implements HttpClientAdapter {
         bytes.addAll(chunk);
       }
     }
-    final raw = bytes.isNotEmpty ? utf8.decode(bytes) : jsonEncode(options.data);
+    final raw = bytes.isNotEmpty
+        ? utf8.decode(bytes)
+        : jsonEncode(options.data);
     bodies.add(Map<String, dynamic>.from(jsonDecode(raw) as Map));
     return ResponseBody.fromString(
       jsonEncode({
@@ -108,17 +110,19 @@ class _CapturingAcceptAdapter implements HttpClientAdapter {
 
 void main() {
   group('localCommandId contract charset', () {
-    test('accept key contains no ":" and matches ^[A-Za-z0-9._~-]{8,128}\$',
-        () {
-      final key = localCommandId(
-        driverId: _driverId,
-        targetId: _offerId,
-        action: 'accept',
-      );
-      expect(key.contains(':'), isFalse);
-      expect(_contractPattern.hasMatch(key), isTrue, reason: 'got: $key');
-      expect(key.length, inInclusiveRange(8, 128));
-    });
+    test(
+      'accept key contains no ":" and matches ^[A-Za-z0-9._~-]{8,128}\$',
+      () {
+        final key = localCommandId(
+          driverId: _driverId,
+          targetId: _offerId,
+          action: 'accept',
+        );
+        expect(key.contains(':'), isFalse);
+        expect(_contractPattern.hasMatch(key), isTrue, reason: 'got: $key');
+        expect(key.length, inInclusiveRange(8, 128));
+      },
+    );
 
     test('all delivery lifecycle actions produce contract-safe keys', () {
       const actions = [
@@ -253,71 +257,79 @@ void main() {
       expect(colon, isNot(dash));
     });
 
-    test('over-long inputs stay within 128 chars, deterministic and unique',
-        () {
-      final longA = 'a' * 200;
-      final longB = '${'a' * 199}b';
-      String keyFor(String target) => localCommandId(
-        driverId: _driverId,
-        targetId: target,
-        action: 'accept',
-      );
-      expect(keyFor(longA).length, lessThanOrEqualTo(128));
-      expect(_contractPattern.hasMatch(keyFor(longA)), isTrue);
-      expect(keyFor(longA), keyFor(longA));
-      expect(keyFor(longA), isNot(keyFor(longB)));
-    });
+    test(
+      'over-long inputs stay within 128 chars, deterministic and unique',
+      () {
+        final longA = 'a' * 200;
+        final longB = '${'a' * 199}b';
+        String keyFor(String target) => localCommandId(
+          driverId: _driverId,
+          targetId: target,
+          action: 'accept',
+        );
+        expect(keyFor(longA).length, lessThanOrEqualTo(128));
+        expect(_contractPattern.hasMatch(keyFor(longA)), isTrue);
+        expect(keyFor(longA), keyFor(longA));
+        expect(keyFor(longA), isNot(keyFor(longB)));
+      },
+    );
   });
 
   group('Idempotency-Key on the accept wire', () {
-    test('header carries the contract-safe key and payload is unchanged',
-        () async {
-      final adapter = _CapturingAcceptAdapter();
-      final dio = Dio(BaseOptions(baseUrl: 'http://127.0.0.1:9'))
-        ..httpClientAdapter = adapter;
-      final cache = AccessTokenMemoryCache()..setAccessToken('test-access');
-      final api = SaeqApiClient(
-        baseUrl: 'http://127.0.0.1:9',
-        accessTokenCache: cache,
-        logger: _SilentLogger(),
-        dio: dio,
-        onUnauthorizedRefresh: () async => false,
-      );
-      final remote = HttpDeliveryRemoteDataSource(api: api);
+    test(
+      'header carries the contract-safe key and payload is unchanged',
+      () async {
+        final adapter = _CapturingAcceptAdapter();
+        final dio = Dio(BaseOptions(baseUrl: 'http://127.0.0.1:9'))
+          ..httpClientAdapter = adapter;
+        final cache = AccessTokenMemoryCache()..setAccessToken('test-access');
+        final api = SaeqApiClient(
+          baseUrl: 'http://127.0.0.1:9',
+          accessTokenCache: cache,
+          logger: _SilentLogger(),
+          dio: dio,
+          onUnauthorizedRefresh: () async => false,
+        );
+        final remote = HttpDeliveryRemoteDataSource(api: api);
 
-      final key = localCommandId(
-        driverId: _driverId,
-        targetId: _offerId,
-        action: 'accept',
-      );
-      await remote.acceptOffer(
-        driverId: _driverId,
-        offerId: _offerId,
-        idempotencyKey: key,
-        revision: '3',
-      );
-      // Retry with the same command id → same header value.
-      await remote.acceptOffer(
-        driverId: _driverId,
-        offerId: _offerId,
-        idempotencyKey: key,
-        revision: '3',
-      );
+        final key = localCommandId(
+          driverId: _driverId,
+          targetId: _offerId,
+          action: 'accept',
+        );
+        await remote.acceptOffer(
+          driverId: _driverId,
+          offerId: _offerId,
+          idempotencyKey: key,
+          revision: '3',
+        );
+        // Retry with the same command id → same header value.
+        await remote.acceptOffer(
+          driverId: _driverId,
+          offerId: _offerId,
+          idempotencyKey: key,
+          revision: '3',
+        );
 
-      expect(adapter.idempotencyKeys, hasLength(2));
-      for (final sent in adapter.idempotencyKeys) {
-        expect(sent, key);
-        expect(_contractPattern.hasMatch(sent!), isTrue, reason: 'got: $sent');
-        expect(sent.contains(':'), isFalse);
-      }
-      expect(adapter.idempotencyKeys[0], adapter.idempotencyKeys[1]);
+        expect(adapter.idempotencyKeys, hasLength(2));
+        for (final sent in adapter.idempotencyKeys) {
+          expect(sent, key);
+          expect(
+            _contractPattern.hasMatch(sent!),
+            isTrue,
+            reason: 'got: $sent',
+          );
+          expect(sent.contains(':'), isFalse);
+        }
+        expect(adapter.idempotencyKeys[0], adapter.idempotencyKeys[1]);
 
-      // Path and body are exactly the pre-fix contract shape.
-      expect(adapter.paths.toSet(), {'/v1/offers/$_offerId/accept'});
-      for (final body in adapter.bodies) {
-        expect(body.keys.toSet(), {'aggregateVersion'});
-        expect(body['aggregateVersion'], 3);
-      }
-    });
+        // Path and body are exactly the pre-fix contract shape.
+        expect(adapter.paths.toSet(), {'/v1/offers/$_offerId/accept'});
+        for (final body in adapter.bodies) {
+          expect(body.keys.toSet(), {'aggregateVersion'});
+          expect(body['aggregateVersion'], 3);
+        }
+      },
+    );
   });
 }

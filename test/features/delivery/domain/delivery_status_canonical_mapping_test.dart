@@ -89,8 +89,9 @@ class _AcceptAdapter implements HttpClientAdapter {
         bytes.addAll(chunk);
       }
     }
-    final raw =
-        bytes.isNotEmpty ? utf8.decode(bytes) : jsonEncode(options.data);
+    final raw = bytes.isNotEmpty
+        ? utf8.decode(bytes)
+        : jsonEncode(options.data);
     lastBody = Map<String, dynamic>.from(jsonDecode(raw) as Map);
     return ResponseBody.fromString(
       jsonEncode({

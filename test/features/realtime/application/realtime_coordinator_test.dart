@@ -84,6 +84,22 @@ RealtimeCoordinator _build({
   );
 }
 
+/// Wall-clock waits flake under full-suite load; wait on state instead.
+Future<void> _waitUntil(
+  bool Function() predicate, {
+  required Duration timeout,
+  Duration step = const Duration(milliseconds: 10),
+}) async {
+  final end = DateTime.now().add(timeout);
+  while (DateTime.now().isBefore(end)) {
+    if (predicate()) return;
+    await Future<void>.delayed(step);
+  }
+  if (!predicate()) {
+    fail('Condition not met within $timeout');
+  }
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -164,12 +180,17 @@ void main() {
       coordinator.offersInvalidated.listen((_) => invalidated.add(1));
 
       await coordinator.start('drv-1');
-      await Future<void>.delayed(const Duration(milliseconds: 80));
+      await _waitUntil(
+        () => coordinator.isUsingPolling,
+        timeout: const Duration(seconds: 2),
+      );
 
       expect(coordinator.isUsingPolling, isTrue);
       expect(coordinator.status, RealtimeConnectionStatus.degraded);
 
-      remote.failNextSse = false;
+      // Keep SSE failing so the coordinator remains on the polling path
+      // while the fixture event is delivered (avoids racing an SSE recovery).
+      remote.failNextSse = true;
       remote.polledEvents.add(
         sampleEnvelope(
           sequence: 3,
@@ -177,7 +198,10 @@ void main() {
           payload: const {'driverId': 'drv-1'},
         ),
       );
-      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await _waitUntil(
+        () => invalidated.isNotEmpty && remote.pollAfterCalls.isNotEmpty,
+        timeout: const Duration(seconds: 2),
+      );
 
       expect(invalidated, isNotEmpty);
       expect(remote.pollAfterCalls, isNotEmpty);

@@ -82,7 +82,9 @@ class WelcomeScreen extends ConsumerWidget {
                             isDark ? ThemeMode.light : ThemeMode.dark,
                           );
                     },
-                    style: TextButton.styleFrom(foregroundColor: colors.primary),
+                    style: TextButton.styleFrom(
+                      foregroundColor: colors.primary,
+                    ),
                     child: Text(
                       ref.watch(appThemeModeProvider) == ThemeMode.dark
                           ? l10n.settingsThemeLight

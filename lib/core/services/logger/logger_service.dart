@@ -104,7 +104,9 @@ abstract class LoggerService {
 class ConsoleLoggerService implements LoggerService {
   static const _maxMessageLength = 1000;
 
-  LogLevel _level = LogLevel.debug;
+  LogLevel _level = kReleaseMode || kProfileMode
+      ? LogLevel.warning
+      : LogLevel.debug;
   final List<LogEntry> _logs = [];
   final int _maxLogs = 1000;
 
@@ -238,11 +240,16 @@ class ConsoleLoggerService implements LoggerService {
   }
 
   void _printLog(LogEntry entry) {
+    // Avoid verbose device logs (including metadata) outside debug builds.
+    if (!kDebugMode && entry.level.index < LogLevel.warning.index) {
+      return;
+    }
     if (Platform.isAndroid || Platform.isIOS) {
-      developer.log(jsonEncode(entry.toJson()));
-      // Mirror to Flutter console on debug device runs.
       if (kDebugMode) {
+        developer.log(jsonEncode(entry.toJson()));
         debugPrint('[${entry.level.name.toUpperCase()}] ${entry.message}');
+      } else {
+        developer.log('[${entry.level.name.toUpperCase()}] ${entry.message}');
       }
     } else {
       final color = _getColorForLevel(entry.level);

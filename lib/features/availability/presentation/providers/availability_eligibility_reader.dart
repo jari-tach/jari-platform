@@ -50,7 +50,8 @@ AvailabilityResult<AvailabilityEligibilityInput> readAvailabilityEligibility(
   }
 
   final remote = AppServiceRegistry.deliveryRemoteDataSource;
-  final remoteBackend = remote != null && remote is! FakeDeliveryRemoteDataSource;
+  final remoteBackend =
+      remote != null && remote is! FakeDeliveryRemoteDataSource;
   final profileRepo = AppServiceRegistry.driverProfileRepository;
 
   if (!remoteBackend && profileRepo == null) {

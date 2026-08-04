@@ -1,9 +1,12 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import '../auth_session/access_token_memory_cache.dart';
 import '../services/logger/logger_service.dart';
+import 'certificate_pin_config.dart';
+import 'certificate_pinning_adapter.dart';
 import 'http_log_redactor.dart';
 import 'request_id_factory.dart';
 
@@ -19,6 +22,8 @@ final class SaeqApiClient {
     this._onUnauthorizedRefresh,
     Dio? dio,
     HttpLogRedactor? redactor,
+    CertificatePinConfig? pinConfig,
+    bool? isProductionEnvironment,
   }) : _requestIdFactory = requestIdFactory ?? RequestIdFactory(),
        _redactor = redactor ?? HttpLogRedactor(),
        _dio =
@@ -35,6 +40,16 @@ final class SaeqApiClient {
                },
              ),
            ) {
+    if (dio == null) {
+      final resolvedPins =
+          pinConfig ??
+          CertificatePinConfig.resolve(
+            baseUrl: baseUrl,
+            isProductionEnvironment: isProductionEnvironment ?? false,
+            isReleaseMode: kReleaseMode,
+          );
+      applyCertificatePinning(_dio, config: resolvedPins);
+    }
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
@@ -48,18 +63,20 @@ final class SaeqApiClient {
               options.headers['Authorization'] = 'Bearer $token';
             }
           }
-          _logger.debug(
-            'SAEQ HTTP ${options.method} ${options.path}',
-            null,
-            null,
-            {
-              'headers': _redactor.redactHeaders(
-                Map<String, dynamic>.from(options.headers),
-              ),
-              if (options.data != null)
-                'body': _redactor.redactBody(options.data),
-            },
-          );
+          if (kDebugMode) {
+            _logger.debug(
+              'SAEQ HTTP ${options.method} ${options.path}',
+              null,
+              null,
+              {
+                'headers': _redactor.redactHeaders(
+                  Map<String, dynamic>.from(options.headers),
+                ),
+                if (options.data != null)
+                  'body': _redactor.redactBody(options.data),
+              },
+            );
+          }
           handler.next(options);
         },
         onError: (error, handler) async {
@@ -111,6 +128,10 @@ final class SaeqApiClient {
   final HttpLogRedactor _redactor;
 
   Future<bool>? _refreshInFlight;
+
+  /// Test/inspection escape hatch.
+  @visibleForTesting
+  Dio get debugDio => _dio;
 
   Future<bool> _singleFlightRefresh() {
     final existing = _refreshInFlight;

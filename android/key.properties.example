@@ -1,0 +1,8 @@
+# Copy to android/key.properties (gitignored) and fill local/upload values.
+# NEVER commit real passwords or keystore binaries.
+# storeFile is resolved relative to android/app/
+
+storePassword=REPLACE_ME
+keyPassword=REPLACE_ME
+keyAlias=upload
+storeFile=upload-keystore.jks

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../config/app_config.dart';
 import '../logger/logger_service.dart';
@@ -8,14 +9,15 @@ import 'api_interceptors.dart';
 ///
 /// Wraps [Dio] with pre-configured interceptors for auth, logging, and retry.
 final class ApiClient {
-  ApiClient({
-    required LoggerService logger,
-    String? Function()? tokenProvider,
-  }) : _dio = _createDio(logger, tokenProvider);
+  ApiClient({required LoggerService logger, String? Function()? tokenProvider})
+    : _dio = _createDio(logger, tokenProvider);
 
   final Dio _dio;
 
-  static Dio _createDio(LoggerService logger, String? Function()? tokenProvider) {
+  static Dio _createDio(
+    LoggerService logger,
+    String? Function()? tokenProvider,
+  ) {
     final dio = Dio(
       BaseOptions(
         baseUrl: AppConfig.baseApiUrl,
@@ -32,7 +34,8 @@ final class ApiClient {
 
     dio.interceptors.addAll([
       AuthInterceptor(tokenProvider: tokenProvider ?? () => null),
-      LoggingInterceptor(logger: logger),
+      // Legacy client: never emit full headers/tokens outside debug.
+      if (kDebugMode) LoggingInterceptor(logger: logger),
       RetryInterceptor(),
     ]);
 
