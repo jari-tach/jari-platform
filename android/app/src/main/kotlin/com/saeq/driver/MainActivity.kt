@@ -1,4 +1,4 @@
-package com.example.saeq_driver
+package com.saeq.driver
 
 import io.flutter.embedding.android.FlutterActivity
 

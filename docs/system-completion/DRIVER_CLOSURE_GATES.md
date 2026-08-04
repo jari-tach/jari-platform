@@ -27,8 +27,8 @@
 | 6 | Security Review | **PASS — CLOSED (conditional)** | تقرير: `docs/security/PHASE_6_SECURITY_REVIEW_REPORT.md` · اعتماد صيغة CONDITIONAL PASS 2026-08-04 · HEAD `4e24763` |
 | 7 | Code Quality | **PASS — CLOSED (conditional)** | تقرير: `docs/code_quality/PHASE_7_CODE_QUALITY_REVIEW_REPORT.md` · اعتماد CONDITIONAL PASS 2026-08-04 · baseline `4e24763` · CI أخضر لاحقًا على `98fad8e` |
 | 8 | Regression & Release Readiness | **PASS — CLOSED (conditional)** | تقرير: `docs/release_readiness/PHASE_8_REGRESSION_RELEASE_READINESS_REPORT.md` · HEAD `98fad8e` · CI [30872894544](https://github.com/jari-tach/jari-platform/actions/runs/30872894544) · اعتماد CONDITIONAL PASS 2026-08-04 |
-| 9 | Release Candidate | **BLOCKED** | يعتمد 2 + 4–8؛ ديون الإطلاق R1–R3 blockers في تقرير Gate 8؛ **لا يبدأ دون أمر صريح** |
-| 10 | Release Gate + موافقة المالك | **BLOCKED** | |
+| 9 | Release Hardening & Production Preparation | **PASS — CLOSED (conditional)** | تقرير: `docs/release_hardening/PHASE_9_RELEASE_HARDENING_REPORT.md` · App ID `com.saeq.driver` · signing+pinning بنية مكتملة · أسرار الإنتاج عند المالك · HEAD أساس `38633c4` |
+| 10 | Release Gate + موافقة المالك | **BLOCKED** | يعتمد Gate 9 + أمر صريح؛ تسليم keystore/pins/شهادات iOS |
 | — | بدء تطبيق التاجر | **FORBIDDEN** | حتى 10 = PASS |
 
 ## §PRs (المرحلة 2)

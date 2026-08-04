@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:crypto/crypto.dart';
 
+import '../network/certificate_pin_validator.dart';
 import '../services/api/api_client.dart';
 import '../services/logger/logger_service.dart';
 import '../services/storage/secure_storage_service.dart';
@@ -97,41 +97,32 @@ class SecurityInterceptor extends Interceptor {
   }
 }
 
-/// Certificate pinning for secure connections
+/// Certificate pinning helper (legacy surface). Prefer
+/// `CertificatePinConfig` + `applyCertificatePinning` on [SaeqApiClient].
 class CertificatePinning {
+  CertificatePinning({
+    required this._logger,
+    this.allowedCertificates = const [],
+    this._validator = const CertificatePinValidator(),
+  });
+
   final LoggerService _logger;
-
-  // SHA-256 hashes of allowed certificates
-  static const List<String> _allowedCertificates = [
-    // TODO: Add production certificate hashes
-    // 'sha256/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=',
-    // 'sha256/BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB=',
-  ];
-
-  CertificatePinning({required this._logger});
+  final List<String> allowedCertificates;
+  final CertificatePinValidator _validator;
 
   /// Validate certificate against pinned certificates
   bool validateCertificate(X509Certificate certificate) {
     try {
-      final pin = _calculatePin(certificate);
-      final isValid = _allowedCertificates.contains(pin);
-
-      _logger.debug('CertificatePinning: Validating $pin - $isValid');
+      if (allowedCertificates.isEmpty) return false;
+      final isValid = _validator.matchesAny(certificate, allowedCertificates);
+      _logger.debug(
+        'CertificatePinning: validation ${isValid ? 'ok' : 'failed'}',
+      );
       return isValid;
     } catch (e, stackTrace) {
       _logger.error('CertificatePinning: Validation failed', e, stackTrace);
       return false;
     }
-  }
-
-  /// Compute the certificate pin (`sha256/<base64>`) from its DER bytes.
-  String _calculatePin(X509Certificate certificate) {
-    return 'sha256/${_calculateSha256(certificate.der)}';
-  }
-
-  /// SHA-256 digest of [bytes], base64-encoded.
-  String _calculateSha256(List<int> bytes) {
-    return base64.encode(sha256.convert(bytes).bytes);
   }
 }
 

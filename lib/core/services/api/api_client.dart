@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../config/app_config.dart';
 import '../logger/logger_service.dart';
@@ -33,7 +34,8 @@ final class ApiClient {
 
     dio.interceptors.addAll([
       AuthInterceptor(tokenProvider: tokenProvider ?? () => null),
-      LoggingInterceptor(logger: logger),
+      // Legacy client: never emit full headers/tokens outside debug.
+      if (kDebugMode) LoggingInterceptor(logger: logger),
       RetryInterceptor(),
     ]);
 

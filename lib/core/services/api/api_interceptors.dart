@@ -10,8 +10,12 @@ final class LoggingInterceptor extends Interceptor {
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    final headers = Map<String, dynamic>.from(options.headers);
+    if (headers.containsKey('Authorization')) {
+      headers['Authorization'] = '***';
+    }
     _logger.debug('HTTP ${options.method} ${options.uri}', null, null, {
-      'headers': options.headers,
+      'headers': headers,
       if (options.data != null) 'body': options.data,
     });
     handler.next(options);
