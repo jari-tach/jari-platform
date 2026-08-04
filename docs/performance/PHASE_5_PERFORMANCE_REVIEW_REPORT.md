@@ -43,4 +43,4 @@ Deferred actions (#1 memory on profile/release, #2 optional Timeline, #3 optiona
 
 - Merge PR #27  
 - Start Merchant  
-- (Unblocked) Gate 6 Security Review — may start on explicit owner order
+- Gate 6 Security Review — **CLOSED — CONDITIONAL PASS** (`docs/security/PHASE_6_SECURITY_REVIEW_REPORT.md`)

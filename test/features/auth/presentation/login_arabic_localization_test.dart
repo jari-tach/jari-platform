@@ -126,14 +126,13 @@ void main() {
       );
 
       await tester.enterText(find.byType(TextFormField), '123');
-      await tester.tap(find.widgetWithText(SaeqPrimaryButton, 'إرسال رمز التحقق'));
+      await tester.tap(
+        find.widgetWithText(SaeqPrimaryButton, 'إرسال رمز التحقق'),
+      );
       await tester.pump();
 
       expect(find.text('رقم الجوال غير صالح'), findsOneWidget);
-      expect(
-        find.text('Invalid mobile number'),
-        findsNothing,
-      );
+      expect(find.text('Invalid mobile number'), findsNothing);
     });
 
     testWidgets('Arabic typed failure is Arabic-only', (tester) async {
@@ -148,7 +147,9 @@ void main() {
       );
 
       await tester.enterText(find.byType(TextFormField), '0501234567');
-      await tester.tap(find.widgetWithText(SaeqPrimaryButton, 'إرسال رمز التحقق'));
+      await tester.tap(
+        find.widgetWithText(SaeqPrimaryButton, 'إرسال رمز التحقق'),
+      );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
 

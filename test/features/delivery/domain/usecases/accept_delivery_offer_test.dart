@@ -118,9 +118,7 @@ void main() {
           request(),
         );
 
-        final persisted = assignment.copyWith(
-          completedCommandIds: {'idem-1'},
-        );
+        final persisted = assignment.copyWith(completedCommandIds: {'idem-1'});
         expect(result.isSuccess, isTrue);
         expect(result.valueOrNull, persisted);
         expect(offers.acceptCallCount, 1);

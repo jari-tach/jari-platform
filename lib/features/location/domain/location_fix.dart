@@ -54,11 +54,7 @@ class LocationFixDebouncer {
   /// Spacing prefers [LocationFix.recordedAt]. When GNSS timestamps do not
   /// advance (common with mock / fused providers), [now] (wall clock) is used
   /// so stationary-inside-geofence can still satisfy [requiredHits].
-  bool accept(
-    LocationFix fix, {
-    required bool sampleAccepted,
-    DateTime? now,
-  }) {
+  bool accept(LocationFix fix, {required bool sampleAccepted, DateTime? now}) {
     if (!sampleAccepted) {
       reset();
       return false;

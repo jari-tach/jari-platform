@@ -24,9 +24,9 @@
 | 3 | Issues Critical/High | **PASS** | #32 مُغلق مع دمج #37؛ لا Issues مفتوحة |
 | 4 | Device QA كامل | **PASS — CLOSED** | اعتماد المالك 2026-08-04 · تقرير: `docs/device_qa/PHASE_4_DEVICE_QA_CLOSURE_REPORT.md` · مصفوفة: `DRIVER_CLOSURE_DEVICE_QA_MATRIX.md` |
 | 5 | Performance | **PASS — CLOSED (conditional)** | تقرير: `docs/performance/PHASE_5_PERFORMANCE_REVIEW_REPORT.md` · اعتماد المالك 2026-08-04 |
-| 6 | Security Review | **READY TO START** | يُفتح بعد إغلاق المرحلة 5 |
-| 7 | Code Quality | **PARTIAL** | Analyzer نظيف على main؛ TODOs/debugPrint متبقية |
-| 8 | Documentation Freeze | **NOT STARTED** | |
+| 6 | Security Review | **PASS — CLOSED (conditional)** | تقرير: `docs/security/PHASE_6_SECURITY_REVIEW_REPORT.md` · اعتماد صيغة CONDITIONAL PASS 2026-08-04 · HEAD `4e24763` |
+| 7 | Code Quality | **PASS — CLOSED (conditional)** | تقرير: `docs/code_quality/PHASE_7_CODE_QUALITY_REVIEW_REPORT.md` · اعتماد CONDITIONAL PASS 2026-08-04 · baseline `4e24763` |
+| 8 | Documentation Freeze | **NOT STARTED** | يُفتح بأمر صريح فقط بعد Gate 7 |
 | 9 | Release Candidate | **BLOCKED** | يعتمد 2 + 4–8 |
 | 10 | Release Gate + موافقة المالك | **BLOCKED** | |
 | — | بدء تطبيق التاجر | **FORBIDDEN** | حتى 10 = PASS |
@@ -38,7 +38,7 @@
 | [#37](https://github.com/jari-tach/jari-platform/pull/37) | jari-platform | GREEN | — | MERGED | أغلق #32 |
 | [#5](https://github.com/jari-tach/saeq-backend/pull/5) | saeq-backend | GREEN | — | MERGED | Phase 1 gaps |
 | [#6](https://github.com/jari-tach/saeq-contracts/pull/6) | saeq-contracts | GREEN | — | MERGED | توثيق تأجيل Merchant فقط |
-| [#27](https://github.com/jari-tach/jari-platform/pull/27) | jari-platform | مُزامن مع main | MERGEABLE | — | **بانتظار دمج** — Device QA Gate 4 = PASS (2026-08-04)؛ لا يُدمج إلا بأمر صريح |
+| [#27](https://github.com/jari-tach/jari-platform/pull/27) | jari-platform | مُزامن مع main | MERGEABLE | — | **بانتظار دمج** — Gates 4–6 لا تحجب الدمج فنّيًا؛ **لا يُدمج إلا بأمر صريح مستقل** |
 
 شروط إغلاق كل PR: محدّث مع `main`، بدون تعارض، CI أخضر، Review مكتمل، بلا Requested Changes، بلا TODO/FIXME/Debug في diff التشغيلي.
 

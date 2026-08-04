@@ -387,7 +387,9 @@ class DeliveryController extends Notifier<DeliveryControllerState> {
             driverId: driverId,
             assignment: assignment,
             generation: generation,
-            simulateOffline: !_acceptPreconditionsReader(ref).connectivityOnline,
+            simulateOffline: !_acceptPreconditionsReader(
+              ref,
+            ).connectivityOnline,
           ),
         );
       }

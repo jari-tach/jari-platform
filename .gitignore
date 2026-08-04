@@ -76,6 +76,9 @@ lcov.info
 **/keystore.jks
 **/keystore.properties
 
+# Local backup archives / scratch (never ship in PR)
+.backup/
+
 # Firebase
 google-services.json
 firebase.json

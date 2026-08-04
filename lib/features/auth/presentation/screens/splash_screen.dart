@@ -57,10 +57,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const Spacer(),
-                const SaeqBrandLockup(
-                  markSize: 88,
-                  showTagline: true,
-                ),
+                const SaeqBrandLockup(markSize: 88, showTagline: true),
                 const SizedBox(height: AppTheme.spacingLG),
                 Center(
                   child: SizedBox(

@@ -124,10 +124,7 @@ void main() {
         recordedAt: t0,
         accuracyMeters: 10,
       );
-      expect(
-        debouncer.accept(stuck, sampleAccepted: true, now: t0),
-        isFalse,
-      );
+      expect(debouncer.accept(stuck, sampleAccepted: true, now: t0), isFalse);
       expect(
         debouncer.accept(
           stuck,

@@ -103,10 +103,8 @@ class AppLocalizations {
   String get deliveryVerifyCodeLabel => _t('Delivery code', 'رمز التسليم');
   String get deliveryVerifyCodeHint => '1234';
   String get deliveryVerifySubmit => _t('Confirm code', 'تأكيد الرمز');
-  String get deliveryVerifyHintMessage => _t(
-    'Enter the delivery confirmation code.',
-    'أدخل رمز تأكيد التسليم.',
-  );
+  String get deliveryVerifyHintMessage =>
+      _t('Enter the delivery confirmation code.', 'أدخل رمز تأكيد التسليم.');
   String get deliveryVerifyCodeFieldHint => _t('Code', 'الرمز');
   String get activeDeliveryEmptyTitle =>
       _t('No active delivery', 'لا يوجد توصيل نشط');
@@ -175,12 +173,9 @@ class AppLocalizations {
   );
   String screenComingSoon(String title) =>
       _t('$title screen - Coming soon', 'شاشة $title — قريبًا');
-  String get shellPlaceholderMessage => _t(
-    'This section is not available yet.',
-    'هذا القسم غير متاح بعد.',
-  );
-  String get featureUnavailableTitle =>
-      _t('Coming soon', 'قريبًا');
+  String get shellPlaceholderMessage =>
+      _t('This section is not available yet.', 'هذا القسم غير متاح بعد.');
+  String get featureUnavailableTitle => _t('Coming soon', 'قريبًا');
   String get featureUnavailableMessage => _t(
     'This area will open when it is ready for drivers.',
     'ستُفتح هذه المنطقة عند جاهزيتها للسائقين.',
@@ -261,8 +256,7 @@ class AppLocalizations {
   String get splashTitle => brandWordmark;
   String get splashSubtitle => appTagline;
   String get splashTapToContinue => _t('Tap to continue', 'اضغط للمتابعة');
-  String get onboardingTitle =>
-      _t("Welcome to Faz'a", 'مرحباً بك في فزعة');
+  String get onboardingTitle => _t("Welcome to Faz'a", 'مرحباً بك في فزعة');
   String get onboardingSubtitle => _t(
     'Track offers, earn with confidence, and manage deliveries easily.',
     'تابع الطلبات، اربح بثقة، وادِر توصيلاتك بسهولة.',

@@ -6,10 +6,8 @@ import '../repositories/delivery_command_repository.dart';
 /// Records a local-only command that does not mutate the delivery state
 /// machine (for example, cancelling/dismissing a local form).
 class RecordLocalDeliveryCommand {
-  RecordLocalDeliveryCommand(
-    this._repository, {
-    DateTime Function()? clock,
-  }) : _clock = clock ?? DateTime.now;
+  RecordLocalDeliveryCommand(this._repository, {DateTime Function()? clock})
+    : _clock = clock ?? DateTime.now;
 
   final DeliveryCommandRepository _repository;
   final DateTime Function() _clock;
