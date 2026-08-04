@@ -20,10 +20,10 @@
 | # | المرحلة | الحالة | دليل |
 | --- | --- | --- | --- |
 | 1 | Scope Freeze | **ACTIVE** | هذا الملف |
-| 2 | إغلاق جميع PRs | **IN PROGRESS** | #37/#5/#6 مدمجة؛ يبقى [#27](https://github.com/jari-tach/jari-platform/pull/27) مربوطًا بـ Device QA |
+| 2 | إغلاق جميع PRs | **IN PROGRESS** | #37/#5/#6 مدمجة؛ يبقى [#27](https://github.com/jari-tach/jari-platform/pull/27) بانتظار مراجعة/دمج منفصلة بعد PASS Device QA |
 | 3 | Issues Critical/High | **PASS** | #32 مُغلق مع دمج #37؛ لا Issues مفتوحة |
-| 4 | Device QA كامل | **IN PROGRESS — FAIL على Geofence** | قواعد: `PHASE_4_DEVICE_QA_EXECUTIVE_RULES.md` · مصفوفة: `DRIVER_CLOSURE_DEVICE_QA_MATRIX.md` · Issue [#38](https://github.com/jari-tach/jari-platform/issues/38) |
-| 5 | Performance | **NOT STARTED** | |
+| 4 | Device QA كامل | **PASS — CLOSED** | اعتماد المالك 2026-08-04 · تقرير: `docs/device_qa/PHASE_4_DEVICE_QA_CLOSURE_REPORT.md` · مصفوفة: `DRIVER_CLOSURE_DEVICE_QA_MATRIX.md` |
+| 5 | Performance | **READY TO START** | تُفتح بعد إغلاق المرحلة 4 |
 | 6 | Security Review | **NOT STARTED** | دين: TODOs أمنية + debugPrint في مسارات تشغيلية |
 | 7 | Code Quality | **PARTIAL** | Analyzer نظيف على main؛ TODOs/debugPrint متبقية |
 | 8 | Documentation Freeze | **NOT STARTED** | |
@@ -38,7 +38,7 @@
 | [#37](https://github.com/jari-tach/jari-platform/pull/37) | jari-platform | GREEN | — | MERGED | أغلق #32 |
 | [#5](https://github.com/jari-tach/saeq-backend/pull/5) | saeq-backend | GREEN | — | MERGED | Phase 1 gaps |
 | [#6](https://github.com/jari-tach/saeq-contracts/pull/6) | saeq-contracts | GREEN | — | MERGED | توثيق تأجيل Merchant فقط |
-| [#27](https://github.com/jari-tach/jari-platform/pull/27) | jari-platform | مُزامن مع main | MERGEABLE | — | **معلق عمدًا** — Geofence Device QA FAIL ([#38](https://github.com/jari-tach/jari-platform/issues/38)) |
+| [#27](https://github.com/jari-tach/jari-platform/pull/27) | jari-platform | مُزامن مع main | MERGEABLE | — | **بانتظار دمج** — Device QA Gate 4 = PASS (2026-08-04)؛ لا يُدمج إلا بأمر صريح |
 
 شروط إغلاق كل PR: محدّث مع `main`، بدون تعارض، CI أخضر، Review مكتمل، بلا Requested Changes، بلا TODO/FIXME/Debug في diff التشغيلي.
 

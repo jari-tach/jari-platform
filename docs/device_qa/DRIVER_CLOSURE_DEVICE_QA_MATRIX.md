@@ -1,9 +1,10 @@
 # Driver Closure — Device QA Matrix (Phase 4)
 
-> **Status:** IN PROGRESS — journey blockers cleared 2026-08-04; formal close pending owner review  
-> **Rules:** `PHASE_4_DEVICE_QA_EXECUTIVE_RULES.md` (ملزم)  
+> **Status:** **CLOSED — PASS** (owner approved 2026-08-04)  
+> **Official closure:** `PHASE_4_DEVICE_QA_CLOSURE_REPORT.md`  
+> **Rules:** `PHASE_4_DEVICE_QA_EXECUTIVE_RULES.md` (ملزم للتاريخ؛ المرحلة مكتملة)  
 > **Device:** HONOR VKP-NX9 (`AP4EVB6423004646`), Android **16**  
-> **Branch / HEAD (Driver):** `feature/step-4b-a-honor-live-geofence-validation` @ `1201719` + local cancel reason fix (pending commit)  
+> **Branch / HEAD (Driver):** `feature/step-4b-a-honor-live-geofence-validation` @ `3f9ec5d`  
 > **Backend:** ArrivalDto fix `cb11f7d`  
 > **Build:** `1.0.0+1` debug  
 > **Defines:** `SAEQ_BACKEND_MODE=remote`, `SAEQ_API_BASE_URL=http://127.0.0.1:3000`, `SAEQ_DEVICE_LOCATION_QA=true`  
@@ -47,7 +48,7 @@
 
 ## Gate implications
 
-- **Device QA matrix rows:** all **PASS** on evidence above (owner formal close still required).  
-- **PR #27:** still **unmerged** until owner approval + remaining closure gates (Performance → Security → Code Quality → docs → RC).  
-- **Merchant app:** still **FORBIDDEN** until gates 4→10 + owner approval (`PHASE_4_DEVICE_QA_EXECUTIVE_RULES.md` §8).  
-- **Pending Driver commit:** cancel `reasonCode` default (local working tree).
+- **Device QA (Gate 4):** **CLOSED — PASS** (owner 2026-08-04). See `PHASE_4_DEVICE_QA_CLOSURE_REPORT.md`.  
+- **PR #27:** remains **unmerged** until separate merge approval / review (no longer blocked by geofence FAIL).  
+- **Merchant app:** still **FORBIDDEN** until gates 5→10 + owner release approval.  
+- **Next:** Gate 5 Performance Review.

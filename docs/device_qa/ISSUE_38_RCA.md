@@ -1,10 +1,10 @@
 # Issue #38 — Root Cause Analysis (binding sequence)
 
-> **Status:** RC-1/RC-2 product path validated on HONOR (2026-08-04); Backend ArrivalDto whitelist bug fixed  
+> **Status:** Device QA acceptance criteria met on HONOR (2026-08-04); Gate 4 CLOSED — PASS  
 > **Date:** 2026-08-02 (updated 2026-08-04)  
 > **Device:** HONOR VKP-NX9 / Android 16  
-> **Branch (Driver):** `feature/step-4b-a-honor-live-geofence-validation` (`1201719`)  
-> **PR #27:** remains unmerged until formal Device QA matrix close + review
+> **Branch (Driver):** `feature/step-4b-a-honor-live-geofence-validation` (`3f9ec5d`)  
+> **PR #27:** unblocked for review/merge (separate owner action); Gate 4 no longer FAIL
 
 ## 1) Reproduction conditions (stable)
 
