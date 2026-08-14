@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:saeq_driver/core/backend_configuration/backend_mode.dart';
 
 /// Pure Dart CI gate (no Flutter foundation import).
+///
+/// Does **not** invent a base URL when remote URL is missing.
 void main(List<String> args) {
   final build = _arg(args, 'build');
   final mode = _arg(args, 'mode');
@@ -27,7 +29,7 @@ void main(List<String> args) {
     }
   }
 
-  check('release+remote', true, () {
+  check('release+remote+valid-url', true, () {
     _resolve(
       mode: 'remote',
       release: true,
@@ -35,10 +37,16 @@ void main(List<String> args) {
       baseUrl: 'https://api.example.com',
     );
   });
+  check('release+remote+missing-url', false, () {
+    _resolve(mode: 'remote', release: true, profile: false, baseUrl: '');
+  });
+  check('profile+remote+missing-url', false, () {
+    _resolve(mode: 'remote', release: false, profile: true, baseUrl: '');
+  });
   check('release+fake', false, () {
     _resolve(mode: 'fake', release: true, profile: false, baseUrl: '');
   });
-  check('release+missing', false, () {
+  check('release+missing-mode', false, () {
     _resolve(mode: '', release: true, profile: false, baseUrl: '');
   });
   check('release+unknown', false, () {
@@ -80,9 +88,8 @@ bool _ok({
       mode: mode,
       release: build == 'release',
       profile: build == 'profile',
-      baseUrl: baseUrl.isEmpty && mode == 'remote'
-          ? 'https://api.example.com'
-          : baseUrl,
+      // Pass caller URL as-is — never invent a default remote URL.
+      baseUrl: baseUrl,
     );
     return true;
   } catch (_) {
