@@ -36,10 +36,7 @@ final class BackendConfiguration {
     final profile = isProfileMode ?? kProfileMode;
     final debug = isDebugMode ?? kDebugMode;
 
-    const fromDefineMode = String.fromEnvironment(
-      'SAEQ_BACKEND_MODE',
-      defaultValue: 'fake',
-    );
+    const fromDefineMode = String.fromEnvironment('SAEQ_BACKEND_MODE');
     const fromDefineUrl = String.fromEnvironment(
       'SAEQ_API_BASE_URL',
       defaultValue: '',

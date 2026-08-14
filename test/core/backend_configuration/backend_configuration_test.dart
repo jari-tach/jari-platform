@@ -79,5 +79,40 @@ void main() {
         throwsA(isA<StateError>()),
       );
     });
+
+    test('missing mode is fake in debug', () {
+      final config = BackendConfiguration.resolve(
+        modeDefine: '',
+        baseUrlDefine: '',
+        isReleaseMode: false,
+        isProfileMode: false,
+        isDebugMode: true,
+      );
+      expect(config.isFake, isTrue);
+    });
+
+    test('missing mode fails in release', () {
+      expect(
+        () => BackendConfiguration.resolve(
+          modeDefine: '',
+          baseUrlDefine: '',
+          isReleaseMode: true,
+          isProfileMode: false,
+          isDebugMode: false,
+        ),
+        throwsA(isA<StateError>()),
+      );
+    });
+
+    test('remote passes in release with URL', () {
+      final config = BackendConfiguration.resolve(
+        modeDefine: 'remote',
+        baseUrlDefine: 'https://api.example.com',
+        isReleaseMode: true,
+        isProfileMode: false,
+        isDebugMode: false,
+      );
+      expect(config.isRemote, isTrue);
+    });
   });
 }

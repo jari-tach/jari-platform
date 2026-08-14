@@ -5,16 +5,16 @@ enum BackendMode {
   fake,
   remote;
 
+  /// Empty/null means missing → Fake (allowed in debug only; sealed builds
+  /// reject Fake afterward in [BackendConfiguration.resolve]).
   static BackendMode parse(String? raw) {
-    switch ((raw ?? 'fake').trim().toLowerCase()) {
-      case 'remote':
-        return BackendMode.remote;
-      case 'fake':
-        return BackendMode.fake;
-      default:
-        throw StateError(
-          'Invalid SAEQ_BACKEND_MODE="$raw". Allowed: fake|remote.',
-        );
+    final trimmed = (raw ?? '').trim().toLowerCase();
+    if (trimmed.isEmpty || trimmed == 'fake') {
+      return BackendMode.fake;
     }
+    if (trimmed == 'remote') {
+      return BackendMode.remote;
+    }
+    throw StateError('Invalid SAEQ_BACKEND_MODE. Allowed: fake|remote.');
   }
 }
