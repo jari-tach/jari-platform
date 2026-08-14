@@ -8,6 +8,7 @@ import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/routes/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/saeq_semantic_colors.dart';
+import '../../../../shared/widgets/jari_asiri_strip.dart';
 import '../../../../shared/widgets/saeq_brand_mark.dart';
 
 /// Cold-start splash — Figma Brand / فزعة Lockup + route mark.
@@ -80,6 +81,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: AppTheme.spacingMD),
+                const JariAsiriStrip(),
               ],
             ),
           ),

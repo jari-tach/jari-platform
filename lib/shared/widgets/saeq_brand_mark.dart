@@ -139,7 +139,7 @@ class SaeqBrandLockup extends StatelessWidget {
           const SizedBox(height: AppTheme.spacingSM),
           Text(
             key: const Key('saeqBrandLatin'),
-            "Faz'a",
+            'jari Driver',
             style: _latinStyle(colors.primary),
             textAlign: centered ? TextAlign.center : TextAlign.start,
           ),

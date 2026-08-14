@@ -1,11 +1,11 @@
 class AppConstants {
   const AppConstants._();
 
-  /// Product name — Figma Brand lockup `Brand / فزعة Lockup` (node 188:2).
-  static const String appName = 'فزعة';
+  /// Official platform display name.
+  static const String appName = 'jari Driver';
 
-  /// Latin brand transliteration paired with the Arabic wordmark.
-  static const String brandLatin = "Faz'a";
+  /// Latin brand paired with the wordmark.
+  static const String brandLatin = 'jari Driver';
 
   static const String appTagline = 'منصة التوصيل الاحترافية للسائقين';
   static const String appVersion = '1.0.0';

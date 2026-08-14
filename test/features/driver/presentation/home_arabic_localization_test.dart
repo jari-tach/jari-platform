@@ -181,11 +181,12 @@ void main() {
     ) async {
       await _pumpWelcome(tester, locale: const Locale('ar'));
 
-      expect(find.text('فزعة'), findsOneWidget);
+      expect(find.text('jari Driver'), findsOneWidget);
       expect(find.text('منصة التوصيل الاحترافية للسائقين'), findsOneWidget);
       expect(find.text('ابدأ'), findsOneWidget);
       expect(find.text('English'), findsOneWidget);
       expect(find.text("Faz'a"), findsNothing);
+      expect(find.text('فزعة'), findsNothing);
       expect(find.text('Start'), findsNothing);
       expect(find.textContaining('Focus now on fundamentals'), findsNothing);
     });
@@ -195,7 +196,7 @@ void main() {
     ) async {
       await _pumpWelcome(tester, locale: const Locale('en'));
 
-      expect(find.text("Faz'a"), findsOneWidget);
+      expect(find.text('jari Driver'), findsOneWidget);
       expect(
         find.text('Professional delivery platform for drivers'),
         findsOneWidget,
@@ -203,6 +204,7 @@ void main() {
       expect(find.text('Start'), findsOneWidget);
       expect(find.text('العربية'), findsOneWidget);
       expect(find.text('فزعة'), findsNothing);
+      expect(find.text("Faz'a"), findsNothing);
       expect(find.text('ابدأ'), findsNothing);
     });
   });

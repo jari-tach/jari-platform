@@ -6,6 +6,7 @@ import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/routes/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/saeq_semantic_colors.dart';
+import '../../../../shared/widgets/jari_asiri_strip.dart';
 import '../../../../shared/widgets/saeq_brand_mark.dart';
 import '../../../../shared/widgets/saeq_primary_button.dart';
 import '../../domain/entities/auth_error.dart';
@@ -351,6 +352,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   isLoading: isRequestingOtp,
                   onPressed: isBusy ? null : () => _submit(isBusy),
                 ),
+                const SizedBox(height: AppTheme.spacingLG),
+                const JariAsiriStrip(),
               ],
             ),
           ),

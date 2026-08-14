@@ -89,8 +89,8 @@ void main() {
     });
 
     test('brand appName is locale-appropriate', () {
-      expect(AppLocalizations(const Locale('en')).appName, "Faz'a");
-      expect(AppLocalizations(const Locale('ar')).appName, 'فزعة');
+      expect(AppLocalizations(const Locale('en')).appName, 'jari Driver');
+      expect(AppLocalizations(const Locale('ar')).appName, 'jari Driver');
     });
 
     test('phone format hint is shared (documented exception)', () {

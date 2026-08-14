@@ -54,8 +54,8 @@ class AppLocalizations {
   String _t(String english, String arabic) => isArabic ? arabic : english;
 
   // —— App shell / brand ——
-  /// Product wordmark from Figma Brand / فزعة Lockup (Cairo/Tajawal display).
-  String get appName => _t("Faz'a", 'فزعة');
+  /// Official platform display name (jari Driver).
+  String get appName => _t('jari Driver', 'jari Driver');
 
   /// Wordmark used in brand lockups (same as [appName]).
   String get brandWordmark => appName;
@@ -256,7 +256,8 @@ class AppLocalizations {
   String get splashTitle => brandWordmark;
   String get splashSubtitle => appTagline;
   String get splashTapToContinue => _t('Tap to continue', 'اضغط للمتابعة');
-  String get onboardingTitle => _t("Welcome to Faz'a", 'مرحباً بك في فزعة');
+  String get onboardingTitle =>
+      _t('Welcome to jari Driver', 'مرحباً بك في jari Driver');
   String get onboardingSubtitle => _t(
     'Track offers, earn with confidence, and manage deliveries easily.',
     'تابع الطلبات، اربح بثقة، وادِر توصيلاتك بسهولة.',
@@ -873,7 +874,8 @@ class AppLocalizations {
   String get supportContactPhoneLabel => _t('Phone', 'الهاتف');
   String get supportContactEmailLabel => _t('Email', 'البريد');
   String get supportContactHelpUrlLabel => _t('Help center', 'مركز المساعدة');
-  String get supportAboutSectionTitle => _t("About Faz'a", 'حول فزعة');
+  String get supportAboutSectionTitle =>
+      _t('About jari Driver', 'حول jari Driver');
   String get supportSafetyTipsAction => _t('Safety tips', 'نصائح السلامة');
   String get supportSafetyScreenTitle => _t('Safety tips', 'نصائح السلامة');
   String get supportSafetyIntro =>

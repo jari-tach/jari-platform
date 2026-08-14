@@ -81,7 +81,7 @@ class AppTheme {
   // Light Theme
   static ThemeData get lightTheme {
     final colorScheme = ColorScheme.light(
-      primary: const Color(0xFF1B5E20), // Green 900
+      primary: const Color(0xFF0F5B4E), // Green 900
       onPrimary: Colors.white,
       primaryContainer: const Color(0xFF4CAF50), // Green 500
       onPrimaryContainer: Colors.white,
@@ -108,7 +108,7 @@ class AppTheme {
       inverseSurface: const Color(0xFF212121),
       onInverseSurface: Colors.white,
       inversePrimary: const Color(0xFF81C784),
-      surfaceTint: const Color(0xFF1B5E20),
+      surfaceTint: const Color(0xFF0F5B4E),
     );
 
     return ThemeData(
@@ -349,12 +349,12 @@ class AppTheme {
   static ThemeData get darkTheme {
     final colorScheme = ColorScheme.dark(
       primary: const Color(0xFF81C784), // Green 300
-      onPrimary: const Color(0xFF1B5E20), // Green 900
+      onPrimary: const Color(0xFF0F5B4E), // Green 900
       primaryContainer: const Color(0xFF2E7D32), // Green 800
       onPrimaryContainer: const Color(0xFF81C784), // Green 300
       secondary: const Color(0xFF4CAF50), // Green 500
-      onSecondary: const Color(0xFF1B5E20), // Green 900
-      secondaryContainer: const Color(0xFF1B5E20), // Green 900
+      onSecondary: const Color(0xFF0F5B4E), // Green 900
+      secondaryContainer: const Color(0xFF0F5B4E), // Green 900
       onSecondaryContainer: const Color(0xFF81C784), // Green 300
       tertiary: const Color(0xFF4DD0E1), // Cyan 200
       onTertiary: const Color(0xFF006064), // Cyan 900
@@ -374,7 +374,7 @@ class AppTheme {
       scrim: Colors.black.withValues(alpha: 0.7),
       inverseSurface: const Color(0xFFE0E0E0),
       onInverseSurface: const Color(0xFF212121),
-      inversePrimary: const Color(0xFF1B5E20),
+      inversePrimary: const Color(0xFF0F5B4E),
       surfaceTint: const Color(0xFF81C784),
     );
 
@@ -404,21 +404,21 @@ class AppTheme {
 class AppColors {
   AppColors._();
 
-  static const Color surface = Color(0xFFFFFFFF);
-  static const Color surfaceVariant = Color(0xFFF5F5F5);
-  static const Color elevatedSurface = Color(0xFFF5F5F5);
-  static const Color background = Color(0xFFF7F8F7);
-  static const Color border = Color(0xFFE0E0E0);
-  static const Color primary = Color(0xFF1B5E20);
-  static const Color primaryContainer = Color(0xFFE8F5E9);
-  static const Color secondary = Color(0xFF2E7D32);
-  static const Color accent = Color(0xFF00838F);
-  static const Color textPrimary = Color(0xFF212121);
-  static const Color textSecondary = Color(0xFF616161);
-  static const Color disabled = Color(0xFF9E9E9E);
-  static const Color error = Color(0xFFD32F2F);
+  static const Color surface = Color(0xFFFFFBF5);
+  static const Color surfaceVariant = Color(0xFFEFE8DC);
+  static const Color elevatedSurface = Color(0xFFFFFBF5);
+  static const Color background = Color(0xFFF7F3E9);
+  static const Color border = Color(0xFFCFC6B8);
+  static const Color primary = Color(0xFF0F5B4E);
+  static const Color primaryContainer = Color(0xFFE8F3ED);
+  static const Color secondary = Color(0xFFD4A633);
+  static const Color accent = Color(0xFFC4553A);
+  static const Color textPrimary = Color(0xFF18201D);
+  static const Color textSecondary = Color(0xFF69736F);
+  static const Color disabled = Color(0xFFB8C0BC);
+  static const Color error = Color(0xFFC93C3C);
   static const Color success = Color(0xFF2E7D32);
-  static const Color warning = Color(0xFFE65100);
+  static const Color warning = Color(0xFFD4A633);
   static const Color information = Color(0xFF0277BD);
   static const Color busy = Color(0xFFEF6C00);
 }
