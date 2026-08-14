@@ -70,6 +70,15 @@ void main(List<String> args) {
     '*.keystore',
   ]);
 
+  requireFile(
+    'tool/w5_verify_android_artifacts.sh',
+    mustContain: 'ANDROID_UPLOAD_CERT_SHA256',
+  );
+  requireFile(
+    'tool/w5_enforce_signing_ref.sh',
+    mustContain: 'refs/heads/release/',
+  );
+
   if (failures.isNotEmpty) {
     stderr.writeln('W5 Android signing gate FAILED:');
     for (final f in failures) {
