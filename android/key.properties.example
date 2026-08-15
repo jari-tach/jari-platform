@@ -1,8 +1,13 @@
-# Copy to android/key.properties (gitignored) and fill local/upload values.
-# NEVER commit real passwords or keystore binaries.
-# storeFile is resolved relative to android/app/
+# Android upload keystore config — LOCAL / CI SECRET STORE ONLY.
+# Copy to android/key.properties (gitignored). Never commit real values.
+#
+# storeFile may be absolute or relative to the android/ directory.
+#
+# CI also requires Environment var ANDROID_UPLOAD_CERT_SHA256 (outside Git):
+# the SHA-256 fingerprint of the upload certificate, compared literally to
+# jarsigner/apksigner output after release builds.
 
-storePassword=REPLACE_ME
-keyPassword=REPLACE_ME
-keyAlias=upload
+storePassword=replace-locally
+keyPassword=replace-locally
+keyAlias=replace-locally
 storeFile=upload-keystore.jks

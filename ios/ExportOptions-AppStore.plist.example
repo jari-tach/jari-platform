@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  W5 ExportOptions template for App Store distribution.
+  CI generates the real file at runtime from Environment vars (outside Git):
+    IOS_BUNDLE_ID, APPLE_TEAM_ID, IOS_PROVISIONING_PROFILE_NAME
+  Never commit filled Production values.
+-->
+<plist version="1.0">
+<dict>
+  <key>method</key>
+  <string>app-store</string>
+  <key>signingStyle</key>
+  <string>manual</string>
+  <key>teamID</key>
+  <string>REPLACE_APPLE_TEAM_ID</string>
+  <key>uploadSymbols</key>
+  <true/>
+  <key>compileBitcode</key>
+  <false/>
+  <key>destination</key>
+  <string>export</string>
+  <key>signingCertificate</key>
+  <string>Apple Distribution</string>
+  <key>provisioningProfiles</key>
+  <dict>
+    <key>REPLACE_IOS_BUNDLE_ID</key>
+    <string>REPLACE_IOS_PROVISIONING_PROFILE_NAME</string>
+  </dict>
+</dict>
+</plist>

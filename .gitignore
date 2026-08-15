@@ -147,4 +147,16 @@ test_coverage/
 /device_test_artifacts/
 device_alpha_run*.log
 flutter_analyze_report.txt
-
+# W5 / P0-04 — signing material (never commit)
+**/key.properties
+!**/key.properties.example
+android/key.properties
+**/*.jks
+**/*.keystore
+**/*.p12
+**/*.mobileprovision
+**/AuthKey_*.p8
+**/*-upload-keystore*
+windows/signing/*.pfx
+windows/signing/*.p12
+windows/signing/local/

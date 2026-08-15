@@ -1,18 +1,95 @@
 import java.util.Properties
-import java.io.FileInputStream
 
 plugins {
     id("com.android.application")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-val keystorePropertiesFile = rootProject.file("key.properties")
-val keystoreProperties = Properties()
-val hasReleaseKeystore = keystorePropertiesFile.exists()
-if (hasReleaseKeystore) {
-    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+fun isAndroidReleaseTaskRequested(): Boolean =
+    gradle.startParameter.taskNames.any { name ->
+        val n = name.lowercase()
+        n.contains("release") &&
+            (n.contains("assemble") ||
+                n.contains("bundle") ||
+                n.contains("package") ||
+                n.contains("bundleaab"))
+    }
+
+fun loadReleaseKeystoreProperties(): Properties {
+    val propsFile = rootProject.file("key.properties")
+    if (!propsFile.isFile) {
+        throw GradleException(
+            "W5 release signing refused: missing ${propsFile.path}. " +
+                "Copy android/key.properties.example and never commit key.properties or keystores.",
+        )
+    }
+    val props = Properties()
+    // Strip UTF-8 BOM if present (common when editing key.properties on Windows).
+    val raw = propsFile.readBytes()
+    val offset =
+        if (raw.size >= 3 &&
+            raw[0] == 0xEF.toByte() &&
+            raw[1] == 0xBB.toByte() &&
+            raw[2] == 0xBF.toByte()
+        ) {
+            3
+        } else {
+            0
+        }
+    props.load(raw.inputStream(offset, raw.size - offset).reader(Charsets.UTF_8))
+    val required = listOf("storePassword", "keyPassword", "keyAlias", "storeFile")
+    for (key in required) {
+        val value = props.getProperty(key)?.trim().orEmpty()
+        if (value.isEmpty()) {
+            throw GradleException("W5 release signing refused: '$key' is empty in key.properties.")
+        }
+        val lower = value.lowercase()
+        if (
+            lower == "replace-locally" ||
+            lower == "changeme" ||
+            lower.contains("placeholder") ||
+            lower.contains("your_") ||
+            lower == "password" ||
+            lower == "alias"
+        ) {
+            throw GradleException(
+                "W5 release signing refused: '$key' still looks like a placeholder.",
+            )
+        }
+    }
+    val storePath = props.getProperty("storeFile")!!.trim()
+    val storeFile =
+        if (file(storePath).isAbsolute) {
+            file(storePath)
+        } else {
+            rootProject.file(storePath)
+        }
+    if (!storeFile.isFile) {
+        throw GradleException(
+            "W5 release signing refused: keystore not found at ${storeFile.path}.",
+        )
+    }
+    val pathLower = storeFile.absolutePath.lowercase().replace('\\', '/')
+    if (
+        storeFile.name.equals("debug.keystore", ignoreCase = true) ||
+        pathLower.endsWith("/debug.keystore") ||
+        pathLower.contains("/.android/debug.keystore")
+    ) {
+        throw GradleException(
+            "W5 release signing refused: debug.keystore is forbidden for release builds.",
+        )
+    }
+    props.setProperty("_resolvedStoreFile", storeFile.absolutePath)
+    return props
 }
+
+val releaseRequested = isAndroidReleaseTaskRequested()
+val releaseKeystoreProps: Properties? =
+    if (releaseRequested) {
+        loadReleaseKeystoreProperties()
+    } else {
+        null
+    }
 
 android {
     namespace = "com.saeq.driver"
@@ -33,23 +110,24 @@ android {
     }
 
     signingConfigs {
-        if (hasReleaseKeystore) {
+        if (releaseKeystoreProps != null) {
             create("release") {
-                keyAlias = keystoreProperties["keyAlias"] as String
-                keyPassword = keystoreProperties["keyPassword"] as String
-                storeFile = file(keystoreProperties["storeFile"] as String)
-                storePassword = keystoreProperties["storePassword"] as String
+                keyAlias = releaseKeystoreProps.getProperty("keyAlias")
+                keyPassword = releaseKeystoreProps.getProperty("keyPassword")
+                storeFile = file(releaseKeystoreProps.getProperty("_resolvedStoreFile")!!)
+                storePassword = releaseKeystoreProps.getProperty("storePassword")
             }
         }
     }
 
     buildTypes {
         release {
-            // Never fall back to debug signing for release builds.
-            if (hasReleaseKeystore) {
+            // W5: never fall back to debug signing; fail closed when Release is requested.
+            if (releaseKeystoreProps != null) {
                 signingConfig = signingConfigs.getByName("release")
+            } else if (releaseRequested) {
+                throw GradleException("W5 release signing refused: release keystore not configured.")
             }
-            // Keep minify off until a dedicated mapping smoke test is approved.
             isMinifyEnabled = false
             isShrinkResources = false
         }
