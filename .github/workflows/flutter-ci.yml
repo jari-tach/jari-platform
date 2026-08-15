@@ -20,6 +20,10 @@ on:
         description: "TEST SIGNING ONLY — ephemeral Android keystore (not production). Ref must be release/* or v*."
         type: boolean
         default: false
+      allow_production_sign:
+        description: "REAL production Android/iOS signing for M3 Phase 2 evidence only (not store upload). Ref must be release/* or v*."
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -108,6 +112,8 @@ jobs:
     runs-on: macos-latest
     needs: [analyze_test, signing_ref_gate]
     if: >
+      github.event_name == 'workflow_dispatch' &&
+      inputs.allow_production_sign == true &&
       needs.analyze_test.result == 'success' &&
       needs.signing_ref_gate.result == 'success' &&
       (startsWith(github.ref, 'refs/heads/release/') ||
@@ -328,6 +334,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [analyze_test, signing_ref_gate]
     if: >
+      github.event_name == 'workflow_dispatch' &&
+      inputs.allow_production_sign == true &&
       needs.analyze_test.result == 'success' &&
       needs.signing_ref_gate.result == 'success' &&
       (startsWith(github.ref, 'refs/heads/release/') ||
