@@ -79,7 +79,7 @@ if [[ -n "$APK" ]]; then
     echo "W5 FAIL: debug certificate detected in APK" >&2
     exit 1
   fi
-  APK_SHA_LINE="$(grep -i 'Signer #1 certificate SHA-256 digest:' /tmp/w5-apk-apksigner.txt | head -n1 || true)"
+  APK_SHA_LINE="$(grep -iE 'certificate SHA-256 digest:' /tmp/w5-apk-apksigner.txt | head -n1 || true)"
   APK_SHA="$(normalize_sha "$(echo "$APK_SHA_LINE" | sed -E 's/.*SHA-256 digest:[[:space:]]*//I')")"
   if [[ ${#APK_SHA} -ne 64 ]]; then
     echo "W5 FAIL: could not parse APK signer SHA-256" >&2
