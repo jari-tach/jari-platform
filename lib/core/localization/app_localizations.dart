@@ -376,11 +376,11 @@ class AppLocalizations {
 
   String get otpTitle => _t('Enter verification code', 'أدخل رمز التحقق');
   String get otpSubtitle => _t(
-    'Enter the 6-digit code sent to your phone.',
-    'أدخل الرمز المكوّن من 6 أرقام المرسل إلى جوالك.',
+    'Enter the 6-digit code sent to your phone via WhatsApp.',
+    'أدخل الرمز المكوّن من 6 أرقام المرسل إلى جوالك عبر واتساب.',
   );
   String otpSentToMasked(String maskedPhone) =>
-      _t('We sent a code to $maskedPhone', 'أرسلنا رمزاً إلى $maskedPhone');
+      _t('We sent a WhatsApp code to $maskedPhone', 'أرسلنا رمزاً عبر واتساب إلى $maskedPhone');
   String get otpCodeLabel => _t('Verification code', 'رمز التحقق');
   String get otpCodeHint => _t('6-digit code', 'رمز من 6 أرقام');
 
